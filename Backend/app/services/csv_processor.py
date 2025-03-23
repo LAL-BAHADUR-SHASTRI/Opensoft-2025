@@ -4,6 +4,7 @@ from sqlalchemy import inspect, text
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
+import os
 
 # Import models
 from app.models.activity import ActivityTracker
@@ -12,20 +13,66 @@ from app.models.leave import LeaveTracker
 from app.models.performance import PerformanceTracker
 from app.models.rewards import RewardsTracker
 from app.models.employee import Employee
+from app.models.onboarding import OnboardingTracker
 
 logger = logging.getLogger(__name__)
 
 class CSVProcessor:
     def __init__(self, db: Session):
         self.db = db
-        # Define expected headers for each table
-        self.table_headers = {
-            "activity_tracker": ["Employee_ID", "Date", "Teams_Messages_Sent", "Emails_Sent", "Meetings_Attended", "Work_Hours"],
-            "vibe_meter": ["Employee_ID", "Date", "Mood_Score", "Comments"],
-            "leave_tracker": ["Employee_ID", "Start_Date", "End_Date", "Leave_Type", "Status", "Days"],
-            "performance_tracker": ["Employee_ID", "Review_Date", "Rating", "Manager_ID", "Comments"],
-            "rewards_tracker": ["Employee_ID", "Date", "Reward_Type", "Amount", "Justification"],
-            "employee": ["Employee_ID", "Name", "Department", "Manager_ID", "Join_Date", "Position"]
+        
+        # Map filenames to tables
+        self.filename_to_table = {
+            "activity_tracker_dataset": "activity_tracker",
+            "vibemeter_dataset": "vibe_meter",
+            "leave_dataset": "leave_tracker",
+            "performance_dataset": "performance_tracker", 
+            "rewards_dataset": "rewards_tracker",
+            "onboarding_dataset": "onboarding_tracker"
+        }
+        
+        # Define header mappings for each file type
+        self.header_mappings = {
+            "activity_tracker": {
+                "Employee_ID": "employee_id",
+                "Teams_Messages_Sent": "teams_messages",
+                "Emails_Sent": "emails",
+                "Meetings_Attended": "meetings",
+                "Work_Hours": "hours"
+            },
+            "vibe_meter": {
+                "Employee_ID": "employee_id",
+                "Response_Date": "date",
+                "Vibe_Score": "score",
+                "Emotion_Zone": "emotion"
+            },
+            "leave_tracker": {
+                "Employee_ID": "employee_id",
+                "Leave_Type": "leave_type",
+                "Leave_Days": "days",
+                "Leave_Start_Date": "start_date",
+                "Leave_End_Date": "end_date"
+            },
+            "performance_tracker": {
+                "Employee_ID": "employee_id",
+                "Review_Period": "period",
+                "Performance_Rating": "rating",
+                "Manager_Feedback": "feedback",
+                "Promotion_Consideration": "promotion_eligible"
+            },
+            "rewards_tracker": {
+                "Employee_ID": "employee_id",
+                "Award_Type": "reward_type",
+                "Award_Date": "date",
+                "Reward_Points": "points"
+            },
+            "onboarding_tracker": {
+                "Employee_ID": "employee_id",
+                "Joining_Date": "join_date",
+                "Onboarding_Feedback": "feedback", 
+                "Mentor_Assigned": "mentor",
+                "Initial_Training_Completed": "training_completed"
+            }
         }
         
         # Map tables to their model classes
@@ -35,19 +82,32 @@ class CSVProcessor:
             "leave_tracker": LeaveTracker,
             "performance_tracker": PerformanceTracker,
             "rewards_tracker": RewardsTracker,
-            "employee": Employee
+            "employee": Employee,
+            "onboarding_tracker": OnboardingTracker
         }
     
     def process_csv(self, df: pd.DataFrame, filename: str) -> Dict[str, Any]:
         """
         Process a CSV file and insert its data into the appropriate table
-        based on header detection
+        based on header detection and/or filename
         """
         # Get the headers from the DataFrame
         headers = list(df.columns)
         
-        # Determine which table this belongs to
-        table_name = self._identify_table(headers)
+        # Extract the base filename without extension
+        base_filename = os.path.splitext(os.path.basename(filename))[0]
+        
+        # First try to identify table by filename
+        table_name = None
+        for file_pattern, table in self.filename_to_table.items():
+            if file_pattern in base_filename:
+                table_name = table
+                break
+        
+        # If not found by filename, try header matching as fallback
+        if not table_name:
+            logger.warning(f"Could not identify table for file {filename} by name, trying headers")
+            table_name = self._identify_table_by_headers(headers)
         
         if not table_name:
             return {
@@ -72,25 +132,12 @@ class CSVProcessor:
                 "message": f"Error: {str(e)}"
             }
     
-    def _identify_table(self, headers: List[str]) -> str:
+    def _identify_table_by_headers(self, headers: List[str]) -> str:
         """
-        Identify which table the CSV belongs to based on its headers
-        Returns the table name or None if no match
+        Fallback method to identify table by headers when filename doesn't match
         """
-        best_match = None
-        best_match_score = 0
-        
-        for table_name, expected_headers in self.table_headers.items():
-            # Calculate match score (number of matching headers)
-            match_score = sum(1 for h in headers if h in expected_headers)
-            match_percentage = match_score / len(expected_headers)
-            
-            # If we have a better match, update
-            if match_percentage > 0.7 and match_percentage > best_match_score:
-                best_match = table_name
-                best_match_score = match_percentage
-        
-        return best_match
+        # Implement if needed, but primary identification should be by filename
+        return None
     
     def _insert_data(self, df: pd.DataFrame, table_name: str) -> int:
         """
@@ -100,39 +147,39 @@ class CSVProcessor:
         model_class = self.table_models[table_name]
         records_added = 0
         
+        # Get the mapping for this table's headers
+        header_mapping = self.header_mappings.get(table_name, {})
+        
         # Process each row and insert
         for _, row in df.iterrows():
             # Convert row to dict
             row_dict = row.to_dict()
             
-            # Handle date fields for different tables
-            if table_name == "activity_tracker" and "Date" in row_dict:
-                row_dict["date"] = self._parse_date(row_dict.pop("Date"))
-            elif table_name == "vibe_meter" and "Date" in row_dict:
-                row_dict["date"] = self._parse_date(row_dict.pop("Date"))
-            elif table_name == "leave_tracker":
-                if "Start_Date" in row_dict:
-                    row_dict["start_date"] = self._parse_date(row_dict.pop("Start_Date"))
-                if "End_Date" in row_dict:
-                    row_dict["end_date"] = self._parse_date(row_dict.pop("End_Date"))
-            elif table_name == "performance_tracker" and "Review_Date" in row_dict:
-                row_dict["review_date"] = self._parse_date(row_dict.pop("Review_Date"))
-            elif table_name == "rewards_tracker" and "Date" in row_dict:
-                row_dict["date"] = self._parse_date(row_dict.pop("Date"))
-            elif table_name == "employee" and "Join_Date" in row_dict:
-                row_dict["join_date"] = self._parse_date(row_dict.pop("Join_Date"))
-                
-            # Convert to snake_case and standardize column names
+            # Apply header mappings and handle field conversion
             processed_row = {}
             for key, value in row_dict.items():
-                # Convert camel/pascal case to snake_case
-                snake_key = "".join(["_" + c.lower() if c.isupper() else c for c in key]).lstrip("_")
-                processed_row[snake_key] = value
+                # Skip null/NaN values
+                if pd.isna(value):
+                    continue
+                    
+                # Use explicit mapping if available
+                if key in header_mapping:
+                    processed_key = header_mapping[key]
+                else:
+                    # Convert snake case properly (fix the double underscore issue)
+                    # This replaces the previous incorrect conversion
+                    processed_key = key.lower().replace(" ", "_")
+                    
+                processed_row[processed_key] = value
             
-            # Create model instance
-            db_model = model_class(**processed_row)
-            self.db.add(db_model)
-            records_added += 1
+            try:
+                # Create model instance
+                db_model = model_class(**processed_row)
+                self.db.add(db_model)
+                records_added += 1
+            except Exception as e:
+                logger.error(f"Error inserting row: {str(e)}, data: {processed_row}")
+                raise
         
         # Commit all changes
         self.db.commit()
