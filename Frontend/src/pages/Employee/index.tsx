@@ -1,8 +1,8 @@
 const EmployeePage = () => {
   return (
     <div>
-
-     EmployeePage</div>
+      
+    </div>
   )
 }
 export default EmployeePage
