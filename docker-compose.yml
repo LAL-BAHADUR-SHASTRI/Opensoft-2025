@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./Backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/vibemeter
+      - ENVIRONMENT=development
+      - HOST=0.0.0.0  # Make sure we bind to all interfaces
+    depends_on:
+      - db
+    command: bash -c "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build: ./Frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000  # Changed to VITE_ prefix
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vibemeter
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
