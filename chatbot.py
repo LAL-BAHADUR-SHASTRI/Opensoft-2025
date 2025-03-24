@@ -6,7 +6,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import modal
-import subprocess
 import json
 import ast
 import readline
@@ -22,7 +21,6 @@ FEEDBACK_FILE = "employee_feedback.csv"
 ESCALATION_FILE = "hr_escalations.csv"
 SCHEDULE_FILE = "interaction_schedule.csv"
 
-# Initialize CSV files if they don't exist
 def init_csv():
     for file, headers in [
         (FEEDBACK_FILE, ["employee_id", "question", "response", "sentiment", "reason", "date"]),
@@ -33,7 +31,6 @@ def init_csv():
             pd.DataFrame(columns=headers).to_csv(file, index=False)
             print(f"Created {file}")
 
-# Helper functions for processing responses
 def save_response(employee_id, question, response, sentiment, reason):
     new_entry = {
         "employee_id": employee_id,
@@ -56,7 +53,6 @@ def check_and_escalate(employee_id):
         (df["sentiment"].isin(["Sad Zone", "Leaning to Sad Zone", "Frustrated Zone"])) &
         (df["date"] >= cutoff_date)
     ]
-
     if len(recent_feedback) >= 3:
         escalation_df = pd.read_csv(ESCALATION_FILE)
         new_esc = {
@@ -74,20 +70,16 @@ def update_interaction_schedule(employee_id, sentiment):
         days = 1
     elif sentiment in ["Neutral Zone (OK)", "Leaning to Happy Zone"]:
         days = 3
-
     next_date = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
     df = pd.read_csv(SCHEDULE_FILE)
-    
     if employee_id in df["employee_id"].values:
         df.loc[df["employee_id"] == employee_id, "next_interaction"] = next_date
     else:
         new_entry = {"employee_id": employee_id, "next_interaction": next_date}
         df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
-    
     df.to_csv(SCHEDULE_FILE, index=False)
     print(f"Updated schedule: next interaction in {days} days")
 
-# Get expanded question bank
 def get_expanded_questions():
     """Returns an expanded list of workplace questions"""
     return [
@@ -155,32 +147,23 @@ def get_expanded_questions():
         "Do you feel you have enough support with your tasks?"
     ]
 
-# Modal functions for sentiment analysis and next question generation
+
 @stub.function(
     image=image,
     secrets=[modal.Secret.from_name("huggingface-token")]
 )
 def analyze_emotion_and_reason(response):
     from transformers import pipeline
-    import os
-    
     try:
-        # Use a simpler model that doesn't require token
         sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
-        
-        # Basic sentiment analysis
         result = sentiment_analyzer(response)
         raw_sentiment = result[0]['label']
         sentiment_score = result[0]['score']
-        
-        # IMPROVED: More sensitive to positive sentiment with lower thresholds
+
         if raw_sentiment == "POSITIVE":
-            if sentiment_score > 0.75:  # Lower threshold for Happy Zone
-                sentiment = "Happy Zone"
-            else:
-                sentiment = "Leaning to Happy Zone"
-        else:  # NEGATIVE
-            if sentiment_score > 0.85:  # Higher threshold for Sad Zone
+            sentiment = "Happy Zone" if sentiment_score > 0.75 else "Leaning to Happy Zone"
+        else:
+            if sentiment_score > 0.85:
                 sentiment = "Sad Zone"
             elif sentiment_score > 0.7:
                 sentiment = "Leaning to Sad Zone"
@@ -188,24 +171,19 @@ def analyze_emotion_and_reason(response):
                 sentiment = "Frustrated Zone"
             else:
                 sentiment = "Neutral Zone (OK)"
-            
-        # IMPROVED: Add more positive keywords
+
         positive_keywords = ["love", "enjoy", "great", "excellent", "fantastic", "happy", "satisfied", 
-                           "content", "appreciate", "wonderful", "positive", "good", "well", "awesome","clean","safe","comfortable","supportive","helpful"]
-        
-        # If any positive keywords, boost sentiment if neutral
+                           "content", "appreciate", "wonderful", "positive", "good", "well", "awesome"]
         if sentiment == "Neutral Zone (OK)":
             for keyword in positive_keywords:
                 if keyword in response.lower():
                     sentiment = "Leaning to Happy Zone"
                     break
-        
-        # Simple keyword analysis for reasons
+
         reason_keywords = {
             "workload": "Work volume concerns",
             "stress": "Stress-related issues",
             "colleague": "Interpersonal dynamics",
-            "team": "Team dynamics",
             "manager": "Management concerns",
             "leadership": "Leadership issues",
             "environment": "Workplace environment",
@@ -221,14 +199,12 @@ def analyze_emotion_and_reason(response):
             "opportunity": "Career development",
             "communication": "Communication issues"
         }
-        
         reason = "General feedback"
         for keyword, explanation in reason_keywords.items():
             if keyword.lower() in response.lower():
                 reason = explanation
                 break
-  
-        
+
         return sentiment, reason
     except Exception as e:
         print(f"Analysis error: {str(e)}")
@@ -239,14 +215,7 @@ def analyze_emotion_and_reason(response):
     secrets=[modal.Secret.from_name("huggingface-token")]
 )
 def select_next_question_remote(conversation_history):
-    from transformers import pipeline
-    import os
-    
     try:
-        # Generate question using a pre-defined set of follow-up questions
-        # based on detected keywords
-        
-        # List of potential follow-up questions for different topics
         follow_up_questions = {
             "workload": [
                 "How does your workload affect your work-life balance?",
@@ -284,182 +253,68 @@ def select_next_question_remote(conversation_history):
                 "What policies could improve work-life balance?"
             ]
         }
-        
-        # Check for keywords in the conversation history
         matching_topics = []
-        for topic, questions in follow_up_questions.items():
+        for topic in follow_up_questions.keys():
             if topic in conversation_history.lower():
                 matching_topics.append(topic)
         
-        # If we have matching topics, choose a relevant follow-up question
         if matching_topics:
             import random
             topic = random.choice(matching_topics)
             return random.choice(follow_up_questions[topic])
         
-        # If no specific topics are detected, use general follow-up questions
         general_questions = [
             "Could you elaborate more on that?",
             "How does that impact your overall job satisfaction?",
-            "What changes would you suggest to improve this situation?",
-            "How long has this been a concern for you?",
-            "Is there anything else you'd like to share about your experience?"
+            "What changes would you suggest to improve this situation?"
         ]
-        
         import random
         return random.choice(general_questions)
     except Exception as e:
         print(f"Question generation error: {str(e)}")
         return "Is there anything else you'd like to share about your work experience?"
 
-# API endpoints (for web use)
-@stub.function(
-    image=image,
-    secrets=[modal.Secret.from_name("huggingface-token")]
-)
-def analyze_text_api(text):
-    # Use subprocess to call the analyze function
-    cmd = ["modal", "run", "chatbot.py::analyze_emotion_and_reason", "--response", text]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    
-    # Parse output
-    output_lines = result.stdout.strip().split('\n')
-    sentiment = "Neutral Zone (OK)"
-    reason = "General feedback"
-    
-    # Find sentiment analysis result
-    for line in output_lines:
-        if '(' in line and ')' in line and ',' in line:
-            try:
-                sentiment, reason = ast.literal_eval(line.strip())
-                break
-            except:
-                pass
-    
-    return {"sentiment": sentiment, "reason": reason}
-
-@stub.function(
-    image=image,
-    secrets=[modal.Secret.from_name("huggingface-token")]
-)
-def next_question_api(conversation):
-    # Use subprocess to call the next question function
-    cmd = ["modal", "run", "chatbot.py::select_next_question_remote", "--conversation_history", conversation]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    
-    # Parse output
-    output_lines = result.stdout.strip().split('\n')
-    next_q = "Could you tell me more about your work experience?"
-    
-    # Find next question in output
-    for line in output_lines:
-        if line and not line.startswith(('[', '{', '(', 'Running')):
-            next_q = line.strip()
-            break
-    
-    return {"question": next_q}
-
-# Interactive chatbot function
 def run_interactive_chatbot(employee_id):
-    """Interactive chatbot that collects responses and ONLY shows analysis at the end"""
     print("Chatbot: Hello! Let's discuss your work experience.")
-    
-    # Data collection
     responses_data = []
     conversation_history = []
-    
-    # Get expanded question set
     GENERAL_QUESTIONS = get_expanded_questions()
-    
     MAX_QUESTIONS = 15
     question_index = 0
-    
-    # Adaptive questioning variables
-    negative_response_count = 0
-    positive_response_count = 0
+
     max_questions_per_sentiment = {
-        "positive": 5,  # Ask fewer questions to happy employees
-        "neutral": 8,   # Ask a moderate number to neutral employees
-        "negative": 12  # Ask more questions to unhappy employees
+        "positive": 5,
+        "neutral": 8,
+        "negative": 12
     }
-    
-    current_max_questions = max_questions_per_sentiment["neutral"]  # Start with default
-    
-    # Phase 1: Collect all responses WITHOUT showing analysis
-    print("\n===== COLLECTING EMPLOYEE FEEDBACK =====")
+    current_max_questions = max_questions_per_sentiment["neutral"]
+
     while question_index < len(GENERAL_QUESTIONS) and question_index < current_max_questions:
         question = GENERAL_QUESTIONS[question_index]
         response = input(f"Chatbot: {question}\nYou: ")
-        
-        # Store response without immediate analysis
         responses_data.append({
             "question": question,
             "response": response
         })
-        
         conversation_history.append(f"Q: {question}\nA: {response}")
+
+        sentiment, _ = analyze_emotion_and_reason.remote(response)
         
-        # Silently analyze sentiment to adjust question count
-        try:
-            cmd = ["modal", "run", "chatbot.py::analyze_emotion_and_reason", "--response", response]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            
-            output_lines = result.stdout.strip().split('\n')
-            sentiment = "Neutral Zone (OK)"
-            
-            for line in output_lines:
-                if '(' in line and ')' in line and ',' in line:
-                    try:
-                        sentiment, _ = ast.literal_eval(line.strip())
-                        break
-                    except:
-                        pass
-            
-            # Adjust question count based on sentiment WITHOUT DISPLAYING
-            if sentiment in ["Sad Zone", "Leaning to Sad Zone", "Frustrated Zone"]:
-                negative_response_count += 1
-                current_max_questions = max_questions_per_sentiment["negative"]
-            elif sentiment in ["Happy Zone", "Leaning to Happy Zone"]:
-                positive_response_count += 1
-                current_max_questions = max_questions_per_sentiment["positive"]
-        except:
-            pass
-        
-        # Get next question if needed
+        if sentiment in ["Sad Zone", "Leaning to Sad Zone", "Frustrated Zone"]:
+            current_max_questions = max_questions_per_sentiment["negative"]
+        elif sentiment in ["Happy Zone", "Leaning to Happy Zone"]:
+            current_max_questions = max_questions_per_sentiment["positive"]
+
         if question_index < current_max_questions - 1:
-            try:
-                # ADD THIS: Show a message that we're generating the next question
-                print("Generating next question...")
-                
-                conv_text = "\n".join(conversation_history)
-                
-                cmd = ["modal", "run", "chatbot.py::select_next_question_remote", 
-                       "--conversation_history", conv_text]
-                result = subprocess.run(cmd, capture_output=True, text=True)
-                
-                output_lines = result.stdout.strip().split('\n')
-                next_q = None
-                for line in output_lines:
-                    if line and not line.startswith(('[', '{', '(', 'Running')):
-                        next_q = line.strip()
-                        break
-                
-                if next_q and next_q.lower() not in ["none", "no", ""]:
-                    GENERAL_QUESTIONS.append(next_q)
-            except Exception as e:
-                # Just add a default question
-                GENERAL_QUESTIONS.append("Could you tell me more about your work experience?")
+            print("Generating next question...")
+            conv_text = "\n".join(conversation_history)
+            next_q = select_next_question_remote.remote(conv_text)
+            if next_q and next_q not in GENERAL_QUESTIONS:
+                GENERAL_QUESTIONS.append(next_q)
         
         question_index += 1
-    
+
     print("\nThank you for your responses! Analyzing your feedback...")
-    
-    # Rest of your function remains the same
-    
-    # Phase 2: Analyze all responses - ONLY SHOW FINAL RESULTS
-    # (continue with your existing analysis code)
-    
-    # Process all responses at once (this happens silently)
     sentiment_counts = {
         "Happy Zone": 0,
         "Leaning to Happy Zone": 0,
@@ -468,61 +323,27 @@ def run_interactive_chatbot(employee_id):
         "Sad Zone": 0,
         "Frustrated Zone": 0
     }
-    
     reasons = []
     all_sentiments = []
     all_reasons = []
-    
-    # Process each response silently
+
     for data in responses_data:
         question = data["question"]
         response = data["response"]
+        sentiment, reason = analyze_emotion_and_reason.remote(response)
         
-        try:
-            cmd = ["modal", "run", "chatbot.py::analyze_emotion_and_reason", "--response", response]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            
-            output_lines = result.stdout.strip().split('\n')
-            sentiment = "Neutral Zone (OK)"
-            reason = "General feedback"
-            
-            for line in output_lines:
-                if '(' in line and ')' in line and ',' in line:
-                    try:
-                        sentiment, reason = ast.literal_eval(line.strip())
-                        break
-                    except:
-                        pass
-            
-            # Count sentiments
-            if sentiment in sentiment_counts:
-                sentiment_counts[sentiment] += 1
-            
-            if reason not in reasons:
-                reasons.append(reason)
-            
-            # Save for final report
-            all_sentiments.append(sentiment)
-            all_reasons.append(reason)
-            
-            # Save to feedback file silently
-            save_response(employee_id, question, response, sentiment, reason)
-            
-        except Exception as e:
-            all_sentiments.append("Neutral Zone (OK)")
-            all_reasons.append("Analysis error")
-            save_response(employee_id, question, response, "Neutral Zone (OK)", "Analysis error")
-    
-    # Determine overall sentiment
-    total_responses = sum(sentiment_counts.values())
+        sentiment_counts[sentiment] += 1
+        reasons.append(reason)
+        all_sentiments.append(sentiment)
+        all_reasons.append(reason)
+        save_response(employee_id, question, response, sentiment, reason)
+
     negative_count = (sentiment_counts["Sad Zone"] + 
                      sentiment_counts["Leaning to Sad Zone"] + 
                      sentiment_counts["Frustrated Zone"])
-    
     positive_count = (sentiment_counts["Happy Zone"] + 
                      sentiment_counts["Leaning to Happy Zone"])
-    
-    # Set overall sentiment category more accurately
+
     if positive_count > negative_count * 2:
         sentiment_category = "Very Positive"
     elif positive_count > negative_count:
@@ -533,146 +354,37 @@ def run_interactive_chatbot(employee_id):
         sentiment_category = "Needs Attention"
     else:
         sentiment_category = "Mixed"
-    
-    # Check if there are enough negative responses for escalation
+
     if negative_count >= 3:
-        # Handle escalation...
-        escalation_df = pd.read_csv(ESCALATION_FILE)
-        new_esc = {
-            "employee_id": employee_id,
-            "escalation_reason": "Multiple negative sentiments detected",
-            "date": datetime.now().strftime("%Y-%m-%d")
-        }
-        escalation_df = pd.concat([escalation_df, pd.DataFrame([new_esc])], ignore_index=True)
-        escalation_df.to_csv(ESCALATION_FILE, index=False)
-    
-    # Schedule next interaction based on overall sentiment
+        check_and_escalate(employee_id)
+
+    next_days = 7
     if negative_count > positive_count:
         next_days = 1
     elif negative_count > 0:
         next_days = 3
-    else:
-        next_days = 7
-    
-    # Update schedule
-    next_date = (datetime.now() + timedelta(days=next_days)).strftime("%Y-%m-%d")
-    df = pd.read_csv(SCHEDULE_FILE)
-    
-    if employee_id in df["employee_id"].values:
-        df.loc[df["employee_id"] == employee_id, "next_interaction"] = next_date
-    else:
-        new_entry = {"employee_id": employee_id, "next_interaction": next_date}
-        df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
-    
-    df.to_csv(SCHEDULE_FILE, index=False)
-    
-    # Phase 3: ONLY NOW Display collective analysis
+    update_interaction_schedule(employee_id, sentiment_category)
+
     print("\n===== EMPLOYEE SENTIMENT ANALYSIS =====")
     print(f"Employee ID: {employee_id}")
-    print(f"Total responses: {total_responses}")
-    
-    # IMPROVED: Show a single overall assessment first
-    print(f"\n🔍 OVERALL ASSESSMENT: {sentiment_category.upper()}")
-    
-    # Show distribution
+    print(f"OVERALL ASSESSMENT: {sentiment_category.upper()}")
     print("\nSentiment Distribution:")
     for sentiment, count in sentiment_counts.items():
         if count > 0:
-            percentage = (count / total_responses) * 100
+            percentage = (count / sum(sentiment_counts.values())) * 100
             print(f"  {sentiment}: {count} responses ({percentage:.1f}%)")
-    
-    # Show detailed response analysis
-    print("\nResponse Details:")
-    for i, (data, sentiment, reason) in enumerate(zip(responses_data, all_sentiments, all_reasons), 1):
-        print(f"  {i}. Q: {data['question']}")
-        print(f"     A: {data['response']}")
-        print(f"     → {sentiment} - {reason}")
-    
     print("\nKey Themes Identified:")
-    for reason in reasons:
+    for reason in set(reasons):
         print(f"  - {reason}")
-    
     if negative_count >= 3:
-        print("\n⚠️ [ALERT] This employee has been flagged for HR attention due to multiple concerning responses.")
-    
-    print(f"\nNext scheduled interaction: {next_date} ({next_days} days from now)")
-    
-    return {
-        "employee_id": employee_id,
-        "sentiment_counts": sentiment_counts,
-        "reasons": reasons,
-        "overall": sentiment_category,
-        "next_interaction": next_date
-    }
+        print("\n[ALERT] This employee has been flagged for HR attention.")
+    print(f"\nNext scheduled interaction: {datetime.now() + timedelta(days=next_days)}")
 
-
-###test and generate csv files
-@stub.local_entrypoint()
-def download_sample_data():
-    """Generate sample data and save to local files"""
-    # Create sample data directly
-    sample_data = [
-        {"employee_id": "EMP001", "question": "How do you feel about your work environment?", 
-         "response": "I love my work environment. Everyone is supportive and helpful.",
-         "sentiment": "Happy Zone", "reason": "Positive work environment", 
-         "date": datetime.now().strftime("%Y-%m-%d")},
-        {"employee_id": "EMP001", "question": "Do you feel valued as an employee?", 
-         "response": "Yes, I feel very valued. My manager appreciates my work.",
-         "sentiment": "Happy Zone", "reason": "Feels appreciated", 
-         "date": datetime.now().strftime("%Y-%m-%d")},
-        {"employee_id": "EMP002", "question": "How do you feel about your work environment?", 
-         "response": "It's okay, but could be better. Sometimes it gets too noisy.",
-         "sentiment": "Neutral Zone (OK)", "reason": "Mixed feelings", 
-         "date": datetime.now().strftime("%Y-%m-%d")},
-        {"employee_id": "EMP003", "question": "How would you describe your workload?", 
-         "response": "I'm completely overwhelmed. I have too many tasks and not enough time.",
-         "sentiment": "Frustrated Zone", "reason": "Work overload", 
-         "date": datetime.now().strftime("%Y-%m-%d")},
-        {"employee_id": "EMP003", "question": "Are you satisfied with your work-life balance?", 
-         "response": "Not at all. I work late every day and on weekends too.",
-         "sentiment": "Sad Zone", "reason": "Poor work-life balance", 
-         "date": datetime.now().strftime("%Y-%m-%d")},
-        {"employee_id": "EMP003", "question": "How do you feel about your relationship with colleagues?", 
-         "response": "My colleagues are fine, but I barely have time to interact with them.",
-         "sentiment": "Leaning to Sad Zone", "reason": "Isolation", 
-         "date": datetime.now().strftime("%Y-%m-%d")}
-    ]
-    
-    # Create escalation data
-    escalation_data = [
-        {"employee_id": "EMP003", "escalation_reason": "Repeated negative sentiment detected", 
-         "date": datetime.now().strftime("%Y-%m-%d")}
-    ]
-    
-    # Create schedule data
-    schedule_data = [
-        {"employee_id": "EMP001", "next_interaction": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")},
-        {"employee_id": "EMP002", "next_interaction": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d")},
-        {"employee_id": "EMP003", "next_interaction": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")}
-    ]
-    
-    # Initialize CSV files
-    init_csv()
-    
-    # Save to local files
-    pd.DataFrame(sample_data).to_csv("local_" + FEEDBACK_FILE, index=False)
-    pd.DataFrame(escalation_data).to_csv("local_" + ESCALATION_FILE, index=False)
-    pd.DataFrame(schedule_data).to_csv("local_" + SCHEDULE_FILE, index=False)
-    
-    print("Sample data saved to local CSV files:")
-    print(f"- local_{FEEDBACK_FILE}")
-    print(f"- local_{ESCALATION_FILE}")
-    print(f"- local_{SCHEDULE_FILE}")
-
-# Entry point for Modal
 @stub.local_entrypoint()
 def main():
     init_csv()
     employee_id = input("Enter Employee ID: ")
     run_interactive_chatbot(employee_id)
 
-# Direct Python execution (not through Modal)
-if __name__ == "__main__" and not modal.is_local():
-    init_csv()
-    employee_id = input("Enter Employee ID: ")
-    run_interactive_chatbot(employee_id)
+if __name__ == "__main__":
+    main()
