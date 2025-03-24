@@ -7,7 +7,7 @@ class ActivityTracker(Base):
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String, index=True)
     date = Column(Date, index=True)
-    teams_messages_sent = Column(Integer)
+    teams_messages_sent = Column(Integer)  # Will map from Teams_Messages
     emails_sent = Column(Integer)
     meetings_attended = Column(Integer)
     work_hours = Column(Float)

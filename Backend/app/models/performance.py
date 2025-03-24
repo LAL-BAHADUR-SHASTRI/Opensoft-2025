@@ -6,7 +6,7 @@ class PerformanceTracker(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String, index=True)
-    review_date = Column(Date, index=True)
-    rating = Column(Float)
-    manager_id = Column(String, index=True)
-    comments = Column(Text, nullable=True)
+    review_date = Column(Date, index=True)  # For Review_Period
+    rating = Column(Float)  # For Performance_Rating
+    manager_id = Column(String, index=True, nullable=True)  # For Promotion_Consideration
+    comments = Column(Text, nullable=True)  # For Manager_Feedback

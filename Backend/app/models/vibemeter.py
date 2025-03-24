@@ -7,5 +7,5 @@ class VibeMeter(Base):
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String, index=True)
     date = Column(Date, index=True)
-    mood_score = Column(Float)
-    comments = Column(Text, nullable=True)
+    mood_score = Column(Float)  # For Vibe_Score
+    comments = Column(Text, nullable=True)  # For Emotion_Zone

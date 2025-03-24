@@ -6,7 +6,7 @@ class RewardsTracker(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String, index=True)
-    date = Column(Date, index=True)
-    reward_type = Column(String)
-    amount = Column(Float)
+    date = Column(Date, index=True)  # For Award_Date
+    reward_type = Column(String)  # For Award_Type
+    amount = Column(Float)  # For Reward_Points
     justification = Column(Text, nullable=True)

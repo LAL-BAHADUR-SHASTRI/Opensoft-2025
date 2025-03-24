@@ -6,8 +6,8 @@ class LeaveTracker(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     employee_id = Column(String, index=True)
-    start_date = Column(Date, index=True)
-    end_date = Column(Date)
-    leave_type = Column(String)
-    status = Column(String)
-    days = Column(Integer)
+    start_date = Column(Date, index=True)  # For Leave_Start_Date
+    end_date = Column(Date)  # For Leave_End_Date
+    leave_type = Column(String)  # For Leave_Type
+    status = Column(String, nullable=True)  # This might be missing in your CSV
+    days = Column(Integer)  # For Leave_Days

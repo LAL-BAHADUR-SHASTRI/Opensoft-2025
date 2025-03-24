@@ -1,50 +1,62 @@
-from sqlalchemy.orm import Session
-from app.core.database import SessionLocal, engine, Base
-from app.core.auth import get_password_hash
+from app.core.database import engine, Base, SessionLocal
+from app.models.activity import ActivityTracker
+from app.models.vibemeter import VibeMeter
+from app.models.leave import LeaveTracker
+from app.models.performance import PerformanceTracker
+from app.models.rewards import RewardsTracker
+from app.models.employee import Employee
+from app.models.onboarding import OnboardingTracker
 from app.models.user import User, UserRole
+from app.core.auth import get_password_hash
+from sqlalchemy.orm import Session
 
-def init_db():
-    # Create tables
+def setup_database():
+    print("Creating all database tables...")
+    # This ensures all models are imported before creating tables
     Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully!")
     
+    # Create a database session
     db = SessionLocal()
-    try:
-        # Check if HR user exists
-        hr_user = db.query(User).filter(User.username == "hruser").first()
-        if not hr_user:
-            # Create HR user with predefined credentials
-            hr_user = User(
-                email="hr@example.com",
-                username="hruser",
-                hashed_password=get_password_hash("hruser"),
-                role=UserRole.HR
-            )
-            db.add(hr_user)
-            print("HR user created with username 'hruser' and password 'hruser'")
-        
-        # Check if employee user exists - using a known employee ID from the dataset
-        # This assumes your dataset contains an employee with ID "EMP0048"
-        emp_user = db.query(User).filter(User.username == "emp0048").first()
-        if not emp_user:
-            # Create employee user
-            emp_user = User(
-                email="employee@example.com",
-                username="emp0048",
-                hashed_password=get_password_hash("emp0048"),
-                role=UserRole.EMPLOYEE,
-                employee_id="EMP0048"  # This links to the actual employee in the dataset
-            )
-            db.add(emp_user)
-            print("Employee user created with username 'emp0048' and password 'emp0048'")
-        
+    
+    # Check if HR user already exists
+    existing_hr = db.query(User).filter(User.username == "hruser").first()
+    if not existing_hr:
+        # Create default HR user
+        hr_user = User(
+            email="hr@example.com",
+            username="hruser",
+            hashed_password=get_password_hash("hruser"),
+            role=UserRole.HR,
+            is_active=True
+        )
+        db.add(hr_user)
         db.commit()
-        print("Database initialized successfully")
-    except Exception as e:
-        print(f"Error initializing database: {e}")
-        db.rollback()
-    finally:
-        db.close()
+        print("HR user created with username 'hruser' and password 'hruser'")
+    else:
+        print("HR user already exists")
+    
+    # Create an employee user for testing
+    existing_emp = db.query(User).filter(User.username == "emp0048").first()
+    if not existing_emp:
+        # Create default employee user
+        emp_user = User(
+            email="emp0048@example.com",
+            username="emp0048",
+            hashed_password=get_password_hash("emp0048"),
+            role=UserRole.EMPLOYEE,
+            employee_id="EMP0048",
+            is_active=True
+        )
+        db.add(emp_user)
+        db.commit()
+        print("Employee user created with username 'emp0048' and password 'emp0048'")
+    else:
+        print("Employee user already exists")
+    
+    # Close the session
+    db.close()
+    print("Database initialized successfully")
 
 if __name__ == "__main__":
-    print("Initializing database...")
-    init_db()
+    setup_database()
