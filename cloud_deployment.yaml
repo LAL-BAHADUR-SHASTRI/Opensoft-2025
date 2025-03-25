@@ -1,0 +1,12 @@
+resources:
+  - name: chatbot-backend
+    type: gcp-types/run-v1:projects.locations.services
+    properties:
+      serviceName: chatbot-backend
+      location: us-central1
+      template:
+        spec:
+          containers:
+            - image: gcr.io/YOUR_PROJECT_ID/chatbot-backend
+              ports:
+                - containerPort: 8000

@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pandas
+matplotlib
+transformers  # For AI-generated responses
