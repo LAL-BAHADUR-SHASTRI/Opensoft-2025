@@ -55,6 +55,7 @@ export default function Upload() {
         } else {
           setErrMsg(`File ${file.name} is not UTF-8 encoded. Please upload a UTF-8 encoded file.`);
           setOpen(true);
+          setDragActive(false);
         }
 
         if (index === filesArray.length - 1) {
@@ -122,20 +123,20 @@ export default function Upload() {
         setErrMsg("An error occurred while uploading files. Please try again.");
         setErrDesc("");
         setOpen(true);
+        setDragActive(false);
       }
     } catch (error) {
       console.error("Upload error:", error);
       setErrMsg("An error occurred while uploading files. Please try again.");
       setOpen(true);
+      setDragActive(false);
     }
   };
 
   return (
-    <div className="dark flex items-center justify-center min-h-screen bg-background text-foreground p-4">
+    <div className="flex items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
       <Card
-        className={` py-6 shadow-lg rounded-lg transition-all ${
-          dragActive ? "border-2 border-primary bg-muted" : "border"
-        }`}
+        className={`text-white py-6 shadow-lg rounded-lg transition-all bg-neutral-900 border-2 border-neutral-800 ${dragActive && "border-neutral-400"}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragEnter={handleDragOver}
@@ -146,7 +147,7 @@ export default function Upload() {
             <h2 className="text-xl font-bold">Upload Files</h2>
 
             <div
-              className={`border border-dashed border-gray-500 p-6 text-center rounded-md cursor-pointer ${
+              className={`border border-dashed border-neutral-700 p-6 text-center rounded-md cursor-pointer ${
                 files.length == 6 ? "hidden" : ""
               }`}
               onClick={() => document.getElementById("fileInput")?.click()}
@@ -175,15 +176,18 @@ export default function Upload() {
               </ul>
             )}
 
-            <Button onClick={handleUpload} disabled={files.length === 0}>
+            <Button
+              className="disabled:bg-neutral-500 disabled:text-neutral-200"
+              onClick={handleUpload}
+              disabled={files.length === 0}
+            >
               Upload Files
             </Button>
           </div>
-          <div className="flex flex-col gap-4 max-w-lg min-w-[300px] bg-background border border-border p-4 rounded-lg">
+          <div className="flex flex-col gap-4 text-white max-w-lg min-w-[300px] bg-neutral-950 border border-neutral-800 p-4 rounded-lg">
             <h2 className="text-xl font-bold">Instructions</h2>
-              <h3>Upload 6 CSV files as </h3>
-            <ul className="text-muted-foreground text-sm list-disc pl-4">
-              <li>activity_tracker_dataset.csv</li>
+            <h3>Upload 6 CSV files as </h3>
+            <ul className="flex flex-col gap-2 text-neutral-500 text-sm list-disc ml-8">
               <li>leave_dataset.csv</li>
               <li>onboarding_dataset.csv</li>
               <li>performance_dataset.csv</li>
@@ -195,17 +199,15 @@ export default function Upload() {
         </CardContent>
       </Card>
       <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent className="bg-background text-foreground shadow-lg border border-border">
+        <AlertDialogContent className="bg-neutral-900 p-4 text-white border border-neutral-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-semibold">{errMsg}</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm hidden">
-              {/* {errMsg} */}
-            </AlertDialogDescription>
+            <AlertDialogTitle className="text-lg font-semibold">Error</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">{errMsg}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-4">
             <AlertDialogCancel
               onClick={closeAlert}
-              className="bg-muted text-foreground hover:bg-muted/80"
+              className="bg-white text-black focus:outline-none active:outline-none"
             >
               Close
             </AlertDialogCancel>
