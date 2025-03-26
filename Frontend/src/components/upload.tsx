@@ -26,6 +26,15 @@ export default function Upload() {
   const [errDesc, setErrDesc] = useState("");
   const navigate = useNavigate();
 
+  const nameList: string[] = [
+    "activity_tracker_dataset.csv",
+    "leave_dataset.csv",
+    "onboarding_dataset.csv",
+    "performance_dataset.csv",
+    "rewards_dataset.csv",
+    "vibemeter_dataset.csv",
+  ];
+
   const closeAlert = () => {
     setOpen(false);
   };
@@ -33,7 +42,17 @@ export default function Upload() {
   const filePipeline = (newFiles: FileList | null) => {
     if (!newFiles) return;
 
-    const filesArray = Array.from(newFiles);
+    const filesArray = Array.from(newFiles).filter((file) => {
+      if (file.type !== "text/csv") {
+        setErrDesc(`File ${file.name} is not a CSV file. Please upload a CSV file.`);
+        setErrMsg("File type error");
+        setOpen(true);
+        setDragActive(false);
+        return false;
+      } else {
+        return true;
+      }
+    });
     const validFiles: File[] = [];
 
     filesArray.forEach((file, index) => {
@@ -45,15 +64,16 @@ export default function Upload() {
         const text = new TextDecoder().decode(uint8Array);
         const result = jschardet.detect(text);
 
-        console.log(result);
+        // console.log(result);
         if (result.encoding === "UTF-8" || result.encoding === "ascii") {
           if (!files.some((existingFile) => existingFile.name === file.name)) {
             validFiles.push(file);
-          } else {
-            console.log(`Duplicate file skipped: ${file.name}`);
+            // } else {
+            //   console.log(`Duplicate file skipped: ${file.name}`);
           }
         } else {
-          setErrMsg(`File ${file.name} is not UTF-8 encoded. Please upload a UTF-8 encoded file.`);
+          setErrDesc(`File ${file.name} is not UTF-8 encoded. Please upload a UTF-8 encoded file.`);
+          setErrMsg("Encoding error");
           setOpen(true);
           setDragActive(false);
         }
@@ -97,11 +117,19 @@ export default function Upload() {
   const handleUpload = async () => {
     if (files.length === 0) return;
     if (files.length < 6) {
-      setErrMsg("You need to upload at least 6 files");
-      setErrDesc("");
+      setErrDesc("You need to upload at least 6 files");
+      setErrMsg("Error");
       setOpen(true);
       return;
     }
+    nameList.forEach((name) => {
+      if (!files.some((file) => file.name === name)) {
+        setErrDesc(`File ${name} is missing. Please upload all 6 files.`);
+        setErrMsg("Missing files");
+        setOpen(true);
+        return;
+      }
+    });
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
@@ -120,14 +148,15 @@ export default function Upload() {
         });
         setOpen(true);
       } else {
-        setErrMsg("An error occurred while uploading files. Please try again.");
-        setErrDesc("");
+        setErrDesc("An error occurred while uploading files. Please try again.");
+        setErrMsg("Error");
         setOpen(true);
         setDragActive(false);
       }
     } catch (error) {
-      console.error("Upload error:", error);
+      // console.error("Upload error:", error);
       setErrMsg("An error occurred while uploading files. Please try again.");
+      setErrDesc("Upload error");
       setOpen(true);
       setDragActive(false);
     }
@@ -136,7 +165,9 @@ export default function Upload() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-neutral-950 text-white p-4">
       <Card
-        className={`text-white py-6 shadow-lg rounded-lg transition-all bg-neutral-900 border-2 border-neutral-800 ${dragActive && "border-neutral-400"}`}
+        className={`text-white py-6 shadow-lg rounded-lg transition-all bg-neutral-900 border-2 border-neutral-800 ${
+          dragActive && "border-neutral-400"
+        }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragEnter={handleDragOver}
@@ -161,14 +192,23 @@ export default function Upload() {
               multiple
               onChange={handleFileChange}
               className="hidden"
+              accept="text/csv"
             />
 
             {files.length > 0 && (
               <ul className="text-muted-foreground text-sm">
                 {files.map((file, index) => (
-                  <li key={index} className="flex justify-between items-center my-2">
+                  <li
+                    key={index}
+                    className="flex justify-between items-center my-2 text-neutral-300"
+                  >
                     {file.name}
-                    <Button variant="outline" size="icon" onClick={() => removeFile(index)}>
+                    <Button
+                      variant="outline"
+                      className="bg-transparent border-neutral-400 text-neutral-400 cursor-pointer"
+                      size="icon"
+                      onClick={() => removeFile(index)}
+                    >
                       ✕
                     </Button>
                   </li>
@@ -177,7 +217,7 @@ export default function Upload() {
             )}
 
             <Button
-              className="disabled:bg-neutral-500 disabled:text-neutral-200"
+              className="disabled:bg-neutral-500 disabled:text-neutral-200 bg-neutral-300 text-neutral-900 hover:bg-neutral-400 hover:text-neutral-900 cursor-pointer"
               onClick={handleUpload}
               disabled={files.length === 0}
             >
@@ -187,12 +227,10 @@ export default function Upload() {
           <div className="flex flex-col gap-4 text-white max-w-lg min-w-[300px] bg-neutral-950 border border-neutral-800 p-4 rounded-lg">
             <h2 className="text-xl font-bold">Instructions</h2>
             <h3>Upload 6 CSV files as </h3>
-            <ul className="flex flex-col gap-2 text-neutral-500 text-sm list-disc ml-8">
-              <li>leave_dataset.csv</li>
-              <li>onboarding_dataset.csv</li>
-              <li>performance_dataset.csv</li>
-              <li>rewards_dataset.csv</li>
-              <li>vibemeter_dataset.csv</li>
+            <ul className="flex flex-col gap-2 text-neutral-400 text-sm list-disc ml-8">
+              {nameList.map((name, index) => (
+                <li key={index}>{name}</li>
+              ))}
             </ul>
             <div className=""></div>
           </div>
@@ -201,8 +239,8 @@ export default function Upload() {
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent className="bg-neutral-900 p-4 text-white border border-neutral-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-semibold">Error</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm">{errMsg}</AlertDialogDescription>
+            <AlertDialogTitle className="text-lg font-semibold">{errMsg}</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">{errDesc}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
             <AlertDialogCancel
