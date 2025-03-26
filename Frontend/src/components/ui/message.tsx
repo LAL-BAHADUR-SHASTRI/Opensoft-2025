@@ -15,7 +15,7 @@ const Message = ({message} : {message: {
       <div className="h-6 w-6 rounded-md bg-neutral-900"></div>
     )}
     <div className="flex flex-col gap-2">
-      {message.sender === "assistant" && <div className="text-neutral-400">Assistant</div>}
+      {message.sender === "assistant" && <div className="text-neutral-500 tracking-wider">Assistant</div>}
       <div
         className={`py-2 px-3 ${
           message.sender === "user"
