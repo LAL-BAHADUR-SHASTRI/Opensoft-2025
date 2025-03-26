@@ -1,16 +1,19 @@
 import os
-import pandas as pd
 import json
 import uuid
 import random
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 import torch
+import secrets
+import traceback
 import readline
-
 import modal
 from modal import Image, Mount
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Security
+from fastapi.security.api_key import APIKeyHeader, APIKey
+from starlette.status import HTTP_403_FORBIDDEN
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Data models for API
@@ -27,25 +30,35 @@ class ChatResponse(BaseModel):
 # Modal setup
 app = modal.App("employee-sentiment-analysis")
 stub = app
+@app.function(secrets=[modal.Secret.from_name("huggingface-token")])                                             
+def some_function():                                                                                             
+    os.getenv("HUGGINGFACE_TOKEN")
+# Define API key security scheme
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+# Generate a secure API key if not provided
+DEFAULT_API_KEY = ""
 
 # Create image with all dependencies
 image = modal.Image.debian_slim().pip_install([
     "transformers",
     "torch",
-    "pandas",
     "fastapi[standard]",
     "accelerate",
-    "einops"
+    "einops",
+    "flask"
 ])
 
 # File paths and configuration - Use local paths for CLI mode
 DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-FEEDBACK_FILE = os.path.join(DATA_PATH, "employee_feedback.csv")
-ESCALATION_FILE = os.path.join(DATA_PATH, "hr_escalations.csv")
-SCHEDULE_FILE = os.path.join(DATA_PATH, "interaction_schedule.csv")
+FEEDBACK_FILE = os.path.join(DATA_PATH, "employee_feedback.json")
+ESCALATION_FILE = os.path.join(DATA_PATH, "hr_escalations.json")
+SCHEDULE_FILE = os.path.join(DATA_PATH, "interaction_schedule.json")
 
-# Create a volume to persist data
+# Create volumes to persist data
 volume = modal.Volume.from_name("employee-data", create_if_missing=True)
+api_keys_volume = modal.Volume.from_name("api-keys-volume", create_if_missing=True)
 
 # Get expanded question bank
 def get_expanded_questions():
@@ -115,13 +128,43 @@ def get_expanded_questions():
         "Do you feel you have enough support with your tasks?"
     ]
 
+@stub.function(volumes={"/root/api_keys": api_keys_volume})
+def get_valid_api_keys():
+    """Get list of valid API keys"""
+    try:
+        with open("/root/api_keys/keys.json", "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        # Create default keys file if it doesn't exist
+        os.makedirs("/root/api_keys", exist_ok=True)
+        with open("/root/api_keys/keys.json", "w") as f:
+            keys = [DEFAULT_API_KEY]
+            json.dump(keys, f)
+        return keys
+
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    """Validate API key"""
+    if not api_key_header:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="API key missing"
+        )
+    
+    valid_keys = get_valid_api_keys.remote()
+    
+    if api_key_header not in valid_keys:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="Invalid API key"
+        )
+    
+    return api_key_header
+
 # Create a class to handle all chatbot operations
 @stub.cls(
     image=image,
     gpu="any",
     timeout=600,
     secrets=[modal.Secret.from_name("huggingface-token")],
-    volumes={"/root/data": volume},
+    volumes={"/root/data": volume, "/root/api_keys": api_keys_volume},
     min_containers=1
 )
 class ChatBot:
@@ -129,13 +172,11 @@ class ChatBot:
         """Initialize instance variables"""
         # Initialize sessions here to fix the error in local mode
         self.sessions = {}
-        self.falcon_model = None
-        self.falcon_tokenizer = None
-        self.falcon_loaded = False
+        self.sentiment_model = None
         
         # Create local data directory for CLI mode
         os.makedirs(DATA_PATH, exist_ok=True)
-        self.init_csv_local()  # Initialize local CSV files
+        self.init_json_local()  # Initialize local JSON files
         
         # Try to load sentiment model in __init__ for local mode
         try:
@@ -153,14 +194,14 @@ class ChatBot:
 
     def __enter__(self):
         """Initialize models when the container starts"""
-        from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+        from transformers import pipeline
         import os
         
         # Create container data directory
         os.makedirs("/root/data", exist_ok=True)
         
-        # Initialize CSV files in container
-        self.init_csv_container()
+        # Initialize JSON files in container
+        self.init_json_container()
         
         # Initialize sessions
         self.sessions = {}
@@ -177,10 +218,11 @@ class ChatBot:
             print(f"Error loading sentiment model: {str(e)}")
             # Set a default sentiment analyzer that won't crash
             self.sentiment_model = self.simple_sentiment_analyzer
-        
-        # Load Falcon model - no longer needed since we don't generate questions
-        print("Skipping Falcon model load as we're using predefined questions")
-        self.falcon_loaded = False
+            
+        # Print API key information
+        print(f"\n=== API KEY INFORMATION ===")
+        print(f"Your API key is: {DEFAULT_API_KEY}")
+        print(f"Include this in your requests as an 'X-API-Key' header.\n")
         
         return self
     
@@ -224,33 +266,35 @@ class ChatBot:
             return [{"label": "NEGATIVE", "score": 0.8}]
     
     # Separate methods for local and container file initialization
-    def init_csv_local(self):
-        """Initialize CSV files locally"""
-        for file, headers in [
-            (FEEDBACK_FILE, ["employee_id", "question", "response", "sentiment", "reason", "date"]),
-            (ESCALATION_FILE, ["employee_id", "escalation_reason", "date"]),
-            (SCHEDULE_FILE, ["employee_id", "next_interaction"])
+    def init_json_local(self):
+        """Initialize JSON files locally"""
+        for file, default_data in [
+            (FEEDBACK_FILE, []),
+            (ESCALATION_FILE, []),
+            (SCHEDULE_FILE, [])
         ]:
             if not os.path.exists(file):
                 os.makedirs(os.path.dirname(file), exist_ok=True)
-                pd.DataFrame(columns=headers).to_csv(file, index=False)
+                with open(file, 'w') as f:
+                    json.dump(default_data, f, indent=2)
                 print(f"Created local file {file}")
     
-    def init_csv_container(self):
-        """Initialize CSV files in container"""
-        for file, headers in [
-            ("/root/data/employee_feedback.csv", ["employee_id", "question", "response", "sentiment", "reason", "date"]),
-            ("/root/data/hr_escalations.csv", ["employee_id", "escalation_reason", "date"]),
-            ("/root/data/interaction_schedule.csv", ["employee_id", "next_interaction"])
+    def init_json_container(self):
+        """Initialize JSON files in container"""
+        for file, default_data in [
+            ("/root/data/employee_feedback.json", []),
+            ("/root/data/hr_escalations.json", []),
+            ("/root/data/interaction_schedule.json", [])
         ]:
             if not os.path.exists(file):
-                pd.DataFrame(columns=headers).to_csv(file, index=False)
+                with open(file, 'w') as f:
+                    json.dump(default_data, f, indent=2)
                 print(f"Created container file {file}")
     
     # Legacy method for backward compatibility
     def init_csv(self):
-        """Initialize CSV files - legacy method"""
-        self.init_csv_local()
+        """Initialize files - legacy method"""
+        self.init_json_local()
         
     def analyze_sentiment(self, text):
         """Analyze sentiment and extract reason from text"""
@@ -327,14 +371,14 @@ class ChatBot:
             return 'Neutral Zone (OK)', 'Analysis failed'
     
     def save_response(self, employee_id, question, response, sentiment, reason):
-        """Save response to CSV file"""
+        """Save response to JSON file"""
         try:
             # For local testing, use local paths
             if os.path.exists(FEEDBACK_FILE):
                 file_to_use = FEEDBACK_FILE
             else:
                 # For container, use container paths
-                file_to_use = "/root/data/employee_feedback.csv"
+                file_to_use = "/root/data/employee_feedback.json"
                 
             new_entry = {
                 "employee_id": employee_id,
@@ -345,14 +389,20 @@ class ChatBot:
                 "date": datetime.now().strftime("%Y-%m-%d")
             }
             
-            # Create an empty DataFrame if file doesn't exist
-            if not os.path.exists(file_to_use):
-                df = pd.DataFrame(columns=["employee_id", "question", "response", "sentiment", "reason", "date"])
+            # Read existing data
+            if os.path.exists(file_to_use) and os.path.getsize(file_to_use) > 0:
+                with open(file_to_use, 'r') as f:
+                    feedback_data = json.load(f)
             else:
-                df = pd.read_csv(file_to_use)
+                feedback_data = []
                 
-            df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
-            df.to_csv(file_to_use, index=False)
+            # Add new entry
+            feedback_data.append(new_entry)
+            
+            # Write back to file
+            with open(file_to_use, 'w') as f:
+                json.dump(feedback_data, f, indent=2)
+            
             print(f"Saved response to {file_to_use}")
             
         except Exception as e:
@@ -453,16 +503,28 @@ class ChatBot:
             if os.path.exists(ESCALATION_FILE):
                 escalation_file = ESCALATION_FILE
             else:
-                escalation_file = "/root/data/hr_escalations.csv"
+                escalation_file = "/root/data/hr_escalations.json"
             
-            escalation_df = pd.read_csv(escalation_file)
             new_esc = {
                 "employee_id": employee_id,
                 "escalation_reason": reason,
                 "date": datetime.now().strftime("%Y-%m-%d")
             }
-            escalation_df = pd.concat([escalation_df, pd.DataFrame([new_esc])], ignore_index=True)
-            escalation_df.to_csv(escalation_file, index=False)
+            
+            # Read existing data
+            if os.path.exists(escalation_file) and os.path.getsize(escalation_file) > 0:
+                with open(escalation_file, 'r') as f:
+                    escalation_data = json.load(f)
+            else:
+                escalation_data = []
+            
+            # Add new entry
+            escalation_data.append(new_esc)
+            
+            # Write back to file
+            with open(escalation_file, 'w') as f:
+                json.dump(escalation_data, f, indent=2)
+            
             return True
         except Exception as e:
             print(f"Error recording escalation: {str(e)}")
@@ -484,17 +546,33 @@ class ChatBot:
             if os.path.exists(SCHEDULE_FILE):
                 file_to_use = SCHEDULE_FILE
             else:
-                file_to_use = "/root/data/interaction_schedule.csv"
-                
-            df = pd.read_csv(file_to_use)
+                file_to_use = "/root/data/interaction_schedule.json"
             
-            if employee_id in df["employee_id"].values:
-                df.loc[df["employee_id"] == employee_id, "next_interaction"] = next_date
+            # Read existing data
+            if os.path.exists(file_to_use) and os.path.getsize(file_to_use) > 0:
+                with open(file_to_use, 'r') as f:
+                    schedule_data = json.load(f)
             else:
-                new_entry = {"employee_id": employee_id, "next_interaction": next_date}
-                df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+                schedule_data = []
             
-            df.to_csv(file_to_use, index=False)
+            # Check if employee exists in schedule
+            employee_found = False
+            for entry in schedule_data:
+                if entry["employee_id"] == employee_id:
+                    entry["next_interaction"] = next_date
+                    employee_found = True
+                    break
+            
+            # Add new entry if employee not found
+            if not employee_found:
+                schedule_data.append({
+                    "employee_id": employee_id,
+                    "next_interaction": next_date
+                })
+            
+            # Write back to file
+            with open(file_to_use, 'w') as f:
+                json.dump(schedule_data, f, indent=2)
         except Exception as e:
             print(f"Error updating schedule: {str(e)}")
     
@@ -650,7 +728,7 @@ class ChatBot:
         elif sentiment in ["Happy Zone", "Leaning to Happy Zone"]:
             session["current_max_questions"] = 5   # Fewer questions for positive sentiment
         
-        # Save response to CSV
+        # Save response to JSON
         self.save_response(
             session["employee_id"],
             current_question,
@@ -661,6 +739,8 @@ class ChatBot:
         
         # Increment question index
         session["question_index"] += 1
+        print(f"DEBUG: Question index: {session['question_index']}, Max questions: {session['current_max_questions']}")
+        print(f"DEBUG: Total available questions: {len(session['questions'])}")
         
         # Check if conversation should end
         if session["question_index"] >= session["current_max_questions"] or session["question_index"] >= len(session["questions"]):
@@ -679,7 +759,7 @@ class ChatBot:
         )
     
     @modal.fastapi_endpoint(method="POST")
-    def start_chat(self, request: ChatRequest):
+    def start_chat(self, request: ChatRequest, api_key: APIKey = Depends(get_api_key)):
         """Start a new chat session"""
         if not request.employee_id:
             raise HTTPException(status_code=400, detail="Employee ID is required")
@@ -692,7 +772,7 @@ class ChatBot:
         )
     
     @modal.fastapi_endpoint(method="POST")
-    def chat(self, request: ChatRequest):
+    def chat(self, request: ChatRequest, api_key: APIKey = Depends(get_api_key)):
         """Process a chat message and return the next question or final analysis"""
         if not request.session_id:
             raise HTTPException(status_code=400, detail="Session ID is required")
@@ -703,61 +783,128 @@ class ChatBot:
             raise HTTPException(status_code=404, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
+    
+    @modal.fastapi_endpoint(method="GET")
+    def check_api_key(self, api_key: APIKey = Depends(get_api_key)):
+        """Simple endpoint to check if API key is valid"""
+        return {"status": "success", "message": "API key is valid"}
 
-# Direct entry point for CLI-based interactive chatbot
 @stub.local_entrypoint()
 def main():
-    # This simulates the API interaction via CLI
+    """Run a local web server for API testing"""
+    from flask import Flask, request, jsonify
+    from flask_cors import CORS
+
+    app = Flask(__name__)
+    CORS(app, resources={
+        r"/*": {
+            "origins": "*",  # Allow all origins (or specify your frontend URL)
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "X-API-Key"]
+        }
+    })
     bot = ChatBot()
     
-    print("Chatbot: Hello! Let's discuss your work experience.")
-    employee_id = input("Enter Employee ID: ")
+    print("\n" + "=" * 60)
+    print("EMPLOYEE SENTIMENT ANALYSIS API SERVER")
+    print("=" * 60)
+    print(f"\nAPI Key: {DEFAULT_API_KEY}")
+    print("Include this API key in your requests as the 'X-API-Key' header")
+    print("\nAvailable endpoints:")
+    print("  POST /start_chat - Start a new conversation")
+    print("  POST /chat - Send messages in an existing conversation")
+    print("\nExample curl commands:")
+    print(f'  curl -X POST http://localhost:8000/start_chat \\')
+    print(f'    -H "Content-Type: application/json" \\')
+    print(f'    -H "X-API-Key: {DEFAULT_API_KEY}" \\')
+    print(f'    -d \'{{"employee_id": "EMP123"}}\'')
+    print("\nFor website integration, include the API endpoints in your JavaScript.")
+    print("=" * 60 + "\n")
     
-    # FIXED: Try with more robust error handling
-    try:
-        # Create session
-        session_id, first_question = bot.create_session(employee_id)
-        
-        # Run the conversation loop
-        question = first_question
-        questions_asked = 0
-        
-        while question and questions_asked < 15:  # Add a max questions limit
-            print(f"Chatbot: {question}")
-            response = input("You: ")
-            questions_asked += 1
+    @app.route('/start_chat', methods=['POST', 'OPTIONS'])
+    def start_chat_endpoint():
+        # CORS preflight
+        if request.method == 'OPTIONS':
+            return handle_options()
             
-            print(f"Processing response... (Question {questions_asked})")
+        # Check API key
+        api_key = request.headers.get('X-API-Key')
+        if api_key != DEFAULT_API_KEY:
+           response = jsonify({"error": "Invalid API key"})
+           response.headers.add('Access-Control-Allow-Origin', '*')
+           return response, 403
             
-            # Use the regular method instead of the endpoint
-            try:
-                result = bot.process_chat(response, session_id)
+        data = request.json
+        employee_id = data.get('employee_id')
+        if not employee_id:
+            response = jsonify({"error": "Employee ID is required"})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 400
+            
+        session_id, question = bot.create_session(employee_id)
+        print(f"New session created: {session_id} for employee {employee_id}")
+        response = jsonify({"session_id": session_id, "question": question})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+    
+    @app.route('/chat', methods=['POST', 'OPTIONS'])
+    def chat_endpoint():
+        # CORS preflight
+        if request.method == 'OPTIONS':
+            return handle_options()
+            
+        # Check API key
+        api_key = request.headers.get('X-API-Key')
+        if api_key != DEFAULT_API_KEY:
+            return jsonify({"error": "Invalid API key"}), 403
+            
+        data = request.json
+        message = data.get('message')
+        session_id = data.get('session_id')
+        
+        if not session_id:
+            return jsonify({"error": "Session ID is required"}), 400
+            
+        try:
+            print(f"Processing message for session {session_id}: '{message[:30]}...'")
+            result = bot.process_chat(message, session_id)
+            
+            # Log if final analysis was generated
+            if result.final_analysis:
+                print(f"Final analysis generated for {result.final_analysis.get('employee_id', 'unknown')}")
                 
-                # Check if we have a final analysis or another question
-                if result.final_analysis:
-                    print("\n===== EMPLOYEE SENTIMENT ANALYSIS =====")
-                    print(f"Employee ID: {result.final_analysis['employee_id']}")
-                    print(f"Overall Assessment: {result.final_analysis['overall_assessment']}")
-                    
-                    print("\nKey Themes Identified:")
-                    for theme in result.final_analysis['key_themes']:
-                        print(f"  - {theme}")
-                    
-                    if result.final_analysis['hr_escalation']:
-                        print("\n[ALERT] This employee has been flagged for HR attention.")
-                        if result.final_analysis['escalation_reason']:
-                            print(f"Reason: {result.final_analysis['escalation_reason']}")
-                    
-                    print(f"\nNext scheduled interaction: {result.final_analysis['next_interaction']}")
-                    print(f"Total responses analyzed: {result.final_analysis['responses_analyzed']}")
-                    break
-                else:
-                    question = result.question
-                    print(f"Generated next question: {question}")
-            except Exception as e:
-                print(f"Error processing response: {str(e)}")
-                # Generate a fallback question instead of breaking
-                question = "Could you tell me more about your work experience?"
-                print("Using fallback question due to error.")
-    except Exception as e:
-        print(f"Fatal error: {str(e)}")
+            return jsonify({
+                "session_id": result.session_id,
+                "question": result.question,
+                "final_analysis": result.final_analysis
+            })
+        except Exception as e:
+            print(f"Error processing message: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+    
+    @app.route('/health', methods=['GET'])
+    def health_check():
+        """Simple health check endpoint"""
+        return jsonify({"status": "healthy", "message": "API is running"})
+    
+    def handle_options():
+        """Handle CORS preflight requests"""
+        response = jsonify({"status": "ok"})
+        return response
+    
+    @app.route('/test-cors', methods=['POST', 'OPTIONS'])
+    def test_cors_endpoint():
+        """Simple endpoint to test CORS handling"""
+        if request.method == 'OPTIONS':
+            return handle_options()
+    
+    # Return success for any request
+        response = jsonify({"status": "success", "message": "CORS is working!"})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+    
+# Add CORS headers to all responses - FIX: moved outside previous function
+
+    
+    print("\nStarting web server on http://localhost:8000")
+    app.run(host='0.0.0.0', port=8000, debug=False)
