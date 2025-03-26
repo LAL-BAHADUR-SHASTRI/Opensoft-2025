@@ -47,7 +47,7 @@ export default function EmployeeAuth() {
     <>
       <Toaster richColors />
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 dark">
-        <Card className="w-full max-w-md shadow-lg bg-neutral-800">
+        <Card className="w-full max-w-md shadow-lg border-neutral-800 bg-neutral-900">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
               <BriefcaseBusiness className="h-12 w-12 text-primary" />
@@ -61,8 +61,8 @@ export default function EmployeeAuth() {
               <label className="block text-sm font-medium pl-1">Employee ID</label>
                 <Input
                   id="employeeId"
-                  style={{backgroundColor: "#0a0a0a"}}
-                  className="border-neutral-700"
+                  style={{ backgroundColor: "#0a0a0a", outline: "none", boxShadow: "none" }}
+                  className="border-neutral-800 pr-10 focus:outline-none focus:ring-0"
                   placeholder="EMP0000"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
@@ -71,8 +71,8 @@ export default function EmployeeAuth() {
                 <div className="relative">
                   <Input
                     id="password"
-                    style={{ backgroundColor: "#0a0a0a" }}
-                    className="border-neutral-700 pr-10"
+                    className="border-neutral-800 pr-10 focus:outline-none focus:ring-0 focus:border focus:border-neutral-500"
+                    style={{ backgroundColor: "#0a0a0a", outline: "none", boxShadow: "none" }}
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter Password"
                     value={password}
@@ -80,16 +80,16 @@ export default function EmployeeAuth() {
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white"
+                    className="absolute inset-y-0 px-2 right-0 flex items-center text-neutral-200 hover:text-white focus:outline-none focus:border focus:border-neutral-500 rounded-md"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-5" /> : <Eye className="h-4 w-5" />}
                   </button>
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full pt-3 cursor-pointer" disabled={isLoading}>
+            <CardFooter className="mb-1.5">
+              <Button type="submit" className="w-full pt-3 cursor-pointer mb-2" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -103,7 +103,9 @@ export default function EmployeeAuth() {
                 )}
               </Button>
             </CardFooter>
-            <Link to="/admin" className="text-sm text-blue-500 hover:underline ml-4 px-4 ">Login as an Admin</Link>
+            <div className="text-center">
+              <Link to="/admin" className="text-sm text-neutral-400 hover:underline">Login as an Admin</Link>
+            </div>
           </form>
         </Card>
       </div>
