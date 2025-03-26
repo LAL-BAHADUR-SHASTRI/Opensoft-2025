@@ -136,6 +136,33 @@ class CSVProcessor:
                 "message": f"Error: {str(e)}"
             }
     
+    def process_csv_background(self, df: pd.DataFrame, filename: str) -> Dict[str, Any]:
+        """
+        Process a CSV file in the background and return immediate response.
+        The actual processing continues after the response is sent.
+        """
+        # Get the headers from the DataFrame
+        self.ensure_tables_exist()
+        headers = list(df.columns)
+        
+        # Identify which table this belongs to
+        table_name = self._identify_table(headers)
+        
+        if not table_name:
+            return {
+                "success": False,
+                "message": f"Could not identify table for headers: {headers}",
+                "status": "failed"
+            }
+        
+        # Return immediate response that processing has started
+        return {
+            "success": True,
+            "table": table_name,
+            "message": f"Processing started for {filename} into {table_name}",
+            "status": "processing"
+        }
+
     def _identify_table(self, headers: List[str]) -> str:
         """Identify the table based on headers"""
         best_match = None
