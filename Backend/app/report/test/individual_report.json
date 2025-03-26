@@ -1,0 +1,103 @@
+{
+    "individualEmployeeReport": {
+      "personalInformation": {
+        "fullName": "John Doe",
+        "employeeId": "EMP001",
+        "dateOfBirth": "1985-05-15",
+        "contactDetails": {
+          "phone": "+1234567890",
+          "email": "john.doe@company.com"
+        },
+        "department": "Marketing",
+        "position": "Senior Marketing Specialist",
+        "dateOfJoining": "2018-03-01"
+      },
+      "performanceMetrics": {
+        "kpis": [
+          {
+            "name": "Sales Leads Generated",
+            "value": 150,
+            "target": 120
+          },
+          {
+            "name": "Customer Satisfaction Score",
+            "value": 4.8,
+            "target": 4.5
+          }
+        ],
+        "goalsAchieved": 5,
+        "goalsSet": 6,
+        "lastPerformanceRating": 4.2
+      },
+      "attendanceAndLeave": {
+        "attendanceRate": 98.5,
+        "leaveBalance": {
+          "annual": 10,
+          "sick": 5,
+          "personal": 2
+        },
+        "sickDaysTaken": 3
+      },
+      "compensationAndBenefits": {
+        "currentSalary": 75000,
+        "lastBonus": 5000,
+        "benefitsEnrolled": ["Health Insurance", "401(k)", "Dental Plan"]
+      },
+      "skillsAndTraining": {
+        "skills": ["Digital Marketing", "SEO", "Content Strategy", "Data Analysis"],
+        "completedTrainings": [
+          {
+            "name": "Advanced SEO Techniques",
+            "date": "2024-11-10"
+          },
+          {
+            "name": "Leadership Skills 101",
+            "date": "2025-01-15"
+          }
+        ],
+        "certifications": ["Google Analytics Certified", "HubSpot Inbound Marketing"]
+      },
+      "careerDevelopment": {
+        "careerPath": "Marketing Manager",
+        "promotionsHistory": [
+          {
+            "fromPosition": "Marketing Specialist",
+            "toPosition": "Senior Marketing Specialist",
+            "date": "2022-04-01"
+          }
+        ],
+        "areasForImprovement": ["Project Management", "Team Leadership"]
+      },
+      "projectsAndContributions": {
+        "currentProjects": [
+          {
+            "name": "Q2 Marketing Campaign",
+            "role": "Project Lead"
+          },
+          {
+            "name": "Website Redesign",
+            "role": "Content Strategist"
+          }
+        ],
+        "keyAchievements": [
+          "Increased organic traffic by 25% through SEO optimization",
+          "Led successful product launch campaign resulting in 10,000 new customers"
+        ]
+      },
+      "complianceAndDocumentation": {
+        "requiredDocuments": [
+          {
+            "name": "Annual Compliance Training",
+            "status": "Completed",
+            "expirationDate": "2026-03-15"
+          },
+          {
+            "name": "Data Protection Certification",
+            "status": "Pending",
+            "dueDate": "2025-05-01"
+          }
+        ]
+      }
+    }
+  }
+  

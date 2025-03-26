@@ -1,0 +1,15 @@
+{
+  "Total Employees": 50,
+  "Average Work Hours Per Employee": 1500,
+  "Total Messages Sent": 25000,
+  "Total Emails Sent": 10000,
+  "Total Meetings Attended": 1200,
+  "Total Leaves Taken": 300,
+  "Onboarding Satisfaction Score": 4.2,
+  "Average Performance Rating": 4.1,
+  "Top Performer": "EMP456 - Jane Smith",
+  "Total Rewards Given": 75,
+  "Most Common Reward Type": "Best Team Player",
+  "Overall Mood Score": 7.5,
+  "Frequent Mood Comments": ["Feeling excited", "Workload is manageable", "Could use more team bonding"]
+}

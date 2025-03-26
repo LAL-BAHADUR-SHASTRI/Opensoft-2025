@@ -1,0 +1,117 @@
+{
+    "collectiveEmployeeReport": {
+      "officeOverview": {
+        "totalEmployees": 150,
+        "departmentDistribution": {
+          "Marketing": 25,
+          "Sales": 40,
+          "Engineering": 50,
+          "HR": 10,
+          "Finance": 15,
+          "Operations": 10
+        },
+        "genderDiversityRatio": {
+          "male": 0.55,
+          "female": 0.43,
+          "nonBinary": 0.02
+        },
+        "ageDemographics": {
+          "18-25": 20,
+          "26-35": 55,
+          "36-45": 45,
+          "46-55": 20,
+          "56+": 10
+        }
+      },
+      "performanceSummary": {
+        "averagePerformanceRating": 3.8,
+        "topPerformersByDepartment": {
+          "Marketing": ["John Doe", "Jane Smith"],
+          "Sales": ["Mike Johnson", "Sarah Brown"],
+          "Engineering": ["Alex Lee", "Emma Davis"]
+        },
+        "overallGoalAchievementRate": 0.85
+      },
+      "attendanceAndLeaveAnalysis": {
+        "averageAttendanceRate": 96.5,
+        "leaveUtilizationTrend": {
+          "annualLeave": 0.75,
+          "sickLeave": 0.45,
+          "personalLeave": 0.60
+        },
+        "departmentAttendance": {
+          "highest": "Finance",
+          "lowest": "Sales"
+        }
+      },
+      "compensationAndBenefits": {
+        "salaryRangesByDepartment": {
+          "Marketing": {"min": 50000, "max": 120000},
+          "Sales": {"min": 45000, "max": 150000},
+          "Engineering": {"min": 70000, "max": 180000}
+        },
+        "totalCompensationExpenditure": 12500000,
+        "benefitsUtilizationRates": {
+          "healthInsurance": 0.95,
+          "401k": 0.82,
+          "dentalPlan": 0.78
+        }
+      },
+      "skillsAndTraining": {
+        "mostCommonSkills": ["Project Management", "Data Analysis", "Communication"],
+        "trainingProgramParticipationRates": {
+          "LeadershipTraining": 0.45,
+          "TechnicalSkillsWorkshop": 0.68,
+          "SoftSkillsDevelopment": 0.72
+        },
+        "identifiedSkillGaps": ["Artificial Intelligence", "Cybersecurity"]
+      },
+      "careerDevelopment": {
+        "internalPromotionRate": 0.15,
+        "averageTenureInCurrentPosition": 2.5,
+        "successionPlanningStatus": {
+          "positionsWithSuccessionPlan": 25,
+          "totalKeyPositions": 30
+        }
+      },
+      "projectAndProductivityMetrics": {
+        "activeProjects": 35,
+        "averageProjectCompletionRate": 0.88,
+        "productivityIndicatorsByDepartment": {
+          "Marketing": 0.92,
+          "Sales": 0.87,
+          "Engineering": 0.95
+        }
+      },
+      "complianceAndRiskManagement": {
+        "complianceTrainingCompletionRate": 0.97,
+        "expiredCertificationsCount": 5,
+        "identifiedComplianceRisks": ["Data Protection Training Update Required"]
+      },
+      "employeeTurnover": {
+        "turnoverRate": 0.08,
+        "topReasonsForLeaving": [
+          "Career Advancement",
+          "Work-Life Balance",
+          "Compensation"
+        ],
+        "retentionStrategiesEffectiveness": {
+          "flexibleWorkArrangements": "High",
+          "professionalDevelopmentPrograms": "Medium",
+          "performanceBasedBonuses": "High"
+        }
+      },
+      "employeeEngagement": {
+        "lastSurveyResults": {
+          "overallEngagementScore": 4.2,
+          "participationRate": 0.89
+        },
+        "companyEventParticipation": {
+          "annualTeamBuilding": 0.85,
+          "volunteerPrograms": 0.62,
+          "wellnessInitiatives": 0.78
+        }
+      }
+    }
+  }
+  
