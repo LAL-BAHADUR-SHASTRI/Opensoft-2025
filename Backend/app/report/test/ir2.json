@@ -1,0 +1,25 @@
+{
+  "Employee ID": "EMP123",
+  "Name": "John Doe",
+  "Department": "IT",
+  "Position": "Software Engineer",
+  "Manager ID": "MGR456",
+  "Joining Date": "2022-03-01",
+  "Total Messages Sent": 500,
+  "Total Emails Sent": 200,
+  "Total Meetings Attended": 30,
+  "Total Work Hours": 1600,
+  "Total Leaves Taken": 12,
+  "Onboarding Feedback": "Smooth onboarding, mentor was helpful",
+  "Initial Training Completed": "Yes",
+  "Last Performance Rating": 4.5,
+  "Manager Feedback": "Great work ethic, potential for leadership",
+  "Total Rewards Earned": 3,
+  "Recent Reward": {
+    "Date": "2024-02-10",
+    "Type": "Employee of the Month",
+    "Points": 500
+  },
+  "Recent Mood Score": 8.2,
+  "Mood Comment": "Feeling productive and motivated"
+}

@@ -1,0 +1,123 @@
+from sqlalchemy.orm import Session, sessionmaker
+import pandas as pd
+from app.models import Employee, ActivityTracker, LeaveTracker, OnboardingTracker, PerformanceTracker, RewardsTracker, VibeMeter
+
+def generate_individual_report(db: Session, employee_id: str):
+    employee = db.query(Employee).filter(Employee.employee_id == employee_id).first()
+    if not employee:
+        return {"error": f"No data found for Employee ID {employee_id}"}
+
+    activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id == employee_id).all()
+    leaves = db.query(LeaveTracker).filter(LeaveTracker.employee_id == employee_id).all()
+    onboarding = db.query(OnboardingTracker).filter(OnboardingTracker.employee_id == employee_id).first()
+    performance = db.query(PerformanceTracker).filter(PerformanceTracker.employee_id == employee_id).order_by(PerformanceTracker.review_date.desc()).first()
+    rewards = db.query(RewardsTracker).filter(RewardsTracker.employee_id == employee_id).order_by(RewardsTracker.date.desc()).all()
+    vibe = db.query(VibeMeter).filter(VibeMeter.employee_id == employee_id).order_by(VibeMeter.date.desc()).first()
+    
+    activity_df = pd.DataFrame([a.__dict__ for a in activities])
+    total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
+    total_emails = activity_df['emails_sent'].sum() if not activity_df.empty else 0
+    total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
+    total_work_hours = activity_df['work_hours'].sum() if not activity_df.empty else 0
+
+    total_leaves = len(leaves)
+    
+    onboarding_feedback = onboarding.feedback if onboarding else "N/A"
+    training_completed = onboarding.training_completed if onboarding else "No"
+    
+    last_rating = performance.rating if performance else "N/A"
+    manager_feedback = performance.feedback if performance else "No feedback available"
+    
+    total_rewards = len(rewards)
+    recent_reward = {
+        "Date": rewards[0].date.strftime("%Y-%m-%d") if rewards else "N/A",
+        "Type": rewards[0].type if rewards else "N/A",
+        "Points": rewards[0].points if rewards else 0
+    }
+    
+    recent_mood_score = vibe.score if vibe else "N/A"
+    mood_comment = vibe.comment if vibe else "No comments"
+    
+    report = {
+        "Employee ID": employee.employee_id,
+        "Name": employee.name,
+        "Department": employee.department,
+        "Position": employee.position,
+        "Manager ID": employee.manager_id,
+        "Joining Date": employee.join_date.strftime("%Y-%m-%d"),
+        "Total Messages Sent": total_messages,
+        "Total Emails Sent": total_emails,
+        "Total Meetings Attended": total_meetings,
+        "Total Work Hours": total_work_hours,
+        "Total Leaves Taken": total_leaves,
+        "Onboarding Feedback": onboarding_feedback,
+        "Initial Training Completed": training_completed,
+        "Last Performance Rating": last_rating,
+        "Manager Feedback": manager_feedback,
+        "Total Rewards Earned": total_rewards,
+        "Recent Reward": recent_reward,
+        "Recent Mood Score": recent_mood_score,
+        "Mood Comment": mood_comment
+    }
+    
+    return report
+
+def generate_collective_report(db: Session):
+    employees = db.query(Employee).all()
+    activities = db.query(ActivityTracker).all()
+    leaves = db.query(LeaveTracker).all()
+    onboarding = db.query(OnboardingTracker).all()
+    performance = db.query(PerformanceTracker).all()
+    rewards = db.query(RewardsTracker).all()
+    vibes = db.query(VibeMeter).all()
+    
+    total_employees = len(employees)
+    activity_df = pd.DataFrame([a.__dict__ for a in activities])
+    avg_work_hours = activity_df.groupby('employee_id')['work_hours'].sum().mean() if not activity_df.empty else 0
+    total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
+    total_emails = activity_df['emails_sent'].sum() if not activity_df.empty else 0
+    total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
+    total_leaves = len(leaves)
+    
+    onboarding_scores = [o.satisfaction_score for o in onboarding if o.satisfaction_score is not None]
+    avg_onboarding_score = sum(onboarding_scores) / len(onboarding_scores) if onboarding_scores else "N/A"
+    
+    performance_scores = [p.rating for p in performance if p.rating is not None]
+    avg_performance_rating = sum(performance_scores) / len(performance_scores) if performance_scores else "N/A"
+    
+    total_rewards_given = len(rewards)
+    reward_types = [r.type for r in rewards]
+    most_common_reward = max(set(reward_types), key=reward_types.count) if reward_types else "N/A"
+    
+    mood_scores = [v.score for v in vibes if v.score is not None]
+    avg_mood_score = sum(mood_scores) / len(mood_scores) if mood_scores else "N/A"
+    mood_comments = [v.comment for v in vibes if v.comment]
+    
+    report = {
+        "Total Employees": total_employees,
+        "Average Work Hours Per Employee": avg_work_hours,
+        "Total Messages Sent": total_messages,
+        "Total Emails Sent": total_emails,
+        "Total Meetings Attended": total_meetings,
+        "Total Leaves Taken": total_leaves,
+        "Onboarding Satisfaction Score": avg_onboarding_score,
+        "Average Performance Rating": avg_performance_rating,
+        "Total Rewards Given": total_rewards_given,
+        "Most Common Reward Type": most_common_reward,
+        "Overall Mood Score": avg_mood_score,
+        "Frequent Mood Comments": mood_comments[:5]
+    }
+    
+    return report
+
+
+def report_test1():
+    from sqlalchemy import create_engine
+
+    DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/vibemeter"
+    engine = create_engine(DATABASE_URL, echo=True)
+
+    SessionLocal = sessionmaker(bind=engine)  # Bind session to the engine
+    session = SessionLocal()  # Create a new session instance
+
+    print(generate_individual_report(session, 'EMP0048'))
