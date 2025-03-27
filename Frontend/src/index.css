@@ -117,3 +117,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* chromium based browsers */
+
+*::-webkit-scrollbar {
+  width: 2px;
+}
+
+html *::-webkit-scrollbar-thumb {
+  @apply bg-neutral-800 rounded-lg;
+}
+
+.scrollbar-invisible::-webkit-scrollbar-thumb {
+  @apply bg-transparent;
+}
