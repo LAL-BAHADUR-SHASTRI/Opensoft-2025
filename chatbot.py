@@ -47,7 +47,8 @@ image = modal.Image.debian_slim().pip_install([
     "fastapi[standard]",
     "accelerate",
     "einops",
-    "flask"
+    "flask",
+    "nltk"
 ])
 
 # File paths and configuration - Use local paths for CLI mode
@@ -196,7 +197,12 @@ class ChatBot:
         """Initialize models when the container starts"""
         from transformers import pipeline
         import os
-        
+        import nltk
+        nltk.download('punkt')
+        nltk.download('stopwords')
+        nltk.download('wordnet')
+        nltk.download('averaged_perceptron_tagger')
+    
         # Create container data directory
         os.makedirs("/root/data", exist_ok=True)
         
@@ -227,6 +233,98 @@ class ChatBot:
         return self
     
     # Simple sentiment analyzer as fallback with improved workspace terms
+    def extract_keywords(self,text):
+        try:
+            import nltk
+            from nltk.tokenize import word_tokenize
+            from nltk.corpus import stopwords
+            from nltk.stem import WordNetLemmatizer
+            from nltk.tag import pos_tag
+            from collections import Counter 
+
+            lemmatizer=WordNetLemmatizer()
+            tokens=word_tokenize(text.lower())
+            stop_words=set(stopwords.words('english'))
+            workplace_stop_words = {
+                'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 
+                'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'shall', 
+                'should', 'can', 'could', 'may', 'might', 'must', 'i', 'me', 'my', 
+                'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 
+                'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 
+                'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 
+                'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 
+                'these', 'those', 'am', 'im', 'ive', 'havent', 'didnt', 'dont',
+                'feel', 'think', 'just', 'like', 'get', 'got', 'getting', 'really',
+                'very', 'quite', 'actually', 'basically', 'generally', 'usually'
+            }
+            all_stop_words = stop_words.union(workplace_stop_words)
+            important_terms = {
+                'team', 'manager', 'colleague', 'project', 'deadline', 'workload',
+                'stress', 'balance', 'pressure', 'environment', 'toxic', 'support',
+                'recognition', 'promotion', 'salary', 'compensation', 'benefit',
+                'feedback', 'communication', 'remote', 'office', 'hours', 'overtime',
+                'burnout', 'happy', 'unhappy', 'frustrated', 'overwhelmed', 'undervalued',
+                'appreciated', 'meeting', 'micromanage', 'autonomy', 'flexible', 'rigid',
+                'training', 'development', 'career', 'growth', 'opportunity', 'culture',
+                'leadership', 'harassment', 'discrimination', 'diversity', 'inclusion',
+                'collaboration', 'isolation', 'resource', 'understaffed', 'overworked'
+            } 
+            tagged_tokens = pos_tag(tokens)
+            important_pos = ('NN', 'NNS', 'NNP', 'NNPS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'JJ', 'JJR', 'JJS', 'RB', 'RBR', 'RBS')
+            filtered_tokens = []
+            for token, tag in tagged_tokens:
+                # Keep the token if it's important even if it's in stopwords
+                if token in important_terms:
+                    filtered_tokens.append(lemmatizer.lemmatize(token))
+                # Otherwise, apply regular filtering
+                elif (token.isalpha() and 
+                    token not in all_stop_words and 
+                    len(token) > 2 and 
+                    tag in important_pos):
+                    filtered_tokens.append(lemmatizer.lemmatize(token, pos=self._get_wordnet_pos(tag)))
+
+            word_freq = Counter(filtered_tokens)
+            bigrams = self._extract_bigrams(tokens, all_stop_words)
+            keywords = [word for word, _ in word_freq.most_common(8)]        
+            if bigrams:
+                top_bigrams = [bigram for bigram, _ in bigrams.most_common(3)]
+                keywords.extend(top_bigrams)
+            
+            return keywords[:10]
+        except Exception as e:
+            print(f"Error extracting keywords: {str(e)}")
+            return []
+    def _get_wordnet_pos(self, treebank_tag):
+    
+        from nltk.corpus import wordnet
+        
+        if treebank_tag.startswith('J'):
+            return wordnet.ADJ
+        elif treebank_tag.startswith('V'):
+            return wordnet.VERB
+        elif treebank_tag.startswith('N'):
+            return wordnet.NOUN
+        elif treebank_tag.startswith('R'):
+            return wordnet.ADV
+        else:
+            # Default is noun
+            return wordnet.NOUN
+    def _extract_bigrams(self, tokens, stop_words):
+        """Extract meaningful bigrams (two-word phrases) from tokens"""
+        from collections import Counter
+        
+        # Clean tokens by removing stopwords
+        clean_tokens = [t for t in tokens if t.isalpha() and t not in stop_words and len(t) > 2]
+        
+        # Create bigrams
+        bigrams = []
+        for i in range(len(clean_tokens) - 1):
+            bigram = f"{clean_tokens[i]} {clean_tokens[i+1]}"
+            bigrams.append(bigram)
+        
+        # Count and return bigrams
+        return Counter(bigrams)
+
     def simple_sentiment_analyzer(self, text):
         """Simple rule-based sentiment analyzer as fallback"""
         print("Using fallback sentiment analyzer")
@@ -370,7 +468,7 @@ class ChatBot:
             print(f"Analysis error: {str(e)}")
             return 'Neutral Zone (OK)', 'Analysis failed'
     
-    def save_response(self, employee_id, question, response, sentiment, reason):
+    def save_response(self, employee_id, question, response, sentiment, reason,keywords=None):
         """Save response to JSON file"""
         try:
             # For local testing, use local paths
@@ -386,6 +484,7 @@ class ChatBot:
                 "response": response,
                 "sentiment": sentiment,
                 "reason": reason,
+                "keywords": keywords or [],
                 "date": datetime.now().strftime("%Y-%m-%d")
             }
             
@@ -627,10 +726,57 @@ class ChatBot:
         }
         return session_id, selected_questions[0]
     
+    def save_to_consolidated_analysis(self, analysis):
+        try:
+            employee_id = analysis["employee_id"]
+        
+            # Determine the right directory (local or container)
+            if os.path.exists(DATA_PATH):
+                analysis_dir = os.path.join(DATA_PATH, "final_analysis")
+                consolidated_file = os.path.join(analysis_dir, "all_employee_analyses.json")
+                os.makedirs(analysis_dir, exist_ok=True)
+            else:
+                # Container path
+                analysis_dir = "/root/data/final_analysis"
+                consolidated_file = os.path.join(analysis_dir, "all_employee_analyses.json")
+                os.makedirs(analysis_dir, exist_ok=True)
+            
+            # Load existing consolidated data if it exists
+            all_analyses = {}
+            if os.path.exists(consolidated_file) and os.path.getsize(consolidated_file) > 0:
+                try:
+                    with open(consolidated_file, 'r') as f:
+                        all_analyses = json.load(f)
+                except json.JSONDecodeError:
+                    print("Error loading existing consolidated analysis file")
+                    all_analyses = {}
+
+            all_analyses[employee_id] = {
+                "latest_analysis": analysis,
+                "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+            with open(consolidated_file, 'w') as f:
+                json.dump(all_analyses, f, indent=2)
+                
+            print(f"Updated consolidated analysis file at {consolidated_file}")
+            
+            return consolidated_file
+        except Exception as e:
+            print(f"Error saving consolidated analysis: {str(e)}")
+            return None
+    
     def generate_final_analysis(self, session):
         """Generate final analysis of the conversation"""
         sentiment_counts = session["sentiment_counts"]
         total = sum(sentiment_counts.values())
+        dominant_emotion = "Neutral Zone (OK)"  # Default
+        max_count = 0
+    
+        for emotion, count in sentiment_counts.items():
+            if count > max_count:
+                max_count = count
+                dominant_emotion = emotion
         negative = sum([
             sentiment_counts["Sad Zone"],
             sentiment_counts["Leaning to Sad Zone"],
@@ -641,18 +787,19 @@ class ChatBot:
             sentiment_counts["Leaning to Happy Zone"]
         ])
         
-        # Determine overall sentiment
-        if positive > negative * 2:
-            sentiment_category = "Very Positive"
-        elif positive > negative:
-            sentiment_category = "Generally Positive"
-        elif negative > positive * 2:
-            sentiment_category = "Very Concerning"
-        elif negative > positive:
-            sentiment_category = "Needs Attention"
-        else:
-            sentiment_category = "Mixed"
-        
+        reasons = []
+        for item in session["history"]:
+            if "reason" in item and item["reason"] not in reasons:
+                reasons.append(item["reason"])
+
+        all_keywords = []
+        for item in session["history"]:
+            if "keywords" in item:
+                all_keywords.extend(item.get("keywords", []))
+
+        from collections import Counter
+        keyword_counts = Counter(all_keywords)
+        top_keywords = [word for word, _ in keyword_counts.most_common(10)]
         # Extract unique reasons
         reasons = []
         for item in session["history"]:
@@ -681,17 +828,82 @@ class ChatBot:
         if needs_escalation:
             self.check_and_escalate(employee_id, escalation_reason)
         
-        return {
+        mood_explanation = self._generate_mood_explanation(
+        dominant_emotion,
+        reasons,
+        top_keywords,
+        negative, 
+        positive,
+        session["history"]
+    )
+        analysis = {
             "employee_id": employee_id,
             "sentiment_distribution": sentiment_counts,
             "key_themes": reasons,
-            "overall_assessment": sentiment_category,
+            "top_keywords": top_keywords,
+            "overall_assessment": dominant_emotion,
             "next_interaction": next_date,
             "responses_analyzed": total,
             "hr_escalation": needs_escalation,
+            "mood_explanation": mood_explanation,
             "escalation_reason": escalation_reason if needs_escalation else ""
         }
+        
+        self.save_to_consolidated_analysis(analysis)
+        return analysis
     
+    def _generate_mood_explanation(self, dominant_emotion, reasons,keywords, negative, positive, history):
+        """Generate a detailed explanation of the mood"""
+        if dominant_emotion in ["Happy Zone", "Leaning to Happy Zone"]:
+            explanation = "The employee appears to be generally satisfied. "
+        elif dominant_emotion in ["Sad Zone", "Leaning to Sad Zone"]:
+            explanation = "The employee appears to be experiencing dissatisfaction. "
+        elif dominant_emotion == "Frustrated Zone":
+            explanation = "The employee shows signs of frustration. "
+        else:
+            explanation = "The employee's sentiment is mixed or neutral. "
+        
+        # Add information about key themes if available
+        if reasons:
+            if len(reasons) == 1:
+                explanation += f"Their main concern relates to {reasons[0].lower()}. "
+            else:
+                formatted_reasons = [r.lower() for r in reasons[:3]]
+                if len(reasons) > 3:
+                    explanation += f"Their feedback highlights multiple issues including {', '.join(formatted_reasons[:2])} and {formatted_reasons[2]}. "
+                else:
+                    explanation += f"Their feedback highlights issues with {' and '.join(formatted_reasons)}. "
+        
+        # Add context from keywords
+        if keywords:
+            key_terms = ', '.join(keywords[:5])
+            explanation += f"Key topics mentioned include {key_terms}. "
+        
+        # Add mood stability information
+        sentiment_shifts = 0
+        prev_sentiment = None
+        for entry in history:
+            if prev_sentiment and entry.get("sentiment") != prev_sentiment:
+                sentiment_shifts += 1
+            prev_sentiment = entry.get("sentiment")
+        
+        if sentiment_shifts > 2 and len(history) > 3:
+            explanation += "Their responses showed significant mood variation across different topics. "
+        elif sentiment_shifts <= 1 and len(history) > 3:
+            explanation += "Their sentiment remained consistent throughout the conversation. "
+        if negative > positive * 2:
+            explanation += "This employee requires immediate attention to address their concerns."
+        elif negative > positive:
+            explanation += "A follow-up discussion is recommended to better understand their concerns."
+        elif positive > negative * 2:
+            explanation += "This employee appears highly engaged and satisfied, representing a positive workplace example."
+        elif positive > negative:
+            explanation += "Overall, this employee seems satisfied, though there may be minor areas for improvement."
+        else:
+            explanation += "Further engagement is recommended to better understand their perspective."
+        
+        return explanation
+
     def process_chat(self, message, session_id):
         """Core logic for processing a chat message"""
         if session_id not in self.sessions:
@@ -709,13 +921,14 @@ class ChatBot:
         
         # Analyze sentiment
         sentiment, reason = self.analyze_sentiment(response)
-        
+        keywords = self.extract_keywords(response)
         # Update session
         session["history"].append({
             "question": current_question,
             "response": response,
             "sentiment": sentiment,
-            "reason": reason
+            "reason": reason,
+            "keywords": keywords
         })
         
         # Update sentiment counts
@@ -734,7 +947,8 @@ class ChatBot:
             current_question,
             response,
             sentiment,
-            reason
+            reason,
+            keywords
         )
         
         # Increment question index
