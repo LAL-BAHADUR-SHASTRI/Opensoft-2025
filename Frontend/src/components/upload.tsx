@@ -4,14 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import jschardet from "jschardet";
 import { useNavigate } from "react-router";
@@ -153,8 +151,9 @@ export default function Upload() {
         setOpen(true);
         setDragActive(false);
       }
-    } catch (error) {
-      // console.error("Upload error:", error);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: unknown) {
       setErrMsg("An error occurred while uploading files. Please try again.");
       setErrDesc("Upload error");
       setOpen(true);
