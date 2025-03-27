@@ -1,7 +1,7 @@
 // src/components/UserListTable.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -21,19 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Download, Eye, ChevronUp, ChevronDown } from "lucide-react";
 import {
   Crown,
   Shield,
   MessageSquare,
   User,
-  UserPlus,
   Briefcase,
   Users,
   Star,
@@ -56,11 +49,9 @@ interface UserListTableProps {
   tableData?: UserType[];
 }
 
-// Utility function to get avatar from name
 const getAvatar = (user: { name: string; dp: string }) => {
   if (user.dp) return user.dp;
 
-  // Get initials from name
   const initials = user.name
     .split(" ")
     .map((part) => part[0])
@@ -71,10 +62,9 @@ const getAvatar = (user: { name: string; dp: string }) => {
   return initials;
 };
 
-// Role and status mapping
 const userRoleIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   Admin: { icon: <Crown size={16} />, color: "text-red-500" },
-  Superadmin: { icon: <Crown size={16} />, color: "text-purple-500" },
+  SuperAdmin: { icon: <Crown size={16} />, color: "text-purple-500" },
   Moderator: { icon: <Shield size={16} />, color: "text-blue-500" },
   "chat manager": { icon: <MessageSquare size={16} />, color: "text-green-700" },
   Agency: { icon: <Briefcase size={16} />, color: "text-cyan-500" },
@@ -92,19 +82,20 @@ const userStatusColors: Record<string, string> = {
   happy: "bg-green-800 text-green-100",
   excited: "bg-yellow-700 text-yellow-100",
 };
-const UserListTable = ({ tableData = [] }: UserListTableProps) => {
-  // console.log(tableData)
+const AdminPage = ({ tableData = [] }: UserListTableProps) => {
   const [data, setData] = useState<UserType[]>(tableData);
+
   const [filteredData, setFilteredData] = useState<UserType[]>(data);
   const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(0);
+
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  // Update filtered data when global filter changes
   useEffect(() => {
     if (!globalFilter) {
       setFilteredData(data);
@@ -112,8 +103,8 @@ const UserListTable = ({ tableData = [] }: UserListTableProps) => {
     }
 
     const searchTerm = globalFilter.toLowerCase();
+    
     const filtered = data.filter((user) => {
-      // Simplified search across multiple fields
       const searchContent = [user.Name, user.Role, user.Status, user.id].join(" ").toLowerCase();
 
       return searchContent.includes(searchTerm);
@@ -122,7 +113,6 @@ const UserListTable = ({ tableData = [] }: UserListTableProps) => {
     setFilteredData(filtered);
   }, [globalFilter, data]);
 
-  // Handle sort
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -132,26 +122,22 @@ const UserListTable = ({ tableData = [] }: UserListTableProps) => {
     }
   };
 
-  // Apply sorting to data
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortColumn) return 0;
 
-    let valA: any = a[sortColumn as keyof UserType];
-    let valB: any = b[sortColumn as keyof UserType];
+    const valA = a[sortColumn as keyof UserType];
+    const valB = b[sortColumn as keyof UserType];
 
     if (valA < valB) return sortDirection === "asc" ? -1 : 1;
     if (valA > valB) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
-  // Pagination
-
   const paginatedData =
     pageSize > sortedData.length
       ? sortedData
       : sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
 
-  // Select all rows
   const selectAllRows = () => {
     const allSelected = Object.keys(selectedRows).length === filteredData.length;
 
@@ -181,7 +167,6 @@ const UserListTable = ({ tableData = [] }: UserListTableProps) => {
           <h3 className="text-4xl font-bold ">Welcome Manager!</h3>
         </CardHeader>
 
-        {/* Filter controls simplified */}
         <div className="px-6 py-4 border-b flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 ">
           <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
             <SelectTrigger className="w-[100px] cursor-pointer">
@@ -399,4 +384,4 @@ const UserListTable = ({ tableData = [] }: UserListTableProps) => {
   );
 };
 
-export default UserListTable;
+export default AdminPage;

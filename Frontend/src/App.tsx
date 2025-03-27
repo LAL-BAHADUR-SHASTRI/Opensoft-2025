@@ -1,19 +1,19 @@
 import "./App.css";
 
-
-
 import { Route, Routes } from "react-router";
 import EmployeePage from "./pages/Employee";
-import Upload from "./components/upload";
-// import dummyUsers from "./pages/Admin/data/employees";
-                   
-// import UserListTable from "./pages/Admin/index";
-function App() {
+import EmployeeAuth from "./pages/Employee/Auth";
+import AdminPage from "./pages/Admin";
+import AdminAuth from "./pages/Admin/Auth";
+
+const App = () => {
   return (
     <Routes>
-      <Route index element={<EmployeePage />} />
-      <Route path="/admin" element={<Upload />} />
-      {/* <Route path="/admin/reports" element={< UserListTable tableData={dummyUsers}/>} /> */}
+      <Route path="/admin" element={<AdminPage />}>
+        <Route path="auth" element={<AdminAuth />} />
+      </Route>
+      <Route path="/" element={<EmployeePage />} />
+        <Route path="auth" element={<EmployeeAuth />} />
     </Routes>
   );
 }
