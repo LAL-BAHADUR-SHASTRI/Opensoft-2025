@@ -11,7 +11,7 @@ from app.models.user import User, UserRole
 from app.config import settings
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__default_rounds=12)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # JWT settings

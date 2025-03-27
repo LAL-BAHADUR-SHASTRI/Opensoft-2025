@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Dict, Any, List
 import re
 import os
+import threading
+import uuid
 
 from app.core.database import Base, engine
 
@@ -19,6 +21,9 @@ from app.models.employee import Employee
 from app.models.onboarding import OnboardingTracker
 from app.core.auth import get_password_hash
 from app.models.user import User, UserRole  # Add User model import
+
+# Add this global dictionary to track background jobs
+background_jobs = {}
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +167,250 @@ class CSVProcessor:
             "message": f"Processing started for {filename} into {table_name}",
             "status": "processing"
         }
+
+    def process_csv_async(self, file_content, filename):
+        """Process CSV file asynchronously and track with job ID"""
+        job_id = str(uuid.uuid4())
+        
+        def background_task():
+            try:
+                # Create a new session for this thread
+                from app.core.database import SessionLocal
+                db = SessionLocal()
+                
+                # Create a processor with the new session
+                processor = CSVProcessor(db)
+                
+                # Read the CSV content
+                import io
+                df = pd.read_csv(io.StringIO(file_content.decode('utf-8')))
+                
+                # Process date columns
+                for col in df.columns:
+                    if 'date' in col.lower() or 'period' in col.lower():
+                        try:
+                            df[col] = pd.to_datetime(df[col], errors='coerce')
+                        except Exception as e:
+                            logger.error(f"Error converting dates in {col}: {str(e)}")
+                
+                # Identify table and insert data
+                table_name = processor._identify_table(list(df.columns))
+                if not table_name:
+                    background_jobs[job_id] = {
+                        "status": "failed",
+                        "message": f"Could not identify table for file: {filename}",
+                        "completed_at": datetime.now().isoformat()
+                    }
+                    return
+                
+                # Insert the data
+                records_added = processor._insert_data(df, table_name)
+                
+                # Update job status
+                background_jobs[job_id] = {
+                    "status": "completed",
+                    "table": table_name,
+                    "records_added": records_added,
+                    "filename": filename,
+                    "completed_at": datetime.now().isoformat()
+                }
+                
+                logger.info(f"Background job completed: {filename}, added {records_added} records to {table_name}")
+                
+                # Close the session
+                db.close()
+                
+            except Exception as e:
+                logger.error(f"Background job failed for {filename}: {str(e)}")
+                background_jobs[job_id] = {
+                    "status": "failed",
+                    "message": str(e),
+                    "filename": filename,
+                    "completed_at": datetime.now().isoformat()
+                }
+        
+        # Initialize job status
+        background_jobs[job_id] = {
+            "status": "processing",
+            "filename": filename,
+            "started_at": datetime.now().isoformat()
+        }
+        
+        # Start background thread
+        thread = threading.Thread(target=background_task)
+        thread.daemon = True
+        thread.start()
+        
+        return {"job_id": job_id, "status": "processing", "filename": filename}
+    
+    def create_users_from_employee_ids_async(self):
+        """Run user creation in background thread and return job ID"""
+        job_id = str(uuid.uuid4())
+        
+        def background_task():
+            try:
+                # Create a new session for this thread
+                from app.core.database import SessionLocal
+                db = SessionLocal()
+                
+                try:
+                    # Check if any data exists in tables
+                    has_data = False
+                    table_counts = {}
+                    
+                    for table_name, model in self.table_models.items():
+                        count = db.query(model).count()
+                        table_counts[table_name] = count
+                        if count > 0:
+                            has_data = True
+                    
+                    if not has_data:
+                        logger.warning("No data found in any tables. Upload data first before creating users.")
+                        background_jobs[job_id] = {
+                            "status": "completed",
+                            "result": {
+                                "employees_created": 0,
+                                "users_created": 0,
+                                "message": "No data found in tables. Please upload CSV data first."
+                            },
+                            "completed_at": datetime.now().isoformat(),
+                            "table_counts": table_counts
+                        }
+                        return
+                    
+                    # Get unique employee IDs from all tables
+                    unique_employee_ids = set()
+                    employee_sources = {}
+                    
+                    for table_name, model in self.table_models.items():
+                        if hasattr(model, 'employee_id'):
+                            try:
+                                # Get all unique employee IDs from this table
+                                employee_ids = db.query(model.employee_id).distinct().all()
+                                found_ids = [record[0] for record in employee_ids if record[0]]
+                                
+                                if found_ids:
+                                    employee_sources[table_name] = len(found_ids)
+                                    unique_employee_ids.update(found_ids)
+                                    
+                                logger.info(f"Found {len(found_ids)} unique employee IDs in {table_name}")
+                            except Exception as e:
+                                logger.error(f"Error getting employee IDs from {table_name}: {str(e)}")
+                    
+                    if not unique_employee_ids:
+                        logger.warning("No employee IDs found in any tables.")
+                        background_jobs[job_id] = {
+                            "status": "completed",
+                            "result": {
+                                "employees_created": 0,
+                                "users_created": 0,
+                                "message": "No employee IDs found in data."
+                            },
+                            "completed_at": datetime.now().isoformat(),
+                            "employee_sources": employee_sources
+                        }
+                        return
+                    
+                    logger.info(f"Found {len(unique_employee_ids)} unique employee IDs from these tables: {employee_sources}")
+                    
+                    # Import these inside the function to avoid circular imports
+                    from app.models.user import User
+                    from app.models.employee import Employee
+                    from app.core.auth import get_password_hash
+                    
+                    users_created = 0
+                    employees_created = 0
+                    
+                    # Process each employee ID
+                    for emp_id in unique_employee_ids:
+                        # Check if Employee record exists
+                        existing_employee = db.query(Employee).filter(Employee.employee_id == emp_id).first()
+                        if not existing_employee:
+                            employee = Employee(
+                                employee_id=emp_id,
+                                name=f"Employee {emp_id}",
+                                department="Unassigned"
+                            )
+                            db.add(employee)
+                            employees_created += 1
+                        
+                        # Check if User record exists
+                        existing_user = db.query(User).filter(User.employee_id == emp_id).first()
+                        if not existing_user:
+                            user = User(
+                                email=f"{emp_id.lower()}@example.com",
+                                username=emp_id.lower(),
+                                hashed_password=get_password_hash(emp_id.lower()),
+                                role="employee",
+                                employee_id=emp_id
+                            )
+                            db.add(user)
+                            users_created += 1
+                    
+                    # Commit changes
+                    db.commit()
+                    
+                    result = {
+                        "employees_created": employees_created,
+                        "users_created": users_created,
+                        "total_ids_found": len(unique_employee_ids),
+                        "sources": employee_sources
+                    }
+                    
+                    # Update job status
+                    background_jobs[job_id] = {
+                        "status": "completed",
+                        "result": result,
+                        "completed_at": datetime.now().isoformat()
+                    }
+                    
+                    logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
+                    
+                except Exception as e:
+                    logger.error(f"Error in user creation process: {str(e)}")
+                    background_jobs[job_id] = {
+                        "status": "failed",
+                        "error": str(e),
+                        "completed_at": datetime.now().isoformat()
+                    }
+                    # Rollback in case of error
+                    db.rollback()
+                
+                finally:
+                    # Always close the session
+                    db.close()
+                    
+            except Exception as e:
+                logger.error(f"Failed to create database session: {str(e)}")
+                background_jobs[job_id] = {
+                    "status": "failed",
+                    "error": f"Database connection error: {str(e)}",
+                    "completed_at": datetime.now().isoformat()
+                }
+        
+        # Initialize job status
+        background_jobs[job_id] = {
+            "status": "processing",
+            "type": "create_users",
+            "started_at": datetime.now().isoformat()
+        }
+        
+        # Start background thread
+        thread = threading.Thread(target=background_task)
+        thread.daemon = True
+        thread.start()
+        
+        return {"job_id": job_id, "status": "processing", "type": "create_users"}
+    
+    def get_job_status(self, job_id):
+        """Get the status of a background job"""
+        if job_id in background_jobs:
+            return background_jobs[job_id]
+        return {"status": "not_found", "message": "Job not found"}
+    
+    def get_all_jobs(self):
+        """Get status of all background jobs"""
+        return background_jobs
 
     def _identify_table(self, headers: List[str]) -> str:
         """Identify the table based on headers"""
@@ -361,3 +610,232 @@ class CSVProcessor:
         
         logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
         return {"employees_created": employees_created, "users_created": users_created}
+
+    def queue_user_creation_after_csv_jobs(self, csv_job_ids, batch_id):
+        """Queue user creation to run after all CSV jobs complete"""
+        job_id = str(uuid.uuid4())
+        
+        def wait_and_create_users():
+            try:
+                # Create a new session for this thread
+                from app.core.database import SessionLocal
+                db = SessionLocal()
+                
+                # First, wait for all CSV jobs to complete
+                logger.info(f"Waiting for {len(csv_job_ids)} CSV jobs to complete before creating users")
+                
+                # Update job status to waiting
+                background_jobs[job_id] = {
+                    "status": "waiting",
+                    "message": f"Waiting for {len(csv_job_ids)} CSV jobs to complete",
+                    "csv_jobs": csv_job_ids,
+                    "batch_id": batch_id,
+                    "started_at": datetime.now().isoformat()
+                }
+                
+                # Check if all CSV jobs are complete
+                all_complete = False
+                max_wait_time = 300  # Maximum wait time in seconds
+                wait_start = datetime.now()
+                
+                while not all_complete:
+                    # Check if we've waited too long
+                    wait_duration = (datetime.now() - wait_start).total_seconds()
+                    if wait_duration > max_wait_time:
+                        logger.warning(f"Timed out waiting for CSV jobs after {wait_duration} seconds")
+                        background_jobs[job_id] = {
+                            "status": "failed",
+                            "message": f"Timed out waiting for CSV jobs after {wait_duration} seconds",
+                            "csv_jobs": csv_job_ids,
+                            "completed_at": datetime.now().isoformat()
+                        }
+                        return
+                    
+                    # Check status of all CSV jobs
+                    completed_jobs = 0
+                    failed_jobs = 0
+                    
+                    for csv_job_id in csv_job_ids:
+                        if csv_job_id in background_jobs:
+                            job_status = background_jobs[csv_job_id]["status"]
+                            if job_status == "completed":
+                                completed_jobs += 1
+                            elif job_status == "failed":
+                                failed_jobs += 1
+                    
+                    # If all jobs have a final status, we can proceed
+                    if completed_jobs + failed_jobs == len(csv_job_ids):
+                        all_complete = True
+                        logger.info(f"All CSV jobs complete: {completed_jobs} succeeded, {failed_jobs} failed")
+                    else:
+                        # Wait a bit before checking again
+                        import time
+                        time.sleep(2)
+                
+                # Update status to processing before starting user creation
+                background_jobs[job_id] = {
+                    "status": "processing",
+                    "message": "Creating users from employee IDs",
+                    "csv_jobs_completed": completed_jobs,
+                    "csv_jobs_failed": failed_jobs,
+                    "batch_id": batch_id
+                }
+                
+                # Now create the users
+                processor = CSVProcessor(db)
+                
+                try:
+                    # Check if any data exists in tables
+                    has_data = False
+                    table_counts = {}
+                    
+                    for table_name, model in self.table_models.items():
+                        count = db.query(model).count()
+                        table_counts[table_name] = count
+                        if count > 0:
+                            has_data = True
+                    
+                    if not has_data:
+                        logger.warning("No data found in any tables. Upload data first before creating users.")
+                        background_jobs[job_id] = {
+                            "status": "completed",
+                            "result": {
+                                "employees_created": 0,
+                                "users_created": 0,
+                                "message": "No data found in tables. Please upload CSV data first."
+                            },
+                            "completed_at": datetime.now().isoformat(),
+                            "table_counts": table_counts,
+                            "batch_id": batch_id
+                        }
+                        return
+                    
+                    # Get unique employee IDs from all tables
+                    unique_employee_ids = set()
+                    employee_sources = {}
+                    
+                    for table_name, model in processor.table_models.items():
+                        if hasattr(model, 'employee_id'):
+                            try:
+                                # Get all unique employee IDs from this table
+                                employee_ids = db.query(model.employee_id).distinct().all()
+                                found_ids = [record[0] for record in employee_ids if record[0]]
+                                
+                                if found_ids:
+                                    employee_sources[table_name] = len(found_ids)
+                                    unique_employee_ids.update(found_ids)
+                                
+                                logger.info(f"Found {len(found_ids)} unique employee IDs in {table_name}")
+                            except Exception as e:
+                                logger.error(f"Error getting employee IDs from {table_name}: {str(e)}")
+                    
+                    if not unique_employee_ids:
+                        logger.warning("No employee IDs found in any tables.")
+                        background_jobs[job_id] = {
+                            "status": "completed",
+                            "result": {
+                                "employees_created": 0,
+                                "users_created": 0,
+                                "message": "No employee IDs found in data."
+                            },
+                            "completed_at": datetime.now().isoformat(),
+                            "employee_sources": employee_sources,
+                            "batch_id": batch_id
+                        }
+                        return
+                    
+                    logger.info(f"Found {len(unique_employee_ids)} unique employee IDs from these tables: {employee_sources}")
+                    
+                    # Import these inside the function to avoid circular imports
+                    from app.models.user import User
+                    from app.models.employee import Employee
+                    from app.core.auth import get_password_hash
+                    
+                    users_created = 0
+                    employees_created = 0
+                    
+                    # Process each employee ID
+                    for emp_id in unique_employee_ids:
+                        # Check if Employee record exists
+                        existing_employee = db.query(Employee).filter(Employee.employee_id == emp_id).first()
+                        if not existing_employee:
+                            employee = Employee(
+                                employee_id=emp_id,
+                                name=f"Employee {emp_id}",
+                                department="Unassigned"
+                            )
+                            db.add(employee)
+                            employees_created += 1
+                        
+                        # Check if User record exists
+                        existing_user = db.query(User).filter(User.employee_id == emp_id).first()
+                        if not existing_user:
+                            user = User(
+                                email=f"{emp_id.lower()}@example.com",
+                                username=emp_id.lower(),
+                                hashed_password=get_password_hash(emp_id.lower()),
+                                role="employee",
+                                employee_id=emp_id
+                            )
+                            db.add(user)
+                            users_created += 1
+                    
+                    # Commit changes
+                    db.commit()
+                    
+                    result = {
+                        "employees_created": employees_created,
+                        "users_created": users_created,
+                        "total_ids_found": len(unique_employee_ids),
+                        "sources": employee_sources
+                    }
+                    
+                    # Update job status
+                    background_jobs[job_id] = {
+                        "status": "completed",
+                        "result": result,
+                        "completed_at": datetime.now().isoformat(),
+                        "batch_id": batch_id
+                    }
+                    
+                    logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
+                    
+                except Exception as e:
+                    logger.error(f"Error in user creation process: {str(e)}")
+                    background_jobs[job_id] = {
+                        "status": "failed",
+                        "error": str(e),
+                        "completed_at": datetime.now().isoformat(),
+                        "batch_id": batch_id
+                    }
+                    # Rollback in case of error
+                    db.rollback()
+                
+                finally:
+                    # Always close the session
+                    db.close()
+                    
+            except Exception as e:
+                logger.error(f"Failed to create database session: {str(e)}")
+                background_jobs[job_id] = {
+                    "status": "failed",
+                    "error": f"Database connection error: {str(e)}",
+                    "completed_at": datetime.now().isoformat(),
+                    "batch_id": batch_id
+                }
+        
+        # Initialize job status
+        background_jobs[job_id] = {
+            "status": "queued",
+            "message": "Waiting for CSV processing to complete",
+            "csv_jobs": csv_job_ids,
+            "batch_id": batch_id,
+            "queued_at": datetime.now().isoformat()
+        }
+        
+        # Start background thread
+        thread = threading.Thread(target=wait_and_create_users)
+        thread.daemon = True
+        thread.start()
+        
+        return {"job_id": job_id, "status": "queued", "type": "create_users", "batch_id": batch_id}

@@ -7,6 +7,7 @@ import logging
 from typing import List
 import os
 from datetime import datetime, timedelta
+import uuid
 
 from app.core.database import get_db, engine, Base
 from app.services.csv_processor import CSVProcessor
@@ -79,9 +80,9 @@ async def root():
     return {"message": "Server is running"}
 
 # Data management endpoints
+# Update the upload-csv endpoint
 @app.post("/upload-csv/", tags=["data"])
 async def upload_csv_files(
-    background_tasks: BackgroundTasks,  # Add this parameter
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(is_hr)
@@ -89,76 +90,81 @@ async def upload_csv_files(
     """Upload multiple CSV files and process them in the background."""
     results = []
     processor = CSVProcessor(db)
+    csv_job_ids = []
     
-    # Process each file
+    # Process each file in the background
     for file in files:
         try:
-            # Save file temporarily
-            file_location = f"temp_{file.filename}"
-            with open(file_location, "wb") as buffer:
-                contents = await file.read()
-                buffer.write(contents)
+            # Read file content
+            contents = await file.read()
             
-            # Read the CSV file
-            df = pd.read_csv(file_location)
-            
-            # Get initial response
-            result = processor.process_csv_background(df, file.filename)
-            
-            # Schedule the actual processing in the background
-            async def process_file_background(df, filename):
-                try:
-                    # First handle date columns and convert to proper format
-                    for col in df.columns:
-                        if 'date' in col.lower() or 'period' in col.lower():
-                            df[col] = pd.to_datetime(df[col], errors='coerce')
-                    
-                    # Do the actual data insertion
-                    records_added = processor._insert_data(df, result["table"])
-                    logger.info(f"Background task completed: {filename}, added {records_added} records")
-                except Exception as e:
-                    logger.error(f"Background task error processing {filename}: {str(e)}")
-                    
-                # Clean up the temporary file
-                if os.path.exists(file_location):
-                    os.remove(file_location)
-            
-            # Add the background task
-            background_tasks.add_task(process_file_background, df, file.filename)
+            # Start background processing and get job ID
+            job_result = processor.process_csv_async(contents, file.filename)
+            csv_job_ids.append(job_result["job_id"])
             
             results.append({
                 "filename": file.filename,
                 "status": "processing",
-                "table": result.get("table", None),
-                "message": result.get("message", "")
+                "job_id": job_result["job_id"]
             })
             
         except Exception as e:
-            logger.error(f"Error preparing file {file.filename}: {str(e)}")
+            logger.error(f"Error processing file {file.filename}: {str(e)}")
             results.append({
                 "filename": file.filename,
                 "status": "error",
                 "message": str(e)
             })
-            # Clean up if file was created
-            if os.path.exists(f"temp_{file.filename}"):
-                os.remove(f"temp_{file.filename}")
     
-    # Add a background task for creating users
-    async def create_users_background():
-        try:
-            # Your existing code for extracting employee IDs and creating users
-            # [...]
-            logger.info("Background task: User creation completed")
-        except Exception as e:
-            logger.error(f"Background task error creating users: {str(e)}")
+    # Start user creation AFTER all CSV files are processed (in background)
+    batch_id = str(uuid.uuid4())
+    user_job = processor.queue_user_creation_after_csv_jobs(csv_job_ids, batch_id)
     
-    background_tasks.add_task(create_users_background)
-    
-    # Return immediately with processing status
+    # Return immediately with job IDs
     return {
+        "message": "Files uploaded and processing started",
+        "batch_id": batch_id,
         "results": results,
-        "message": "Files are being processed in the background"
+        "user_creation_job": user_job["job_id"]
+    }
+
+# Add these new endpoints to check job status
+@app.get("/jobs/{job_id}", tags=["jobs"])
+async def get_job_status(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(is_hr)
+):
+    """Get status of a specific background job"""
+    processor = CSVProcessor(db)
+    status = processor.get_job_status(job_id)
+    
+    if status["status"] == "not_found":
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    return status
+
+@app.get("/jobs/", tags=["jobs"])
+async def get_all_jobs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(is_hr)
+):
+    """Get status of all background jobs"""
+    processor = CSVProcessor(db)
+    return {"jobs": processor.get_all_jobs()}
+
+# Add specific endpoint for user creation
+@app.post("/users/create-async/", tags=["users"])
+async def create_users_async(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(is_hr)
+):
+    """Start background job to create users from all employee IDs"""
+    processor = CSVProcessor(db)
+    result = processor.create_users_from_employee_ids_async()
+    return {
+        "message": "User creation started in background",
+        "job_id": result["job_id"]
     }
 
 @app.get("/tables/", tags=["data"])
