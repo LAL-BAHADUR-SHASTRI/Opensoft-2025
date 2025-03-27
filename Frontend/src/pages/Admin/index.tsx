@@ -34,6 +34,7 @@ import {
   UserX,
 } from "lucide-react";
 import moment from "moment";
+import dummyUsers from "./data/employees";
 // Interfaces
 interface UserType {
   id: string;
@@ -82,8 +83,8 @@ const userStatusColors: Record<string, string> = {
   happy: "bg-green-800 text-green-100",
   excited: "bg-yellow-700 text-yellow-100",
 };
-const AdminPage = ({ tableData = [] }: UserListTableProps) => {
-  const [data, setData] = useState<UserType[]>(tableData);
+const AdminPage = () => {
+  const [data, setData] = useState<UserType[]>(dummyUsers);
 
   const [filteredData, setFilteredData] = useState<UserType[]>(data);
   const [globalFilter, setGlobalFilter] = useState<string>("");
@@ -161,15 +162,10 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
   };
 
   return (
-    <>
-      <Card className="w-full min-h-screen dark">
-        <CardHeader>
-          <h3 className="text-4xl font-bold ">Welcome Manager!</h3>
-        </CardHeader>
-
-        <div className="px-6 py-4 border-b flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 ">
+      <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white">
+        <div className="px-6 py-4 border-b border-neutral-800 flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 ">
           <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-            <SelectTrigger className="w-[100px] cursor-pointer">
+            <SelectTrigger className="w-[100px] cursor-pointer border-neutral-800">
               <SelectValue placeholder="10" />
             </SelectTrigger>
             <SelectContent className="dark ">
@@ -185,10 +181,10 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
               placeholder="Search Users"
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="max-w-sm"
+              className="max-w-sm border-neutral-800"
             />
 
-            <Button variant="outline" className="cursor-pointer">
+            <Button variant="outline" className="cursor-pointer text-black">
               <Download className="mr-2 h-4 w-4 " /> Download
             </Button>
           </div>
@@ -196,11 +192,11 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
 
         <div className="overflow-x-auto cursor-pointer ">
           <Table className="">
-            <TableHeader className="">
-              <TableRow>
-                <TableHead className="w-[50px] ">
+            <TableHeader className="border-neutral-800 border-b-2 hover:bg-transparent">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[50px]">
                   <Checkbox
-                    className="ml-5 items-center flex"
+                    className="ml-5 items-center flex border-neutral-600"
                     checked={
                       Object.keys(selectedRows).length > 0 &&
                       Object.keys(selectedRows).length === filteredData.length
@@ -210,7 +206,7 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                 </TableHead>
 
                 <TableHead className="cursor-pointer " onClick={() => handleSort("Name")}>
-                  <div className="ml-5 flex items-center">
+                  <div className="ml-5 flex items-center text-white">
                     User
                     {sortColumn === "Name" &&
                       (sortDirection === "asc" ? (
@@ -225,7 +221,7 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                   className="cursor-pointer  max-md:hidden"
                   onClick={() => handleSort("Role")}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center text-white">
                     Department
                     {sortColumn === "Role" &&
                       (sortDirection === "asc" ? (
@@ -240,7 +236,7 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                   className="cursor-pointer  max-md:hidden"
                   onClick={() => handleSort("Updated at")}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center text-white">
                     Updated At
                     {sortColumn === "Updated at" &&
                       (sortDirection === "asc" ? (
@@ -252,7 +248,7 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                 </TableHead>
 
                 <TableHead className="cursor-pointer" onClick={() => handleSort("Status")}>
-                  <div className="flex items-center">
+                  <div className="flex items-center text-white">
                     Status
                     {sortColumn === "Status" &&
                       (sortDirection === "asc" ? (
@@ -263,7 +259,7 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                   </div>
                 </TableHead>
 
-                <TableHead>Action</TableHead>
+                <TableHead className="text-white">Action</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -276,10 +272,10 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                 </TableRow>
               ) : (
                 paginatedData.map((user) => (
-                  <TableRow key={user.id} className={selectedRows[user.id] ? "bg-muted/50" : ""}>
+                  <TableRow key={user.id} className={`${selectedRows[user.id] ? "bg-neutral-900" : ""} border-neutral-800 hover:bg-neutral-900/50`}>
                     <TableCell className="">
                       <Checkbox
-                        className="cursor-pointer ml-5"
+                        className="cursor-pointer ml-5 border-neutral-600"
                         checked={!!selectedRows[user.id]}
                         onCheckedChange={() => toggleRowSelected(user.id)}
                       />
@@ -317,7 +313,6 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
                         const date = new Date(user["Updated at"]);
                         return (
                           <div>
-                            {/* <p className="font-medium">{`${date.getUTCDate()}-${date.getUTCMonth()}-${date.getUTCFullYear()}`}</p> */}
                             <p className="text-muted-foreground">{moment(date).fromNow()}</p>
                           </div>
                         );
@@ -348,10 +343,9 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
           </Table>
         </div>
 
-        {/* Simple pagination */}
         <div className="flex items-center justify-end px-4 py-4">
           <div className="flex items-center space-x-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white">
               Showing <strong>{paginatedData.length}</strong> of{" "}
               <strong>{filteredData.length}</strong> results
             </p>
@@ -360,9 +354,8 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                className="cursor-pointer"
+                className={`cursor-pointer text-black ${currentPage === 0 && "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"}`}
                 onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-                disabled={currentPage === 0}
               >
                 Previous
               </Button>
@@ -370,17 +363,15 @@ const AdminPage = ({ tableData = [] }: UserListTableProps) => {
               <Button
                 variant="outline"
                 size="sm"
-                className="cursor-pointer"
+                className={`cursor-pointer text-black ${(currentPage + 1) * pageSize >= filteredData.length && "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"}`}
                 onClick={() => setCurrentPage((p) => p + 1)}
-                disabled={(currentPage + 1) * pageSize >= filteredData.length}
               >
                 Next
               </Button>
             </div>
           </div>
         </div>
-      </Card>
-    </>
+      </main>
   );
 };
 

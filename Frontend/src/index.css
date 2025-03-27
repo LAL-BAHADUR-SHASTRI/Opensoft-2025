@@ -124,8 +124,12 @@
   width: 2px;
 }
 
+*::-webkit-scrollbar-track {
+  @apply bg-neutral-950
+}
+
 html *::-webkit-scrollbar-thumb {
-  @apply bg-neutral-800 rounded-lg;
+  @apply bg-neutral-700 rounded-lg;
 }
 
 .scrollbar-invisible::-webkit-scrollbar-thumb {
