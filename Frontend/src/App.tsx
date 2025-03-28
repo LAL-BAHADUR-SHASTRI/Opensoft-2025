@@ -5,18 +5,24 @@ import EmployeePage from "./pages/Employee";
 import EmployeeAuth from "./pages/Employee/Auth";
 import AdminPage from "./pages/Admin";
 import AdminAuth from "./pages/Admin/Auth";
+import Upload from "./components/upload";
 
 const App = () => {
   return (
-    <Routes>
-      <Route path="/" element={<EmployeePage />}>
-        <Route path="auth" element={<EmployeeAuth />} />
-      </Route>
+    <>
+      <Routes>
+        <Route path="/">
+          <Route index element={<EmployeePage />} />
+          <Route path="auth" element={<EmployeeAuth />} />
+        </Route>
 
-      <Route path="/admin" element={<AdminPage />}>
-        <Route path="auth" element={<AdminAuth />} />
-      </Route>
-    </Routes>
+        <Route path="/admin">
+          <Route index element={<AdminPage />} />
+          <Route path="auth" element={<AdminAuth />} />
+          <Route path="upload" element={<Upload />} />
+        </Route>
+      </Routes>
+    </>
   );
 };
 
