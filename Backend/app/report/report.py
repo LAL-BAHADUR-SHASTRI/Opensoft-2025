@@ -1,6 +1,14 @@
 from sqlalchemy.orm import Session, sessionmaker
 import pandas as pd
-from app.models import Employee, ActivityTracker, LeaveTracker, OnboardingTracker, PerformanceTracker, RewardsTracker, VibeMeter
+# from app.models import Employee, ActivityTracker, LeaveTracker, OnboardingTracker, PerformanceTracker, RewardsTracker, VibeMeter
+from app.models.activity import ActivityTracker
+from app.models.employee import Employee
+from app.models.leave import LeaveTracker
+from app.models.onboarding import OnboardingTracker
+from app.models.performance import PerformanceTracker
+from app.models.rewards import RewardsTracker
+from app.models.user import User, UserRole
+from app.models.vibemeter import VibeMeter
 
 def generate_individual_report(db: Session, employee_id: str):
     employee = db.query(Employee).filter(Employee.employee_id == employee_id).first()
@@ -22,11 +30,11 @@ def generate_individual_report(db: Session, employee_id: str):
 
     total_leaves = len(leaves)
     
-    onboarding_feedback = onboarding.feedback if onboarding else "N/A"
-    training_completed = onboarding.training_completed if onboarding else "No"
+    onboarding_feedback = onboarding.onboarding_feedback if onboarding else "N/A"
+    training_completed = onboarding.initial_training_completed if onboarding else "No"
     
     last_rating = performance.rating if performance else "N/A"
-    manager_feedback = performance.feedback if performance else "No feedback available"
+    manager_feedback = performance.comments if performance else "No feedback available"
     
     total_rewards = len(rewards)
     recent_reward = {
@@ -35,8 +43,8 @@ def generate_individual_report(db: Session, employee_id: str):
         "Points": rewards[0].points if rewards else 0
     }
     
-    recent_mood_score = vibe.score if vibe else "N/A"
-    mood_comment = vibe.comment if vibe else "No comments"
+    recent_mood_score = vibe.mood_score if vibe else "N/A"
+    mood_comment = vibe.comments if vibe else "No comments"
     
     report = {
         "Employee ID": employee.employee_id,
@@ -44,7 +52,7 @@ def generate_individual_report(db: Session, employee_id: str):
         "Department": employee.department,
         "Position": employee.position,
         "Manager ID": employee.manager_id,
-        "Joining Date": employee.join_date.strftime("%Y-%m-%d"),
+        "Joining Date": employee.join_date.strftime("%Y-%m-%d") if employee.join_date else "N/A",
         "Total Messages Sent": total_messages,
         "Total Emails Sent": total_emails,
         "Total Meetings Attended": total_meetings,
@@ -79,19 +87,19 @@ def generate_collective_report(db: Session):
     total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
     total_leaves = len(leaves)
     
-    onboarding_scores = [o.satisfaction_score for o in onboarding if o.satisfaction_score is not None]
-    avg_onboarding_score = sum(onboarding_scores) / len(onboarding_scores) if onboarding_scores else "N/A"
+    # onboarding_scores = [o. for o in onboarding if o.satisfaction_score is not None]
+    # avg_onboarding_score = sum(onboarding_scores) / len(onboarding_scores) if onboarding_scores else "N/A"
     
     performance_scores = [p.rating for p in performance if p.rating is not None]
     avg_performance_rating = sum(performance_scores) / len(performance_scores) if performance_scores else "N/A"
     
     total_rewards_given = len(rewards)
-    reward_types = [r.type for r in rewards]
+    reward_types = [r.reward_type for r in rewards]
     most_common_reward = max(set(reward_types), key=reward_types.count) if reward_types else "N/A"
     
-    mood_scores = [v.score for v in vibes if v.score is not None]
+    mood_scores = [v.mood_score for v in vibes if v.mood_score is not None]
     avg_mood_score = sum(mood_scores) / len(mood_scores) if mood_scores else "N/A"
-    mood_comments = [v.comment for v in vibes if v.comment]
+    mood_comments = [v.comments for v in vibes if v.comments]
     
     report = {
         "Total Employees": total_employees,
@@ -100,7 +108,7 @@ def generate_collective_report(db: Session):
         "Total Emails Sent": total_emails,
         "Total Meetings Attended": total_meetings,
         "Total Leaves Taken": total_leaves,
-        "Onboarding Satisfaction Score": avg_onboarding_score,
+        # "Onboarding Satisfaction Score": avg_onboarding_score,
         "Average Performance Rating": avg_performance_rating,
         "Total Rewards Given": total_rewards_given,
         "Most Common Reward Type": most_common_reward,
@@ -121,3 +129,4 @@ def report_test1():
     session = SessionLocal()  # Create a new session instance
 
     print(generate_individual_report(session, 'EMP0048'))
+    print(generate_collective_report(session))
