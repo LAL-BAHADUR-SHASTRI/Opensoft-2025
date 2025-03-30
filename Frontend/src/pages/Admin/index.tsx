@@ -1,7 +1,6 @@
 // src/components/UserListTable.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -35,7 +34,10 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import dummyUsers from "./data/employees";
-// Interfaces
+import { Link, Outlet, useLocation } from "react-router";
+
+import { Icon } from "@iconify-icon/react";
+
 interface UserType {
   id: string;
   Name: string;
@@ -46,9 +48,9 @@ interface UserType {
   Status: string;
 }
 
-interface UserListTableProps {
-  tableData?: UserType[];
-}
+// interface UserListTableProps {
+//   tableData?: UserType[];
+// }
 
 const getAvatar = (user: { name: string; dp: string }) => {
   if (user.dp) return user.dp;
@@ -77,13 +79,15 @@ const userRoleIcons: Record<string, { icon: React.ReactNode; color: string }> = 
 };
 
 const userStatusColors: Record<string, string> = {
-  okay: "bg-green-700 text-green-100",
-  frustrated: "bg-red-700 text-red-100",
-  sad: "bg-blue-800 text-blue-100",
-  happy: "bg-green-800 text-green-100",
-  excited: "bg-yellow-700 text-yellow-100",
+  okay: "bg-green-700/50 text-green-100",
+  frustrated: "bg-red-700/50 text-red-100",
+  sad: "bg-blue-800/50 text-blue-100",
+  happy: "bg-green-800/50 text-green-100",
+  excited: "bg-yellow-700/50 text-yellow-100",
 };
 const AdminPage = () => {
+  const location = useLocation();
+
   const [data, setData] = useState<UserType[]>(dummyUsers);
 
   const [filteredData, setFilteredData] = useState<UserType[]>(data);
@@ -104,7 +108,7 @@ const AdminPage = () => {
     }
 
     const searchTerm = globalFilter.toLowerCase();
-    
+
     const filtered = data.filter((user) => {
       const searchContent = [user.Name, user.Role, user.Status, user.id].join(" ").toLowerCase();
 
@@ -162,7 +166,30 @@ const AdminPage = () => {
   };
 
   return (
+    <>
+      <Outlet />
       <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white">
+        <div className="flex justify-between items-center gap-4 py-4 px-6 border-b-2 border-neutral-800">
+          <div className="flex items-center">
+            <h2 className="text-xl font-medium text-neutral-100">Deloitte</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to={"/admin/upload"}
+              state={{ background: location }}
+              className="py-2 px-5 border-2 border-white bg-white text-black rounded-md"
+            >
+              Modal
+            </Link>
+
+            <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
+              <span>Logout</span>
+              <Icon icon={"mynaui-logout"} className="text-xl" />
+            </button>
+          </div>
+        </div>
+
+        <h1 className="px-6 text-2xl py-5 font-medium">Employee List</h1>
         <div className="px-6 py-4 border-b border-neutral-800 flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 ">
           <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
             <SelectTrigger className="w-[100px] cursor-pointer border-neutral-800">
@@ -272,7 +299,12 @@ const AdminPage = () => {
                 </TableRow>
               ) : (
                 paginatedData.map((user) => (
-                  <TableRow key={user.id} className={`${selectedRows[user.id] ? "bg-neutral-900" : ""} border-neutral-800 hover:bg-neutral-900/50`}>
+                  <TableRow
+                    key={user.id}
+                    className={`${
+                      selectedRows[user.id] ? "bg-neutral-900" : ""
+                    } border-neutral-800 hover:bg-neutral-900/50`}
+                  >
                     <TableCell className="">
                       <Checkbox
                         className="cursor-pointer ml-5 border-neutral-600"
@@ -343,7 +375,7 @@ const AdminPage = () => {
           </Table>
         </div>
 
-        <div className="flex items-center justify-end px-4 py-4">
+        <div className="flex items-center justify-end px-6 py-4">
           <div className="flex items-center space-x-6">
             <p className="text-sm text-white">
               Showing <strong>{paginatedData.length}</strong> of{" "}
@@ -354,7 +386,10 @@ const AdminPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className={`cursor-pointer text-black ${currentPage === 0 && "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"}`}
+                className={`cursor-pointer text-black ${
+                  currentPage === 0 &&
+                  "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
+                }`}
                 onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
               >
                 Previous
@@ -363,7 +398,10 @@ const AdminPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className={`cursor-pointer text-black ${(currentPage + 1) * pageSize >= filteredData.length && "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"}`}
+                className={`cursor-pointer text-black ${
+                  (currentPage + 1) * pageSize >= filteredData.length &&
+                  "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
+                }`}
                 onClick={() => setCurrentPage((p) => p + 1)}
               >
                 Next
@@ -372,6 +410,7 @@ const AdminPage = () => {
           </div>
         </div>
       </main>
+    </>
   );
 };
 
