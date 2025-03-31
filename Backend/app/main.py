@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -46,7 +46,7 @@ app.add_middleware(
 # Authentication endpoints
 # Update your login endpoint function in main.py
 @app.post("/token", tags=["authentication"])
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -63,6 +63,8 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.username, "role": user.role}, expires_delta=access_token_expires
     )
+    
+    response.set_cookie(key="token", value=access_token)    
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "employee_id": user.employee_id}
 
 @app.get("/users/me", tags=["authentication"])
