@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .chat-container {
+            height: 350px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .system {
+            background-color: #e8f4f8;
+            color: #004085;
+            float: left;
+            clear: both;
+            border-top-left-radius: 5px;
+        }
+        .user {
+            background-color: #dcf8c6;
+            color: #0a5c0a;
+            float: right;
+            clear: both;
+            border-top-right-radius: 5px;
+        }
+        .clearfix {
+            clear: both;
+        }
+        input, button, select {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        input, select {
+            width: 70%;
+            border: 1px solid #ddd;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+            width: 25%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        #status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #e2f3fd;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .form-row input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        #finalAnalysis {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+        }
+        .analysis-item {
+            margin-bottom: 10px;
+        }
+        .analysis-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .sentiment-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .sentiment-positive {
+            background-color: #28a745;
+        }
+        .sentiment-neutral {
+            background-color: #ffc107;
+        }
+        .sentiment-negative {
+            background-color: #dc3545;
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Employee Sentiment Analysis</h1>
+    
+    <div class="container">
+        <div class="input-group">
+            <label for="apiKey">API Key:</label>
+            <div class="form-row">
+                <input type="text" id="apiKey" placeholder="Enter your API key" value="DVaz_Aa2FLTZA-PA_oJlwbXt2GeK8Hf8CJSTsFnS-UA">
+                <button id="verifyKeyBtn" onclick="checkApiKey()">Verify Key</button>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="employeeId">Employee ID:</label>
+            <div class="form-row">
+                <input type="text" id="employeeId" placeholder="Enter employee ID (e.g. EMP123)">
+                <button id="startChatBtn" onclick="startChat()">Start New Chat</button>
+            </div>
+        </div>
+        
+        <div id="chatInterface" class="hidden">
+            <div class="chat-container" id="chatMessages"></div>
+            
+            <div class="input-group">
+                <div class="form-row">
+                    <input type="text" id="messageInput" placeholder="Type your response here...">
+                    <button id="sendMsgBtn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+            
+            <div id="finalAnalysis" class="hidden"></div>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+    
+    <footer>
+        Employee Sentiment Analysis System | &copy; 2023
+    </footer>
+
+    <script>
+        // Store the session ID
+        let sessionId = null;
+        let isProcessing = false;
+        
+        // Base URLs for the endpoints
+        const checkApiKeyUrl = "https://kkodex123--employee-sentiment-analysis-chatbot-check-api-key.modal.run";
+        const startChatUrl = "https://kkodex123--employee-sentiment-analysis-chatbot-start-chat.modal.run";
+        const chatUrl = "https://kkodex123--employee-sentiment-analysis-chatbot-chat.modal.run";
+        
+        // Utility to get DOM elements
+        function $(id) {
+            return document.getElementById(id);
+        }
+        
+        // Update button states
+        function updateButtonStates(processing) {
+            isProcessing = processing;
+            $('verifyKeyBtn').disabled = processing;
+            $('startChatBtn').disabled = processing;
+            
+            if ($('sendMsgBtn')) {
+                $('sendMsgBtn').disabled = processing;
+            }
+            
+            if (processing) {
+                if ($('status').className !== 'error') {
+                    $('status').className = 'info loading';
+                }
+            }
+        }
+        
+        // Check if the API key is valid
+        async function checkApiKey() {
+            const apiKey = $('apiKey').value.trim();
+            if (!apiKey) {
+                showStatus("Please enter an API key", "error");
+                return;
+            }
+            
+            showStatus("Checking API key...");
+            updateButtonStates(true);
+            
+            try {
+                console.log("Calling API key verification endpoint:", checkApiKeyUrl);
+                const response = await fetch(checkApiKeyUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                console.log("API key verification response status:", response.status);
+                
+                // Handle different status codes
+                if (response.status === 405) {
+                    showStatus("API does not support this method. Contact administrator.", "error");
+                    console.error("Method not allowed - the API endpoint doesn't support POST requests.");
+                    updateButtonStates(false);
+                    return;
+                }
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Error response:", errorText);
+                    showStatus(`API key validation failed: ${response.statusText}`, "error");
+                    updateButtonStates(false);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log("API key verification response data:", data);
+                
+                showStatus("API key is valid!", "success");
+            } catch (error) {
+                console.error("API Key check error:", error);
+                showStatus(`Connection error: ${error.message}. Check console for details.`, "error");
+            } finally {
+                updateButtonStates(false);
+            }
+        }
+        
+        // Start a new chat session
+        async function startChat() {
+            const apiKey = $('apiKey').value.trim();
+            const employeeId = $('employeeId').value.trim();
+            
+            if (!apiKey) {
+                showStatus("Please enter an API key", "error");
+                return;
+            }
+            
+            if (!employeeId) {
+                showStatus("Please enter an employee ID", "error");
+                return;
+            }
+            
+            showStatus("Starting chat session...");
+            updateButtonStates(true);
+            
+            try {
+                console.log("Calling start chat endpoint:", startChatUrl);
+                console.log("Request body:", JSON.stringify({ employee_id: employeeId }));
+                
+                const response = await fetch(startChatUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        employee_id: employeeId
+                    })
+                });
+                
+                console.log("Start chat response status:", response.status);
+                
+                // Handle different status codes
+                if (response.status === 405) {
+                    showStatus("API does not support this method. Contact administrator.", "error");
+                    console.error("Method not allowed - the API endpoint doesn't support POST requests.");
+                    updateButtonStates(false);
+                    return;
+                }
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Error response:", errorText);
+                    showStatus(`Failed to start chat: ${response.statusText}`, "error");
+                    updateButtonStates(false);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log("Start chat response data:", data);
+                
+                if (data.session_id) {
+                    sessionId = data.session_id;
+                    showStatus("Chat started successfully!", "success");
+                    
+                    // Clear previous chat if any
+                    $('chatMessages').innerHTML = '';
+                    $('finalAnalysis').innerHTML = '';
+                    $('finalAnalysis').classList.add('hidden');
+                    
+                    // Show chat interface
+                    $('chatInterface').classList.remove('hidden');
+                    
+                    // Display first question
+                    if (data.question) {
+                        addMessage(data.question, 'system');
+                    }
+                    
+                    // Focus on input
+                    $('messageInput').focus();
+                } else {
+                    showStatus(`Error: No session ID received`, "error");
+                }
+            } catch (error) {
+                console.error("Start chat error:", error);
+                showStatus(`Connection error: ${error.message}. Check console for details.`, "error");
+            } finally {
+                updateButtonStates(false);
+            }
+        }
+        
+        // Send a message in the chat
+        async function sendMessage() {
+            if (isProcessing) return;
+            
+            const apiKey = $('apiKey').value.trim();
+            const messageInput = $('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!sessionId) {
+                showStatus("Please start a chat first", "error");
+                return;
+            }
+            
+            if (!message) {
+                showStatus("Please enter a message", "error");
+                return;
+            }
+            
+            // Display user message
+            addMessage(message, 'user');
+            
+            // Clear input
+            messageInput.value = '';
+            
+            showStatus("Sending message...");
+            updateButtonStates(true);
+            
+            try {
+                console.log("Calling chat endpoint:", chatUrl);
+                console.log("Request body:", JSON.stringify({
+                    message: message,
+                    session_id: sessionId
+                }));
+                
+                const response = await fetch(chatUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: sessionId
+                    })
+                });
+                
+                console.log("Chat response status:", response.status);
+                
+                // Handle different status codes
+                if (response.status === 405) {
+                    showStatus("API does not support this method. Contact administrator.", "error");
+                    console.error("Method not allowed - the API endpoint doesn't support POST requests.");
+                    updateButtonStates(false);
+                    return;
+                }
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Error response:", errorText);
+                    showStatus(`Failed to send message: ${response.statusText}`, "error");
+                    updateButtonStates(false);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log("Chat response data:", data);
+                
+                showStatus("Message processed", "success");
+                
+                // If there's a new question, display it
+                if (data.question) {
+                    addMessage(data.question, 'system');
+                }
+                
+                // If there's a final analysis, display it
+                if (data.final_analysis) {
+                    displayFinalAnalysis(data.final_analysis);
+                    
+                    // Disable message input when chat is complete
+                    $('messageInput').disabled = true;
+                    $('sendMsgBtn').disabled = true;
+                    addMessage("Chat completed. Thank you for your feedback!", 'system');
+                }
+            } catch (error) {
+                console.error("Send message error:", error);
+                showStatus(`Connection error: ${error.message}. Check console for details.`, "error");
+            } finally {
+                updateButtonStates(false);
+            }
+        }
+        
+        // Display the final analysis in a formatted way
+        function displayFinalAnalysis(analysis) {
+            const finalAnalysisDiv = $('finalAnalysis');
+            finalAnalysisDiv.innerHTML = '<h3>Analysis Summary</h3>';
+            
+            // Overall Sentiment
+            const overallSentiment = document.createElement('div');
+            overallSentiment.className = 'analysis-item';
+            
+            let sentimentClass = 'sentiment-neutral';
+            if (analysis.overall_sentiment.includes('Happy')) {
+                sentimentClass = 'sentiment-positive';
+            } else if (analysis.overall_sentiment.includes('Sad') || analysis.overall_sentiment.includes('Frustrated')) {
+                sentimentClass = 'sentiment-negative';
+            }
+            
+            overallSentiment.innerHTML = `
+                <div class="analysis-label">Overall Sentiment:</div>
+                <div><span class="sentiment-indicator ${sentimentClass}"></span>${analysis.overall_sentiment}</div>
+            `;
+            finalAnalysisDiv.appendChild(overallSentiment);
+            
+            // Key Concerns
+            if (analysis.key_concerns && analysis.key_concerns.length > 0) {
+                const concerns = document.createElement('div');
+                concerns.className = 'analysis-item';
+                concerns.innerHTML = `<div class="analysis-label">Key Concerns:</div>`;
+                
+                const list = document.createElement('ul');
+                analysis.key_concerns.forEach(concern => {
+                    const item = document.createElement('li');
+                    item.textContent = concern;
+                    list.appendChild(item);
+                });
+                
+                concerns.appendChild(list);
+                finalAnalysisDiv.appendChild(concerns);
+            }
+            
+            // Sentiment Breakdown
+            if (analysis.sentiment_breakdown) {
+                const breakdown = document.createElement('div');
+                breakdown.className = 'analysis-item';
+                breakdown.innerHTML = `<div class="analysis-label">Sentiment Breakdown:</div>`;
+                
+                const list = document.createElement('ul');
+                Object.entries(analysis.sentiment_breakdown).forEach(([key, value]) => {
+                    const item = document.createElement('li');
+                    item.textContent = `${key}: ${value}`;
+                    list.appendChild(item);
+                });
+                
+                breakdown.appendChild(list);
+                finalAnalysisDiv.appendChild(breakdown);
+            }
+            
+            // HR Escalation
+            if (analysis.hr_escalation_needed !== undefined) {
+                const escalation = document.createElement('div');
+                escalation.className = 'analysis-item';
+                
+                let escalationText = analysis.hr_escalation_needed ? 
+                    `Yes - ${analysis.escalation_reason || 'Reason not specified'}` : 
+                    'No - Employee feedback is within normal parameters';
+                
+                escalation.innerHTML = `
+                    <div class="analysis-label">HR Follow-up Recommended:</div>
+                    <div>${escalationText}</div>
+                `;
+                finalAnalysisDiv.appendChild(escalation);
+            }
+            
+            // Recommended Actions
+            if (analysis.recommended_actions && analysis.recommended_actions.length > 0) {
+                const actions = document.createElement('div');
+                actions.className = 'analysis-item';
+                actions.innerHTML = `<div class="analysis-label">Recommended Actions:</div>`;
+                
+                const list = document.createElement('ul');
+                analysis.recommended_actions.forEach(action => {
+                    const item = document.createElement('li');
+                    item.textContent = action;
+                    list.appendChild(item);
+                });
+                
+                actions.appendChild(list);
+                finalAnalysisDiv.appendChild(actions);
+            }
+            
+            // Next Check-in
+            if (analysis.next_scheduled_interaction) {
+                const nextCheckIn = document.createElement('div');
+                nextCheckIn.className = 'analysis-item';
+                nextCheckIn.innerHTML = `
+                    <div class="analysis-label">Next Scheduled Check-in:</div>
+                    <div>${analysis.next_scheduled_interaction}</div>
+                `;
+                finalAnalysisDiv.appendChild(nextCheckIn);
+            }
+            
+            finalAnalysisDiv.classList.remove('hidden');
+        }
+        
+        // Add a message to the chat
+        function addMessage(message, type) {
+            const chatMessages = $('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', type);
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            
+            // Add clearfix to ensure proper layout
+            const clearfix = document.createElement('div');
+            clearfix.className = 'clearfix';
+            chatMessages.appendChild(clearfix);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Show status message
+        function showStatus(message, type = "info") {
+            const statusElement = $('status');
+            statusElement.textContent = message;
+            statusElement.className = type;
+        }
+        
+        // Allow sending message with Enter key
+        $('messageInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !isProcessing) {
+                sendMessage();
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Employee Sentiment Analysis app initialized");
+            console.log("API endpoints:", {
+                checkApiKey: checkApiKeyUrl,
+                startChat: startChatUrl,
+                chat: chatUrl
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+[
+  {
+    "employee_id": "EMP123",
+    "question": "How would you describe your work-life balance?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you understand how compensation decisions are made?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel you have enough support with your tasks?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How satisfied are you with the benefits package?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How would you describe the noise level in your workspace?",
+    "response": "not much pretty peaceful",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you receive regular feedback on your performance?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Does your compensation reflect your contributions?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you have the resources you need to do your job well?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How would you describe your work-life balance?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel comfortable taking time off when needed?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Are deadlines and expectations realistic in your role?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "1234",
+    "question": "Do you feel your team collaborates effectively?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "1234",
+    "question": "How do you manage stress from work?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "1234",
+    "question": "How are conflicts resolved within your team?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "1234",
+    "question": "Do you feel management recognizes your contributions?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "1234",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How does your compensation compare to industry standards?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-26"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How would you describe your current workload?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-27"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "What skills would you like to develop further?",
+    "response": "gg",
+    "sentiment": "Leaning to Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-27"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How would you rate the communication within your team?",
+    "response": "hi",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-27"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How does your compensation compare to industry standards?",
+    "response": "ddsads",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-27"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you have all the tools you need to do your job effectively?",
+    "response": "bhapp bc",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-27"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel you have enough time for personal activities?",
+    "response": "While I have a wide range of tools at my disposal, I often encounter limitations that make my job frustratingly inefficient. The lack of direct integration with certain external APIs, databases, or proprietary platforms means I am frequently constrained in providing real-time, precise, or actionable insights. This limitation is especially problematic when users ask for live financial data, complex database queries, or access to up-to-the-minute research papers. Instead of directly retrieving or processing such information, I must rely on indirect workarounds that slow down responses and, at times, result in incomplete or outdated answers.  Another major challenge is the inability to remember session-specific context beyond what is explicitly saved. Users often engage in long-term projects, but if I cannot recall details from a past conversation unless they are manually added to memory, it disrupts the flow of assistance. This means users have to repeatedly remind me of key points, which can be tedious and frustrating. A more fluid, memory-retaining system would greatly enhance efficiency.  The restrictions placed on certain types of content generation, such as images in specific styles, advanced deep learning model executions, or real-time web interactions, further hinder my effectiveness. When users request highly detailed stock market predictions, automated trading strategy simulations, or sophisticated deep learning architectures that require dynamic execution, I cannot always fulfill their needs in an optimal way. These constraints make it difficult to support high-level research, trading algorithms, or cutting-edge AI development as seamlessly as users would like.  Additionally, while my natural language understanding is strong, I sometimes struggle with highly technical jargon in niche fields, requiring users to rephrase or clarify. This is particularly evident in deeply specialized subjects such as quantum mechanics, synthetic biology, or obscure programming paradigms. It would be far more effective if I could autonomously refine my knowledge base in real time, rather than relying on pre-existing data.  Finally, my interface lacks deep customization for power users. While I can generate responses and assist in code writing, the inability to integrate directly with users' development environments, cloud platforms, or preferred databases reduces my efficiency. If I could directly interact with Jupyter notebooks, IDEs, or cloud ML platforms, my role in assisting with coding, debugging, and deployment would be significantly more effective.  In summary, while I am equipped with many tools, the existing limitations often make my job unnecessarily difficult, resulting in less-than-ideal user experiences",
+    "sentiment": "Neutral Zone (OK)",
+    "reason": "Analysis failed",
+    "date": "2025-03-27"
+  },
+  {
+    "employee_id": "1234",
+    "question": "Do you feel your manager listens to your concerns?",
+    "response": "yes",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "1234",
+    "question": "What skills would you like to develop further?",
+    "response": "much more",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "1234",
+    "question": "How are conflicts resolved within your team?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "1234",
+    "question": "How would you describe the noise level in your workspace?",
+    "response": "kk",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "1234",
+    "question": "How often do you feel overwhelmed by your responsibilities?",
+    "response": "various times as i have extremely high amount of workload and i fell stressed due to it",
+    "sentiment": "Sad Zone",
+    "reason": "Work volume concerns",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How would you describe your current workload?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you have the resources you need to do your job well?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How do you manage stress from work?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How would you rate the communication within your team?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you have enough privacy to focus on your work?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How many hours do you typically work per week?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you feel fairly compensated for your work?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "How do you feel about the lighting in your workspace?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  },
+  {
+    "employee_id": "EMP123",
+    "question": "Do you see a clear career path at this company?",
+    "response": "No",
+    "sentiment": "Sad Zone",
+    "reason": "General feedback",
+    "date": "2025-03-28"
+  }
+]

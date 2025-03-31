@@ -1,0 +1,24 @@
+{
+  "EMP123": {
+    "latest_analysis": {
+      "employee_id": "EMP123",
+      "sentiment_distribution": {
+        "Happy Zone": 0,
+        "Leaning to Happy Zone": 0,
+        "Neutral Zone (OK)": 0,
+        "Leaning to Sad Zone": 0,
+        "Sad Zone": 10,
+        "Frustrated Zone": 0
+      },
+      "key_themes": [
+        "General feedback"
+      ],
+      "overall_assessment": "Very Concerning",
+      "next_interaction": "2025-03-29",
+      "responses_analyzed": 10,
+      "hr_escalation": true,
+      "escalation_reason": "Employee reported multiple highly negative responses, consecutive negative responses, high ratio of negative feedback"
+    },
+    "updated_at": "2025-03-28 01:52:48"
+  }
+}
