@@ -2,18 +2,13 @@ import type React from "react";
 import { useState } from "react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import { apiClient, routes } from "@/lib/api";
 import axios from "axios";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Link,useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 export default function AdminAuth() {
   const [adminId, setAdminId] = useState<string>("");
@@ -25,28 +20,36 @@ export default function AdminAuth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-
     if (!adminId.trim() || !password.trim()) {
       toast.error("Please enter your credentials!");
       return;
     }
 
-    const Admin  = {
-      adminId: adminId,
-      password: password
-    }
-    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("username", adminId);
+    formData.append("password", password);
 
-    // Simulate authentication - replace with actual auth logic
     try {
-      // axios.post(`${import.meta.env.BACKEND_URL}/admin/login`, Admin)
-      // mock api call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Successfully authenticated.");
-      navigate("/admin");
-    } catch (error) {
-      toast.error("Invalid admin ID or Password.");
-    } finally {
+      setIsLoading(true);
+      const response = await apiClient.post(routes.SIGN_IN, formData);
+
+      if (response.status === 201 || response.status === 200) {
+        setIsLoading(false);
+        localStorage.setItem("token", response.data.access_token);
+        toast.success("Login successful! Redirecting...");
+        setTimeout(() => {
+        navigate("/admin");
+        }, 2000);
+      }
+
+    } catch (error: any) {
+      console.log(error);
+      if (error.status === 401) {
+        toast.error("Incorrect credentials, please try again!");
+      } else {
+        toast.error("Internal server error, please try after some time");
+      }
+
       setIsLoading(false);
     }
   };
@@ -58,7 +61,7 @@ export default function AdminAuth() {
         <Card className="w-full max-w-md shadow-lg   bg-neutral-800">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
-              <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"}/>
+              <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
             </div>
             <CardTitle className="text-xl font-light">Welcome back, Admin</CardTitle>
           </CardHeader>
@@ -111,7 +114,7 @@ export default function AdminAuth() {
               </Button>
             </CardFooter>
             <Link to={"/"} className="text-sm  text-blue-500 hover:underline ml-4 px-2">
-            Login as an Employee?
+              Login as an admin?
             </Link>
           </form>
         </Card>
