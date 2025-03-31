@@ -80,12 +80,12 @@ const Calendar = ({chatHistory} : {chatHistory: {id: number, date: Date}[]}) => 
     <div className="w-full py-3 px-2 flex-col bg-neutral-950 border border-neutral-800 rounded-lg">
       <div className="flex w-full justify-between items-center px-1">
         <button
-          className="w-6 h-6 grid place-content-center bg-white cursor-pointer rounded-sm transition-all"
+          className="w-6 h-6 grid place-content-center cursor-pointer rounded-sm transition-all"
           onClick={() => {
             setCurrentTime(currentTime.month(currentTime.month() - 1));
           }}
         >
-          <span className="stroke-black">
+          <span className="stroke-white">
             <svg
               width="22"
               height="22"
@@ -106,12 +106,12 @@ const Calendar = ({chatHistory} : {chatHistory: {id: number, date: Date}[]}) => 
           {months[currentTime.month()]}, {currentTime.year()}
         </h2>
         <button
-          className="w-6 h-6 grid place-content-center bg-white cursor-pointer rounded-sm transition-all"
+          className="w-6 h-6 grid place-content-center cursor-pointer rounded-sm transition-all"
           onClick={() => {
             setCurrentTime(currentTime.month(currentTime.month() + 1));
           }}
         >
-          <span className="stroke-black">
+          <span className="stroke-white">
             <svg
               width="20"
               height="20"
