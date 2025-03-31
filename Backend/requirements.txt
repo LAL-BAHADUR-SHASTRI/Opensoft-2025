@@ -10,5 +10,5 @@ email-validator>=2.0.0
 python-dotenv>=1.0.0
 pandas>=2.0.0
 psycopg2-binary>=2.9.6
-bcrypt=>3.2.0
-passlib=>1.7.4
+bcrypt>=3.2.0
+passlib>=1.7.4
