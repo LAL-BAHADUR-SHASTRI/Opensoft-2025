@@ -10,12 +10,12 @@ import traceback
 import readline
 import modal
 from modal import Image, Mount
-from fastapi import FastAPI, HTTPException, Depends, Security
 from fastapi.security.api_key import APIKeyHeader, APIKey
 from starlette.status import HTTP_403_FORBIDDEN
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from fastapi import FastAPI, HTTPException, Depends, Security, Request
+from starlette.responses import JSONResponse
 # Data models for API
 class ChatRequest(BaseModel):
     message: str = ""
@@ -28,8 +28,19 @@ class ChatResponse(BaseModel):
     session_id: str
 
 # Modal setup
+def create_app():
+    app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allows all origins
+        allow_credentials=True,
+        allow_methods=["*"],  # Allows all methods
+        allow_headers=["*"],  # Allows all headers
+    )
+    return app
 app = modal.App("employee-sentiment-analysis")
 stub = app
+
 @app.function(secrets=[modal.Secret.from_name("huggingface-token")])                                             
 def some_function():                                                                                             
     os.getenv("HUGGINGFACE_TOKEN")
@@ -38,7 +49,7 @@ API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 # Generate a secure API key if not provided
-DEFAULT_API_KEY = ""
+DEFAULT_API_KEY = "DVaz_Aa2FLTZA-PA_oJlwbXt2GeK8Hf8CJSTsFnS-UA"
 
 # Create image with all dependencies
 image = modal.Image.debian_slim().pip_install([
@@ -61,6 +72,19 @@ SCHEDULE_FILE = os.path.join(DATA_PATH, "interaction_schedule.json")
 volume = modal.Volume.from_name("employee-data", create_if_missing=True)
 api_keys_volume = modal.Volume.from_name("api-keys-volume", create_if_missing=True)
 
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    if not api_key_header:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="API key missing"
+        )
+    
+    # Simplified approach: just check against the default key
+    if api_key_header != DEFAULT_API_KEY:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="Invalid API key"
+        )
+    
+    return api_key_header
 # Get expanded question bank
 def get_expanded_questions():
     """Returns an expanded list of workplace questions"""
@@ -129,36 +153,6 @@ def get_expanded_questions():
         "Do you feel you have enough support with your tasks?"
     ]
 
-@stub.function(volumes={"/root/api_keys": api_keys_volume})
-def get_valid_api_keys():
-    """Get list of valid API keys"""
-    try:
-        with open("/root/api_keys/keys.json", "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        # Create default keys file if it doesn't exist
-        os.makedirs("/root/api_keys", exist_ok=True)
-        with open("/root/api_keys/keys.json", "w") as f:
-            keys = [DEFAULT_API_KEY]
-            json.dump(keys, f)
-        return keys
-
-async def get_api_key(api_key_header: str = Security(api_key_header)):
-    """Validate API key"""
-    if not api_key_header:
-        raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="API key missing"
-        )
-    
-    valid_keys = get_valid_api_keys.remote()
-    
-    if api_key_header not in valid_keys:
-        raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="Invalid API key"
-        )
-    
-    return api_key_header
-
 # Create a class to handle all chatbot operations
 @stub.cls(
     image=image,
@@ -169,6 +163,7 @@ async def get_api_key(api_key_header: str = Security(api_key_header)):
     min_containers=1
 )
 class ChatBot:
+
     def __init__(self):
         """Initialize instance variables"""
         # Initialize sessions here to fix the error in local mode
@@ -193,6 +188,52 @@ class ChatBot:
             print("Will use fallback sentiment analyzer")
             self.sentiment_model = None
 
+    def cors_response(self, content, status_code=200):
+        """Create a response with CORS headers"""
+        return JSONResponse(
+            content=content,
+            status_code=status_code,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, X-API-Key"
+            }
+        )
+    
+    @modal.fastapi_endpoint(method="GET")
+    def check_api_key(self, request: Request):
+        """Simple endpoint to check if API key is valid"""
+        try:
+            # Get API key from request headers directly
+            api_key = request.headers.get('x-api-key')
+            
+            # Simple direct check against default key
+            if api_key == DEFAULT_API_KEY:
+                return {"status": "success", "message": "API key is valid"}
+            else:
+                return JSONResponse(
+                    content={"status": "error", "message": "Invalid API key"},
+                    status_code=403
+                )
+        except Exception as e:
+            print(f"Error in check_api_key: {str(e)}")
+            return JSONResponse(
+                content={"status": "error", "message": f"Server error: {str(e)}"},
+                status_code=500
+            )
+    
+    @modal.fastapi_endpoint(method="OPTIONS")
+    def check_api_key_options(self):
+        """Handle OPTIONS requests for the API key check endpoint"""
+        return JSONResponse(
+            content={"status": "ok", "message": "CORS preflight successful"},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, X-API-Key"
+            }
+        )
+    
     def __enter__(self):
         """Initialize models when the container starts"""
         from transformers import pipeline
@@ -999,9 +1040,33 @@ class ChatBot:
             raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
     
     @modal.fastapi_endpoint(method="GET")
-    def check_api_key(self, api_key: APIKey = Depends(get_api_key)):
-        """Simple endpoint to check if API key is valid"""
-        return {"status": "success", "message": "API key is valid"}
+    def check_api_key(self, request: Request):
+        """Simple endpoint to check if API key is valid without dependencies"""
+        # Get API key from request headers directly
+        api_key = request.headers.get('x-api-key')
+        
+        # Check against default key
+        if api_key == DEFAULT_API_KEY:
+            # Return a proper FastAPI response with CORS headers
+            return JSONResponse(
+                content={"status": "success", "message": "API key is valid"},
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, X-API-Key"
+                }
+            )
+        else:
+            # Return error response with CORS headers
+            return JSONResponse(
+                content={"status": "error", "message": "Invalid API key"},
+                status_code=403,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, X-API-Key"
+                }
+            )
 
 @stub.local_entrypoint()
 def main():
