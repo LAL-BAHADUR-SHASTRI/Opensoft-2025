@@ -22,6 +22,7 @@ from app.models.leave import LeaveTracker
 from app.models.performance import PerformanceTracker
 from app.models.rewards import RewardsTracker
 from app.models.onboarding import OnboardingTracker
+from app.report.report import generate_collective_report, generate_individual_report
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +67,12 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
     
     response.set_cookie(key="token", value=access_token)    
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "employee_id": user.employee_id}
+
+@app.post("/logout", tags=["authentication"])
+async def logout(response: Response):
+    response.delete_cookie(key="token")
+    return {"message": "Logout Successful"}
+    
 
 @app.get("/users/me", tags=["authentication"])
 async def read_users_me(current_user: User = Depends(get_current_user)):
@@ -233,3 +240,8 @@ async def get_employee_data(
     except Exception as e:
         logger.error(f"Error getting employee data: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/report/collective", tags=["report"])
+async def get_collective_report(db: Session = Depends(get_db), current_user: User = Depends(is_hr)):
+    report = generate_collective_report(db)
+    return {"report": report}
