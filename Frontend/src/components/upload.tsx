@@ -103,7 +103,6 @@ export default function Upload() {
 
   const handleDragLeave = () => {
     setDragActive(false);
-    filePipeline(event.dataTransfer.files);
   };
 
   const removeFile = (index: number) => {
