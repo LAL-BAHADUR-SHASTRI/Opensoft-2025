@@ -1,0 +1,1064 @@
+[
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with professional development opportunities?",
+    "response": "fine",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "no",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with the benefits package?",
+    "response": "not staisfied",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "What skills would you like to develop further?",
+    "response": "good ",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel fairly compensated for your work?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How do you manage stress from work?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your team collaborates effectively?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you have enough time for personal activities?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How transparent is leadership about company decisions?",
+    "response": "nice",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you work on weekends or after hours?",
+    "response": "many times\n",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How important is compensation compared to other job aspects?",
+    "response": "good",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with professional development opportunities?",
+    "response": "ads",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe your current workload?",
+    "response": "sdf",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe the noise level in your workspace?",
+    "response": "high\n",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How transparent is leadership about company decisions?",
+    "response": "nice",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you work on weekends or after hours?",
+    "response": "often",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are deadlines and expectations realistic in your role?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your ideas are valued by team members?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How are conflicts resolved within your team?",
+    "response": "often\n",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you're learning and growing in your role?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable taking time off when needed?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "What skills would you like to develop further?",
+    "response": "communicatin",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you understand how compensation decisions are made?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your workload is fairly distributed in your team?",
+    "response": "no",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Is your workspace comfortable and ergonomically suitable?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "not",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you have the resources you need to do your job well?",
+    "response": "da",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you receive regular feedback on your performance?",
+    "response": "addda",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe your relationship with your manager?",
+    "response": "adffd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are there benefits you wish the company offered?",
+    "response": "asdf",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your workload is fairly distributed in your team?",
+    "response": "asddsa",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How are conflicts resolved within your team?",
+    "response": "asdasd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you rate the communication within your team?",
+    "response": "hi",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "adda",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are there benefits you wish the company offered?",
+    "response": "asdsad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you rate the communication within your team?",
+    "response": "sad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with the benefits package?",
+    "response": "sadsad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "asd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "What skills would you like to develop further?",
+    "response": "sad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel management recognizes your contributions?",
+    "response": "dsasad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you have enough privacy to focus on your work?",
+    "response": "dsasad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How many hours do you typically work per week?",
+    "response": "asdasd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How are conflicts resolved within your team?",
+    "response": "dsasad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with the benefits package?",
+    "response": "sdasd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you need to work extra hours to complete tasks?",
+    "response": "asdsad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you have enough time for personal activities?",
+    "response": "asd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are there opportunities for advancement in your department?",
+    "response": "ads",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel pressured to always be available outside work hours?",
+    "response": "asd",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you have all the tools you need to do your job effectively?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you need to work extra hours to complete tasks?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you feel overwhelmed by your responsibilities?",
+    "response": "never",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are there benefits you wish the company offered?",
+    "response": "hie",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your ideas are valued by team members?",
+    "response": "jeea",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are there opportunities for advancement in your department?",
+    "response": "asdf",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How do you manage stress from work?",
+    "response": "sadf",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How transparent is leadership about company decisions?",
+    "response": "dsafsad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Is your workspace comfortable and ergonomically suitable?",
+    "response": "fsdaf",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe your work-life balance?",
+    "response": "hi",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you feel overwhelmed by your responsibilities?",
+    "response": "great",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How are conflicts resolved within your team?",
+    "response": "goodly",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your ideas are valued by team members?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you're learning and growing in your role?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe your current workload?",
+    "response": "ad",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How do you manage stress from work?",
+    "response": "ewe",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Is your workspace comfortable and ergonomically suitable?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable taking time off when needed?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How transparent is leadership about company decisions?",
+    "response": "very transparent",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you rate the communication within your team?",
+    "response": "good",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Does your compensation reflect your contributions?",
+    "response": "hello",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe your relationship with your manager?",
+    "response": "good",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How well does the company support your career goals?",
+    "response": "hu",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you have enough support with your tasks?",
+    "response": "hello",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you work on weekends or after hours?",
+    "response": "hi",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with the benefits package?",
+    "response": "q",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your ideas are valued by team members?",
+    "response": "q",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How transparent is leadership about company decisions?",
+    "response": "w",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you need to work extra hours to complete tasks?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Are there benefits you wish the company offered?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you're learning and growing in your role?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel fairly compensated for your work?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How many hours do you typically work per week?",
+    "response": "60  hours",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you have enough privacy to focus on your work?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How are conflicts resolved within your team?",
+    "response": "no confilicts",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How important is compensation compared to other job aspects?",
+    "response": "adsasa",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How well does the company support your career goals?",
+    "response": "nicely",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Is your workspace comfortable and ergonomically suitable?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel supported by your colleagues?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel pressured to always be available outside work hours?",
+    "response": "nno",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How do you feel about your physical work environment?",
+    "response": "hi",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe the noise level in your workspace?",
+    "response": "best",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you rate the communication within your team?",
+    "response": "very satisfied",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you have enough time for personal activities?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How do you feel about the lighting in your workspace?",
+    "response": "good ",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you're learning and growing in your role?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel fairly compensated for your work?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you receive regular feedback on your performance?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you have enough support with your tasks?",
+    "response": "no",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your workload is fairly distributed in your team?",
+    "response": "no",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Does your compensation reflect your contributions?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How often do you need to work extra hours to complete tasks?",
+    "response": "hello",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel management recognizes your contributions?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Is your workspace comfortable and ergonomically suitable?",
+    "response": "hello",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How important is compensation compared to other job aspects?",
+    "response": "hi",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe the noise level in your workspace?",
+    "response": "nice",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How satisfied are you with professional development opportunities?",
+    "response": "I am not at all satisfied, I want to leave the company",
+    "sentiment": "Happy Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel you have enough time for personal activities?",
+    "response": "nope",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your ideas are valued by team members?",
+    "response": "definetely not",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you have enough privacy to focus on your work?",
+    "response": "I have no privacy",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How would you describe your relationship with your manager?",
+    "response": "very sexual",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "What skills would you like to develop further?",
+    "response": "none",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel your workload is fairly distributed in your team?",
+    "response": "yupp",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How many hours do you typically work per week?",
+    "response": "80",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "How does your compensation compare to industry standards?",
+    "response": "average",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  },
+  {
+    "employee_id": "EMP0048",
+    "question": "Do you feel comfortable approaching senior management?",
+    "response": "yes",
+    "sentiment": "Leaning to Sad Zone",
+    "reason": "General feedback",
+    "keywords": [],
+    "date": "2025-04-01"
+  }
+]

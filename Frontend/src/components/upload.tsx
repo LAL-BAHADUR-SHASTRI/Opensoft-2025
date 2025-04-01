@@ -44,24 +44,18 @@ export default function Upload() {
   const filePipeline = (newFiles: FileList | null) => {
     if (!newFiles) return;
 
-    const filesArray = Array.from(newFiles).filter((file) => {
-      if (file.type !== "text/csv") {
-        setErrDesc(`File ${file.name} is not a CSV file. Please upload a CSV file.`);
+    const validFiles: File[] = [];
+    Array.from(newFiles).forEach((file, index) => {
+      if (file.type !== "text/csv" && file.type !== "application/vnd.ms-excel") {
+        setErrDesc(`File ${file.name} is not a CSV file.`);
         setErrMsg("File type error");
         setOpen(true);
-        setDragActive(false);
-        return false;
-      } else {
-        return true;
+        return;
       }
-    });
-    const validFiles: File[] = [];
 
-    filesArray.forEach((file, index) => {
       const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
+      reader.onload = (e) => {
         if (!e.target?.result) return;
-
         const uint8Array = new Uint8Array(e.target.result as ArrayBuffer);
         const text = new TextDecoder().decode(uint8Array);
         const result = jschardet.detect(text);
@@ -71,17 +65,15 @@ export default function Upload() {
             validFiles.push(file);
           }
         } else {
-          setErrDesc(`File ${file.name} is not UTF-8 encoded. Please upload a UTF-8 encoded file.`);
+          setErrDesc(`File ${file.name} is not UTF-8 encoded.`);
           setErrMsg("Encoding error");
           setOpen(true);
-          setDragActive(false);
         }
 
-        if (index === filesArray.length - 1) {
+        if (index === newFiles.length - 1) {
           setFiles((prevFiles) => [...prevFiles, ...validFiles]);
         }
       };
-
       reader.readAsArrayBuffer(file);
     });
   };
@@ -111,6 +103,7 @@ export default function Upload() {
 
   const handleDragLeave = () => {
     setDragActive(false);
+    filePipeline(event.dataTransfer.files);
   };
 
   const removeFile = (index: number) => {
@@ -118,52 +111,47 @@ export default function Upload() {
   };
 
   const handleUpload = async () => {
-    if (files.length === 0) return;
-    if (files.length < 6) {
-      setErrDesc("You need to upload at least 6 files");
-      setErrMsg("Error");
-      setOpen(true);
-      return;
-    }
-    nameList.forEach((name) => {
-      if (!files.some((file) => file.name === name)) {
-        setErrDesc(`File ${name} is missing. Please upload all 6 files.`);
-        setErrMsg("Missing files");
+    try {
+      if (files.length < 6) {
+        setErrDesc("You need to upload exactly 6 files.");
+        setErrMsg("Error");
         setOpen(true);
         return;
       }
-    });
 
-    const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
+      for (const name of nameList) {
+        if (!files.some((file) => file.name === name)) {
+          setErrDesc(`File ${name} is missing.`);
+          setErrMsg("Missing files");
+          setOpen(true);
+          return;
+        }
+      }
 
-    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files", file));
+
       const response = await fetch(`${BASE_URL}/upload-csv/`, {
         method: "POST",
         body: formData,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
 
       if (response.ok) {
         setErrMsg("Files uploaded successfully");
         setErrDesc("Redirecting to dashboard...");
-        setTimeout(() => {
-          navigate("/admin");
-        });
-        setOpen(true);
+        setTimeout(() => navigate("/admin"), 2000);
       } else {
-        setErrDesc("An error occurred while uploading files. Please try again.");
-        setErrMsg("Error");
-        setOpen(true);
-        setDragActive(false);
+        setErrDesc("An error occurred while uploading.");
+        setErrMsg("Upload failed");
       }
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error: unknown) {
-      setErrMsg("An error occurred while uploading files. Please try again.");
-      setErrDesc("Upload error");
-      setOpen(true);
-      setDragActive(false);
+    } catch (error) {
+      setErrMsg("Network error");
+      setErrDesc("Check your connection and try again.");
     }
+    setOpen(true);
   };
 
   return (

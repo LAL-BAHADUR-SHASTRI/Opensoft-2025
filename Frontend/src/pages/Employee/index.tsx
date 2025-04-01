@@ -1,49 +1,146 @@
 import { useEffect, useRef, useState } from "react";
-
 import { Icon } from "@iconify-icon/react";
-
+import axios from "axios";
 import Message from "@/components/ui/message";
 import Calendar from "@/components/ui/calendar";
+import { CircleUserRound } from "lucide-react";
+import { motion } from "framer-motion";
 
 const EmployeePage = () => {
-  const [menuOpen, setMenuOpen] = useState(true);
-
-  const [answer, setAnswer] = useState("");
-  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const [chatHistory, setChatHistory] = useState<
-    {
-      id: number;
-      date: Date;
-    }[]
+  const API_KEY = import.meta.env.VITE_API_KEY;
+  // console.log(API_KEY);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [menuOpen, setMenuOpen] = useState<boolean>(true);
+  const [userMessage, setUserMessage] = useState<string>("");
+  const [chatMessages, setChatMessages] = useState<
+    { sender: string; id: number; content: string; time: string; date: string }[]
   >([]);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [chatDate, setChatDate] = useState<string>(new Date().toLocaleDateString()); // Default date is today
 
-  const [chatMessages, setChatMessages] = useState([
-    {
-      sender: "assistant",
-      id: 1,
-      content: "Hello, John Doe",
-      time: new Date().toDateString(),
-    },
-  ]);
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
 
+  // Scroll to the bottom whenever chatMessages updates
   useEffect(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.style.height = "0px";
-      const scrollHeight = textAreaRef.current.scrollHeight;
-
-      textAreaRef.current.style.height = scrollHeight + "px";
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [textAreaRef, answer]);
+  }, [chatMessages]);
 
   useEffect(() => {
-    const history = Array.from({ length: 20 }, (_, index) => ({
-      id: index + 1, // Unique ID starting from 1
-      date: new Date(Date.now() - index * 24 * 60 * 60 * 1000), // Dates going backwards from now
-    }));
+    const savedChats = localStorage.getItem("chatMessages_EMP0048");
+    if (savedChats) {
+      try {
+        const parsedChats = JSON.parse(savedChats);
+        setChatMessages(parsedChats);
+      } catch (error) {
+        console.error("Error parsing chat messages from localStorage:", error);
+      }
+    }
 
-    setChatHistory(history);
+    const getSessionId = async () => {
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/start_chat",
+          { employee_id: "EMP0048" },
+          { headers: { "X-API-Key": API_KEY, "Content-Type": "application/json" } }
+        );
+
+        setSessionId(response.data.session_id);
+
+        if (!savedChats) {
+          const initialMessage = {
+            sender: "assistant",
+            id: 1,
+            content: response.data.question,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            date: new Date().toLocaleDateString(),
+          };
+
+          setChatMessages([initialMessage]);
+          localStorage.setItem("chatMessages_EMP0048", JSON.stringify([initialMessage]));
+        }
+      } catch (error) {
+        console.error("Error starting chat:", error);
+      }
+    };
+
+    if (!sessionId) {
+      getSessionId();
+    }
   }, []);
+
+  const handleChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userMessage.trim()) return;
+
+    const newMessage = {
+      sender: "user",
+      id: chatMessages.length + 1,
+      content: userMessage,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      date: new Date().toLocaleDateString(),
+    };
+
+    setChatMessages((prev) => {
+      const updatedMessages = [...prev, newMessage];
+      localStorage.setItem("chatMessages_EMP0048", JSON.stringify(updatedMessages));
+      return updatedMessages;
+    });
+
+    setUserMessage("");
+    setIsTyping(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/chat",
+        { session_id: sessionId, message: userMessage },
+        { headers: { "X-API-Key": API_KEY, "Content-Type": "application/json" } }
+      );
+
+      setTimeout(() => {
+        let assistantMessage;
+        if (!response.data.question) {
+          assistantMessage = {
+            sender: "assistant",
+            id: chatMessages.length + 2,
+            content: "Thank you for your feedback",
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            date: new Date().toLocaleDateString(),
+          };
+        } else {
+          assistantMessage = {
+            sender: "assistant",
+            id: chatMessages.length + 2,
+            content: response.data.question,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            date: new Date().toLocaleDateString(),
+          };
+        }
+
+        setChatMessages((prev) => {
+          const updatedMessages = [...prev, assistantMessage];
+          localStorage.setItem("chatMessages_EMP0048", JSON.stringify(updatedMessages));
+          return updatedMessages;
+        });
+
+        setIsTyping(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setIsTyping(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleChat(e);
+    }
+  };
+
+  // Filter messages based on the selected date
+  const filteredMessages = chatMessages.filter((message) => message.date === chatDate);
 
   return (
     <div className="flex h-screen bg-neutral-950 text-neutral-200">
@@ -64,7 +161,10 @@ const EmployeePage = () => {
 
         <div className="p-4 flex flex-col">
           <h3 className="text-neutral-500 font-semibold text-sm uppercase mb-2">Calendar</h3>
-          <Calendar chatHistory={chatHistory} />
+          <Calendar
+            chatHistory={chatMessages.map((message) => ({ id: message.id, date: message.date }))}
+            setChatDate={setChatDate} // Pass setChatDate function to the Calendar
+          />
         </div>
       </div>
 
@@ -83,34 +183,51 @@ const EmployeePage = () => {
                 <Icon icon="mynaui-sidebar-alt" className="text-2xl" />
               </button>
             )}
-            <h2 className="text-xl font-medium text-neutral-100 pl-4">Deloitte</h2>
+            <h2 className="text-2xl font-bold text-white pl-4 flex items-center gap-1">
+              Deloitte<span className="text-green-500 text-3xl">•</span>
+            </h2>
           </div>
           <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
             <span>Logout</span>
             <Icon icon={"mynaui-logout"} className="text-xl" />
           </button>
         </div>
-
-        <div className="flex-1 pt-20 pb-4 px-6 h-full flex flex-col overflow-auto mx-auto w-[90%] max-w-[1200px]">
-          {chatMessages.map((message) => (
-            <Message key={message.id} message={message} />
+        <div
+          ref={chatContainerRef}
+          className="flex-1 pt-20 pb-4 px-6 h-full flex flex-col overflow-auto mx-auto w-[90%] max-w-[1200px]"
+        >
+          {filteredMessages.map((message) => (
+            <motion.div
+              className={`${message.sender === "user" ? "flex justify-end" : ""}`}
+              key={message.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Message message={message} />
+            </motion.div>
           ))}
+          {isTyping && (
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-neutral-900">
+                <CircleUserRound className="text-[#86bc25]/50 text-xl" />
+              </div>
+              <div className="text-neutral-500 pt-1 pb-2 px-3">...</div>
+            </div>
+          )}
         </div>
 
         <div className="py-4 lg:py-6">
           <form className="flex items-center space-x-2 mx-auto w-[90%] max-w-[1000px] bg-neutral-900 pr-6 rounded-lg">
             <textarea
               ref={textAreaRef}
-              name="message-input"
-              id="message-input"
-              value={answer}
-              autoComplete="off"
-              autoFocus={true}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Type a message..."
-              className="scroll- w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none md:pl-4 md:pr-2 placeholder:text-neutral-500 rounded-lg resize-none"
+              value={userMessage}
+              onChange={(e) => setUserMessage(e.target.value)}
+              placeholder="Type a message"
+              onKeyDown={handleKeyDown}
+              className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
             />
-            <button className="text-2xl">
+            <button className="text-2xl cursor-pointer" onClick={handleChat}>
               <Icon icon="mynaui-send-solid" />
             </button>
           </form>
