@@ -30,11 +30,12 @@ export default function AdminAuth() {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post(routes.SIGN_IN, formData);
+      const response = await apiClient.post(routes.SIGN_IN, formData, {withCredentials: true});
+      console.log(response);
 
       if (response.status === 201 || response.status === 200) {
         setIsLoading(false);
-        localStorage.setItem("token", response.data.access_token);
+        // localStorage.setItem("token", response.data.access_token);
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
           navigate("/admin");

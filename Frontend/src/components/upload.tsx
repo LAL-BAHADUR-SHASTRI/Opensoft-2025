@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import jschardet from "jschardet";
+import { apiClient, routes } from "@/lib/api";
 
 import { useNavigate } from "react-router";
 
@@ -97,9 +98,9 @@ export default function Upload() {
     }
   };
 
-  useEffect(() => {
-    console.log(files);
-  }, [files]);
+  // useEffect(() => {
+  //   console.log(files);
+  // }, [files]);
 
   const handleDragLeave = () => {
     setDragActive(false);
@@ -110,7 +111,6 @@ export default function Upload() {
   };
 
   const handleUpload = async () => {
-    try {
       if (files.length < 6) {
         setErrDesc("You need to upload exactly 6 files.");
         setErrMsg("Error");
@@ -121,6 +121,8 @@ export default function Upload() {
       for (const name of nameList) {
         if (!files.some((file) => file.name === name)) {
           setErrDesc(`File ${name} is missing.`);
+
+
           setErrMsg("Missing files");
           setOpen(true);
           return;
@@ -130,15 +132,15 @@ export default function Upload() {
       const formData = new FormData();
       files.forEach((file) => formData.append("files", file));
 
-      const response = await fetch(`${BASE_URL}/upload-csv/`, {
-        method: "POST",
-        body: formData,
+    try {
+      const response = await apiClient.post(routes.UPLOAD, formData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
         },
+        withCredentials: true,
       });
 
-      if (response.ok) {
+      if (response.status === 201 || response.status === 200) {
         setErrMsg("Files uploaded successfully");
         setErrDesc("Redirecting to dashboard...");
         setTimeout(() => navigate("/admin"), 2000);

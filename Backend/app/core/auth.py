@@ -50,17 +50,20 @@ async def get_current_user(token: Annotated[str | None, Cookie()] = None, db: Se
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+    if token is not None:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("sub")
+            if username is None:
+                raise credentials_exception
+        except JWTError:
             raise credentials_exception
-    except JWTError:
+        user = db.query(User).filter(User.username == username).first()
+        if user is None:
+            raise credentials_exception
+        return user
+    else:
         raise credentials_exception
-    user = db.query(User).filter(User.username == username).first()
-    if user is None:
-        raise credentials_exception
-    return user
 
 # Role-based access control
 def is_hr(user: User = Depends(get_current_user)):

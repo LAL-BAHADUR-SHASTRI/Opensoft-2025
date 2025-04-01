@@ -98,7 +98,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
   );
 };
 
-const IndividualReport: React.FC = () => {
+const EmployeeReport: React.FC = () => {
   const [reportData, setReportData] = useState<ReportTypes | null>(null);
 
   const data: ReportTypes = {
@@ -509,4 +509,4 @@ const IndividualReport: React.FC = () => {
   );
 };
 
-export default IndividualReport;
+export default EmployeeReport;

@@ -38,15 +38,16 @@ export default function EmployeeAuth() {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post(routes.SIGN_IN, formData);
+      const response = await apiClient.post(routes.SIGN_IN, formData, { withCredentials: true });
 
-      if (response.status === 200 || response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         setIsLoading(false);
-        localStorage.setItem("employeeData", response.data.access_token);
+        // localStorage.setItem("token", response.data.access_token);
         toast.success("Login successful! Redirecting...");
-        navigate("/");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log(error);
       if (error.status === 401) {
