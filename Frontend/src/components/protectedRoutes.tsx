@@ -13,9 +13,7 @@ const ProtectedRoute = () => {
       setIsLoading(true);
       try {
         const response = await apiClient.get(routes.USER_INFO, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          withCredentials: true,
         });
         if (response.status === 200) {
           setIsAuthenticated(true);
@@ -35,7 +33,7 @@ const ProtectedRoute = () => {
 
   if (location.pathname.includes("auth") && isAuthenticated) {
     return <Navigate to={location.pathname.startsWith("/admin") ? "/admin" : "/"} />;
-  }else if(location.pathname.includes("auth") && !isAuthenticated) {
+  } else if (location.pathname.includes("auth") && !isAuthenticated) {
     return <Outlet />;
   }
 

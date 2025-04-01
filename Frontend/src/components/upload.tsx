@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import jschardet from "jschardet";
+import { apiClient, routes } from "@/lib/api";
 
 import { useNavigate } from "react-router";
 
@@ -105,9 +106,9 @@ export default function Upload() {
     }
   };
 
-  useEffect(() => {
-    console.log(files);
-  }, [files]);
+  // useEffect(() => {
+  //   console.log(files);
+  // }, [files]);
 
   const handleDragLeave = () => {
     setDragActive(false);
@@ -138,17 +139,19 @@ export default function Upload() {
     files.forEach((file) => formData.append("files", file));
 
     try {
-      const response = await fetch(`${BASE_URL}/upload-csv/`, {
-        method: "POST",
-        body: formData,
+      const response = await apiClient.post(routes.UPLOAD, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
       });
 
-      if (response.ok) {
+      if (response.status === 201 || response.status === 200) {
         setErrMsg("Files uploaded successfully");
         setErrDesc("Redirecting to dashboard...");
-        setTimeout(() => {
-          navigate("/admin");
-        });
+        // setTimeout(() => {
+        //   navigate("/admin");
+        // });
         setOpen(true);
       } else {
         setErrDesc("An error occurred while uploading files. Please try again.");

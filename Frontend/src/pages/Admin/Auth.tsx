@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { apiClient, routes } from "@/lib/api";
-import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,11 +30,11 @@ export default function AdminAuth() {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post(routes.SIGN_IN, formData);
+      const response = await apiClient.post(routes.SIGN_IN, formData, {withCredentials: true});
 
       if (response.status === 201 || response.status === 200) {
         setIsLoading(false);
-        localStorage.setItem("token", response.data.access_token);
+        // localStorage.setItem("token", response.data.access_token);
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
         navigate("/admin");

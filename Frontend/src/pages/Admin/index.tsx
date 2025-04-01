@@ -34,7 +34,8 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import dummyUsers from "./data/employees";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { apiClient, routes } from "@/lib/api";
 
 import { Icon } from "@iconify-icon/react";
 
@@ -87,6 +88,7 @@ const userStatusColors: Record<string, string> = {
 };
 const AdminPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [data, setData] = useState<UserType[]>(dummyUsers);
 
@@ -165,6 +167,17 @@ const AdminPage = () => {
     }));
   };
 
+  const handleLogout = async () => {
+    try {
+      const response = await apiClient.post(routes.LOGOUT, {}, { withCredentials: true });
+      if (response.status === 200) {
+        navigate("/admin/auth");
+      }
+    }catch (error) {
+      console.error("Error logging out:", error);
+    }
+  }
+
   return (
     <>
       <Outlet />
@@ -182,7 +195,7 @@ const AdminPage = () => {
               Modal
             </Link>
 
-            <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
+            <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md" onClick={handleLogout}>
               <span>Logout</span>
               <Icon icon={"mynaui-logout"} className="text-xl" />
             </button>
