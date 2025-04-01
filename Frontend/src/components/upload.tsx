@@ -111,7 +111,6 @@ export default function Upload() {
   };
 
   const handleUpload = async () => {
-    try {
       if (files.length < 6) {
         setErrDesc("You need to upload exactly 6 files.");
         setErrMsg("Error");
@@ -122,6 +121,8 @@ export default function Upload() {
       for (const name of nameList) {
         if (!files.some((file) => file.name === name)) {
           setErrDesc(`File ${name} is missing.`);
+
+
           setErrMsg("Missing files");
           setOpen(true);
           return;
