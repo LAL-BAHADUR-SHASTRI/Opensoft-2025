@@ -37,10 +37,11 @@ export default function AdminAuth() {
         // localStorage.setItem("token", response.data.access_token);
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
-        navigate("/admin");
+          navigate("/admin");
         }, 2000);
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log(error);
       if (error.status === 401) {
@@ -48,7 +49,6 @@ export default function AdminAuth() {
       } else {
         toast.error("Internal server error, please try after some time");
       }
-
       setIsLoading(false);
     }
   };
@@ -56,10 +56,11 @@ export default function AdminAuth() {
   return (
     <>
       <Toaster richColors />
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 dark">
-        <Card className="w-full max-w-md shadow-lg   bg-neutral-800">
+      <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 dark select-none">
+        <Card className="w-full max-w-md shadow-lg bg-transparent border-0 sm:border-2 sm:bg-neutral-900">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
+              <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
               <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
             </div>
             <CardTitle className="text-xl font-light">Welcome back, Admin</CardTitle>
@@ -67,21 +68,21 @@ export default function AdminAuth() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 pb-5">
               <div className="space-y-2">
-                <label className="block text-sm font-medium pl-1"> Enter Admin ID</label>
+                <label className="block text-sm font-medium pl-1">Enter Admin ID</label>
                 <Input
                   id="adminId"
-                  style={{ backgroundColor: "#0a0a0a" }}
-                  className="border-neutral-700"
+                  className="border-neutral-800 bg-neutral-900 placeholder:text-neutral-600"
                   placeholder="HR100000"
                   value={adminId}
                   onChange={(e) => setAdminId(e.target.value)}
                 />
-                <label className="block text-sm font-medium pl-1 mt-4">Password</label>
+                <label className="block text-sm font-medium text-neutral-500 uppercase pl-1 mt-3">
+                  Password
+                </label>
                 <div className="relative">
                   <Input
                     id="password"
-                    style={{ backgroundColor: "#0a0a0a" }}
-                    className="border-neutral-700 pr-10"
+                    className="border-neutral-800 bg-neutral-900 placeholder:text-neutral-600 pr-10"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter Password"
                     value={password}
@@ -98,7 +99,7 @@ export default function AdminAuth() {
               </div>
             </CardContent>
             <CardFooter className="mb-1">
-              <Button type="submit" className="w-full pt-3 cursor-pointer" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-white cursor-pointer" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -112,9 +113,11 @@ export default function AdminAuth() {
                 )}
               </Button>
             </CardFooter>
-            <Link to={"/"} className="text-sm  text-blue-500 hover:underline ml-4 px-2">
-              Login as an admin?
-            </Link>
+            <div className="mt-4 flex justify-center">
+              <Link to={"/auth"} className="text-sm text-neutral-500 hover:underline ml-4 px-2">
+                Login as an Employee?
+              </Link>
+            </div>
           </form>
         </Card>
       </div>

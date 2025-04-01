@@ -6,7 +6,7 @@ import EmployeeAuth from "./pages/Employee/Auth";
 import AdminPage from "./pages/Admin";
 import AdminAuth from "./pages/Admin/Auth";
 import Upload from "./components/upload";
-import ProtectedRoute from "./components/protectedRoutes";
+// import ProtectedRoute from "./components/protectedRoutes";
 import ReportPage from "./pages/Report";
 import { useEffect, useState } from "react";
 import { apiClient, routes } from "@/lib/api";
@@ -37,43 +37,32 @@ const App = () => {
       }
     };
 
+    if (location.pathname === "/admin/upload") {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+
     checkAuthentication();
-  }, [location.pathname]);
+  }, [location]);
 
-  // if (location.pathname.includes("auth") && isAuthenticated) {
-  //   return <Navigate to={location.pathname.startsWith("/admin") ? "/admin" : "/"} />;
-  // } else if (location.pathname.includes("auth") && !isAuthenticated) {
-  //   return <Outlet />;
-  // }
-
-  // if (!isAuthenticated && !isLoading) {
-  //   return <Navigate to={location.pathname.startsWith("/admin") ? "/admin/auth" : "/auth"} />;
-  // }
-
-  // if (isAuthenticated) {
-  //   if (role === "hr" && location.pathname.startsWith("/admin")) {
-  //     return <Outlet />;
-  //   } else if (role === "employee" && !location.pathname.startsWith("/admin")) {
-  //     return <Outlet />;
-  //   } else {
-  //     return <Navigate to={location.pathname.startsWith("/admin") ? "/admin/auth" : "/auth"} />;
-  //   }
-  // }
   return (
     <>
       <Routes>
-        <Route path="/" element={<EmployeePage/>}>
+        <Route path="/">
           <Route index element={<EmployeePage />} />
           <Route path="auth" element={<EmployeeAuth />} />
         </Route>
 
         <Route path="/admin" element={<AdminPage />}>
-          <Route index element={<AdminPage />} />
           <Route path="auth" element={<AdminAuth />} />
           <Route path="upload" element={<Upload />} />
         </Route>
 
-        <Route path="/report" element={<ReportPage />} />
+        <Route path="/report" element={<ReportPage />}>
+          <Route path="all" element={<CollectiveReport />} />
+          <Route path="employee/:id" element={<EmployeeReport />} />
+        </Route>
       </Routes>
     </>
   );
