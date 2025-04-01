@@ -1,6 +1,6 @@
 import "./App.css";
 
-import { Route, Routes } from "react-router";
+import { Route, Routes, useLocation } from "react-router";
 import EmployeePage from "./pages/Employee";
 import EmployeeAuth from "./pages/Employee/Auth";
 import AdminPage from "./pages/Admin";
@@ -9,8 +9,19 @@ import Upload from "./components/upload";
 import ReportPage from "./pages/Report";
 import CollectiveReport from "./pages/Report/CollectiveReport";
 import EmployeeReport from "./pages/Report/EmployeeReport";
+import { useEffect } from "react";
 
 const App = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname === "/admin/upload") {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+  }, [location]);
+
   return (
     <>
       <Routes>
@@ -20,7 +31,6 @@ const App = () => {
         </Route>
 
         <Route path="/admin" element={<AdminPage />}>
-          <Route index element={<AdminPage />} />
           <Route path="auth" element={<AdminAuth />} />
           <Route path="upload" element={<Upload />} />
         </Route>

@@ -168,7 +168,7 @@ export default function Upload() {
 
   return (
     <div
-      className="z-10 absolute top-0 left-0 w-full h-full grid place-content-center bg-neutral-950/60"
+      className="z-10 fixed top-0 left-0 w-full h-full grid place-content-center bg-neutral-950/60"
       onClick={() => navigate("/admin")}
     >
       <div

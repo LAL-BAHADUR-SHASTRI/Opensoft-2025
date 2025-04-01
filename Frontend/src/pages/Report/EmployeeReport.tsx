@@ -1,765 +1,512 @@
+import React, { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
+  ArcElement,
   CategoryScale,
   LinearScale,
   BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  RadialLinearScale,
   PointElement,
   LineElement,
-} from "chart.js";
-import { Bar, Doughnut, Radar } from "react-chartjs-2";
-
-import {
-  CheckCircle,
-  AlertCircle,
-  Award,
-  Book,
-  Calendar,
-  DollarSign,
-  Briefcase,
-} from "lucide-react";
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
+  RadialLinearScale,
   Title,
   Tooltip,
   Legend,
+} from "chart.js";
+import { Doughnut, Bar, Radar } from "react-chartjs-2";
+import {
+  User,
+  Calendar,
+  Mail,
+  MessageSquare,
+  Clock,
+  Award,
+  Briefcase,
+  Star,
+  Smile,
+} from "lucide-react";
+
+ChartJS.register(
   ArcElement,
-  RadialLinearScale,
+  CategoryScale,
+  LinearScale,
+  BarElement,
   PointElement,
-  LineElement
+  LineElement,
+  RadialLinearScale,
+  Title,
+  Tooltip,
+  Legend
 );
 
-const EmployeeReport = () => {
-  const employeeData = {
-    personalInformation: {
-      fullName: "John Doe",
-      employeeId: "EMP001",
-      dateOfBirth: "1985-05-15",
-      contactDetails: {
-        phone: "+1234567890",
-        email: "john.doe@company.com",
-      },
-      department: "Marketing",
-      position: "Senior Marketing Specialist",
-      dateOfJoining: "2018-03-01",
-    },
-    performanceMetrics: {
-      kpis: [
-        {
-          name: "Sales Leads Generated",
-          value: 150,
-          target: 120,
-        },
-        {
-          name: "Customer Satisfaction Score",
-          value: 4.8,
-          target: 4.5,
-        },
-      ],
-      goalsAchieved: 5,
-      goalsSet: 6,
-      lastPerformanceRating: 4.2,
-    },
-    attendanceAndLeave: {
-      attendanceRate: 98.5,
-      leaveBalance: {
-        annual: 10,
-        sick: 5,
-        personal: 2,
-      },
-      sickDaysTaken: 3,
-    },
-    compensationAndBenefits: {
-      currentSalary: 75000,
-      lastBonus: 5000,
-      benefitsEnrolled: ["Health Insurance", "401(k)", "Dental Plan"],
-    },
-    skillsAndTraining: {
-      skills: ["Digital Marketing", "SEO", "Content Strategy", "Data Analysis"],
-      completedTrainings: [
-        {
-          name: "Advanced SEO Techniques",
-          date: "2024-11-10",
-        },
-        {
-          name: "Leadership Skills 101",
-          date: "2025-01-15",
-        },
-      ],
-      certifications: ["Google Analytics Certified", "HubSpot Inbound Marketing"],
-    },
-    careerDevelopment: {
-      careerPath: "Marketing Manager",
-      promotionsHistory: [
-        {
-          fromPosition: "Marketing Specialist",
-          toPosition: "Senior Marketing Specialist",
-          date: "2022-04-01",
-        },
-      ],
-      areasForImprovement: ["Project Management", "Team Leadership"],
-    },
-    projectsAndContributions: {
-      currentProjects: [
-        {
-          name: "Q2 Marketing Campaign",
-          role: "Project Lead",
-        },
-        {
-          name: "Website Redesign",
-          role: "Content Strategist",
-        },
-      ],
-      keyAchievements: [
-        "Increased organic traffic by 25% through SEO optimization",
-        "Led successful product launch campaign resulting in 10,000 new customers",
-      ],
-    },
-    complianceAndDocumentation: {
-      requiredDocuments: [
-        {
-          name: "Annual Compliance Training",
-          status: "Completed",
-          expirationDate: "2026-03-15",
-        },
-        {
-          name: "Data Protection Certification",
-          status: "Pending",
-          dueDate: "2025-05-01",
-        },
-      ],
-    },
+interface ReportTypes {
+  "Employee ID": string;
+  Name: string;
+  Department: string;
+  Position: string;
+  "Manager ID": string;
+  "Joining Date": string;
+  "Total Messages Sent": number;
+  "Total Emails Sent": number;
+  "Total Meetings Attended": number;
+  "Total Work Hours": number;
+  "Total Leaves Taken": number;
+  "Onboarding Feedback": string;
+  "Initial Training Completed": string;
+  "Last Performance Rating": number;
+  "Manager Feedback": string;
+  "Total Rewards Earned": number;
+  "Recent Reward": {
+    Date: string;
+    Type: string;
+    Points: number;
   };
+  "Recent Mood Score": number;
+  "Mood Comment": string;
+}
 
-  // Calculate years of service
-  const calculateYearsOfService = () => {
-    const joinDate = new Date(employeeData.personalInformation.dateOfJoining);
-    const currentDate = new Date();
-    return Math.floor((currentDate - joinDate) / (365.25 * 24 * 60 * 60 * 1000));
-  };
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+}
 
-  // Format date from ISO to readable format
-  const formatDate = (isoDate: string) => {
-    const date = new Date(isoDate);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  };
-
-  // Calculate age
-  const calculateAge = () => {
-    const birthDate = new Date(employeeData.personalInformation.dateOfBirth);
-    const currentDate = new Date();
-    return Math.floor((currentDate - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
-  };
-
-  // KPI performance data for bar chart
-  const kpiChartData = {
-    labels: employeeData.performanceMetrics.kpis.map((kpi) => kpi.name),
-    datasets: [
-      {
-        label: "Actual",
-        data: employeeData.performanceMetrics.kpis.map((kpi) => kpi.value),
-        backgroundColor: "rgba(115, 115, 115, 0.7)",
-        borderWidth: 1,
-        borderColor: "rgba(163, 163, 163, 1)",
-      },
-      {
-        label: "Target",
-        data: employeeData.performanceMetrics.kpis.map((kpi) => kpi.target),
-        backgroundColor: "rgba(82, 82, 82, 0.7)",
-        borderWidth: 1,
-        borderColor: "rgba(115, 115, 115, 1)",
-      },
-    ],
-  };
-
-  // Goals chart data
-  const goalsChartData = {
-    labels: ["Achieved", "Remaining"],
-    datasets: [
-      {
-        data: [
-          employeeData.performanceMetrics.goalsAchieved,
-          employeeData.performanceMetrics.goalsSet - employeeData.performanceMetrics.goalsAchieved,
-        ],
-        backgroundColor: ["rgba(64, 64, 64, 0.7)", "rgba(38, 38, 38, 0.7)"],
-        borderColor: ["rgba(82, 82, 82, 1)", "rgba(64, 64, 64, 1)"],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // Leave balance chart data
-  const leaveChartData = {
-    labels: ["Annual", "Sick", "Personal"],
-    datasets: [
-      {
-        label: "Days",
-        data: [
-          employeeData.attendanceAndLeave.leaveBalance.annual,
-          employeeData.attendanceAndLeave.leaveBalance.sick,
-          employeeData.attendanceAndLeave.leaveBalance.personal,
-        ],
-        backgroundColor: [
-          "rgba(138, 138, 138, 0.7)",
-          "rgba(115, 115, 115, 0.7)",
-          "rgba(82, 82, 82, 0.7)",
-        ],
-        borderColor: ["rgba(190, 190, 190, 1)", "rgba(163, 163, 163, 1)", "rgba(115, 115, 115, 1)"],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // Skills radar chart data
-  const skillsChartData = {
-    labels: employeeData.skillsAndTraining.skills,
-    datasets: [
-      {
-        label: "Skills Proficiency",
-        data: [4.5, 4.2, 4.0, 3.8],
-        backgroundColor: "rgba(115, 115, 115, 0.7)",
-
-        borderColor: "rgba(163, 163, 163, 1)",
-
-        pointBackgroundColor: "rgba(82, 82, 82, 0.7)",
-        pointBorderColor: "rgba(115, 115, 115, 1)",
-        pointHoverBackgroundColor: "rgba(138, 138, 138, 0.7)",
-        pointHoverBorderColor: "rgba(190, 190, 190, 1)",
-      },
-    ],
-  };
-
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => {
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200">
-      <main className="mx-auto px-4 md:px-6 pb-4 pt-4 md:pb-6 xl:px-40 2xl:px-60">
-        {/* Personal Information Card */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Personal Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="flex flex-col">
-                <div className="flex justify-center mb-4">
-                  <div className="w-32 h-32 rounded-full bg-neutral-800 flex items-center justify-center text-4xl font-bold text-neutral-600">
-                    {employeeData.personalInformation.fullName
-                      .split(" ")
-                      .map((name) => name[0])
-                      .join("")}
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-center">
-                  {employeeData.personalInformation.fullName}
-                </h3>
-                <p className="text-neutral-500 text-center">
-                  {employeeData.personalInformation.employeeId}
-                </p>
-              </div>
-
-              <div>
-                <div className="mb-4">
-                  <p className="text-neutral-500">Email</p>
-                  <p>{employeeData.personalInformation.contactDetails.email}</p>
-                </div>
-                <div className="mb-4">
-                  <p className="text-neutral-500">Phone</p>
-                  <p>{employeeData.personalInformation.contactDetails.phone}</p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">Date of Birth</p>
-                  <p>
-                    {formatDate(employeeData.personalInformation.dateOfBirth)} ({calculateAge()}{" "}
-                    years)
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-4">
-                  <p className="text-neutral-500">Department</p>
-                  <p>{employeeData.personalInformation.department}</p>
-                </div>
-                <div className="mb-4">
-                  <p className="text-neutral-500">Position</p>
-                  <p>{employeeData.personalInformation.position}</p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">Date of Joining</p>
-                  <p>
-                    {formatDate(employeeData.personalInformation.dateOfJoining)} (
-                    {calculateYearsOfService()} years)
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Performance Metrics */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Performance Metrics
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">KPI Performance</h3>
-                <div className="h-64">
-                  <Bar
-                    data={kpiChartData}
-                    options={{
-                      responsive: true,
-                      plugins: {
-                        legend: {
-                          position: "top",
-                          labels: {
-                            color: "#f3f4f6",
-                          },
-                        },
-                      },
-                      scales: {
-                        y: {
-                          ticks: { color: "#f3f4f6" },
-                          grid: { color: "rgba(255, 255, 255, 0.05)" },
-                        },
-                        x: {
-                          ticks: { color: "#f3f4f6" },
-                          grid: { color: "rgba(255, 255, 255, 0.05)" },
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Goals Progress</h3>
-                <div className="flex flex-col items-center">
-                  <div className="h-64 w-64">
-                    <Doughnut
-                      data={goalsChartData}
-                      options={{
-                        responsive: true,
-                        plugins: {
-                          legend: {
-                            position: "bottom",
-                            labels: {
-                              color: "#f3f4f6",
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                  <div className="mt-4 text-center">
-                    <span className="text-2xl font-bold">
-                      {employeeData.performanceMetrics.goalsAchieved}
-                    </span>
-                    <span className="text-neutral-500">
-                      {" "}
-                      / {employeeData.performanceMetrics.goalsSet} goals achieved
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-neutral-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Performance Rating</h3>
-              <div className="flex items-center">
-                <div className="w-full bg-neutral-900 rounded-full h-4">
-                  <div
-                    className="bg-neutral-300 h-4 rounded-full"
-                    style={{
-                      width: `${
-                        (employeeData.performanceMetrics.lastPerformanceRating / 5) * 100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-                <span className="ml-4 font-bold text-xl">
-                  {employeeData.performanceMetrics.lastPerformanceRating}/5
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Attendance and Leave */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Attendance & Leave
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-neutral-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Attendance Rate</h3>
-                <div className="flex items-center">
-                  <div className="w-full bg-neutral-900 rounded-full h-4">
-                    <div
-                      className="bg-neutral-200 h-4 rounded-full"
-                      style={{ width: `${employeeData.attendanceAndLeave.attendanceRate}%` }}
-                    ></div>
-                  </div>
-                  <span className="ml-4 font-bold text-xl">
-                    {employeeData.attendanceAndLeave.attendanceRate}%
-                  </span>
-                </div>
-                <div className="bg-neutral-800 rounded-lg mt-4">
-                  <h3 className="text-lg font-semibold mb-2">Sick Days</h3>
-                  <div className="flex items-center">
-                    <div className="w-full bg-neutral-900 rounded-full h-4">
-                      <div
-                        className="bg-neutral-200 h-4 rounded-full"
-                        style={{
-                          width: `${
-                            (employeeData.attendanceAndLeave.sickDaysTaken /
-                              employeeData.attendanceAndLeave.leaveBalance.sick) *
-                            100
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-                    <span className="ml-4 font-bold text-xl">
-                      {employeeData.attendanceAndLeave.sickDaysTaken}/
-                      {employeeData.attendanceAndLeave.leaveBalance.sick}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Leave Balance</h3>
-                <div className="h-64">
-                  <Bar
-                    data={leaveChartData}
-                    options={{
-                      responsive: true,
-                      plugins: {
-                        legend: {
-                          display: false,
-                        },
-                      },
-                      scales: {
-                        y: {
-                          ticks: { color: "#f3f4f6" },
-                          grid: { color: "rgba(255, 255, 255, 0.1)" },
-                        },
-                        x: {
-                          ticks: { color: "#f3f4f6" },
-                          grid: { color: "rgba(255, 255, 255, 0.1)" },
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Compensation and Benefits */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Compensation & Benefits
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-neutral-800 rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <DollarSign className="text-neutral-300 mr-2" size={24} />
-                  <h3 className="text-lg font-semibold">Financial</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-neutral-500">Current Salary</p>
-                    <p className="text-2xl font-bold">
-                      ${employeeData.compensationAndBenefits.currentSalary.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-neutral-500">Last Bonus</p>
-                    <p className="text-xl font-semibold">
-                      ${employeeData.compensationAndBenefits.lastBonus.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-neutral-800 rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <CheckCircle className="text-neutral-300 mr-2" size={24} />
-                  <h3 className="text-lg font-semibold">Benefits Enrolled</h3>
-                </div>
-                <ul className="space-y-2">
-                  {employeeData.compensationAndBenefits.benefitsEnrolled.map((benefit, index) => (
-                    <li key={index} className="flex items-center">
-                      <div className="w-2 h-2 bg-neutral-500 rounded-full mr-2"></div>
-                      {benefit}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Skills and Training */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Skills & Training
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Skills Profile</h3>
-                <div className="h-96 w-full grid place-content-center">
-                  <Radar
-                    className="h-full w-full"
-                    data={skillsChartData}
-                    options={{
-                      responsive: true,
-                      scales: {
-                        r: {
-                          angleLines: {
-                            color: "rgba(255, 255, 255, 0.05)",
-                          },
-                          grid: {
-                            color: "rgba(255, 255, 255, 0.05)",
-                          },
-                          pointLabels: {
-                            color: "#f3f4f6",
-                          },
-                        },
-                      },
-                      plugins: {
-                        legend: {
-                          labels: {
-                            color: "#f3f4f6",
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6">
-                <div className="bg-neutral-800 rounded-lg p-6">
-                  <div className="flex items-center mb-4">
-                    <Book className="text-neutral-300 mr-2" size={24} />
-                    <h3 className="text-lg font-semibold">Completed Trainings</h3>
-                  </div>
-                  <ul className="space-y-4">
-                    {employeeData.skillsAndTraining.completedTrainings.map((training, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between items-center border-b border-neutral-700 pb-2"
-                      >
-                        <span>{training.name}</span>
-                        <span className="text-neutral-500 text-sm">
-                          {formatDate(training.date)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="bg-neutral-800 rounded-lg p-6">
-                  <div className="flex items-center mb-4">
-                    <Award className="text-neutral-300 mr-2" size={24} />
-                    <h3 className="text-lg font-semibold">Certifications</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {employeeData.skillsAndTraining.certifications.map((cert, index) => (
-                      <li key={index} className="flex items-center">
-                        <div className="w-2 h-2 bg-neutral-500 rounded-full mr-2"></div>
-                        {cert}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Career Development */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Career Development
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-neutral-800 rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Briefcase className="text-neutral-300 mr-2" size={24} />
-                  <h3 className="text-lg font-semibold">Career Path</h3>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-1 h-2 bg-neutral-700 rounded-full relative">
-                    <div className="absolute -mt-1 ml-24 h-4 w-4 bg-neutral-300 rounded-full"></div>
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-between text-sm">
-                  <div>
-                    <div className="font-semibold">{employeeData.personalInformation.position}</div>
-                    <div className="text-neutral-500">Current</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold">{employeeData.careerDevelopment.careerPath}</div>
-                    <div className="text-neutral-500">Next</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-neutral-800 rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <Calendar className="text-neutral-300 mr-2" size={24} />
-                  <h3 className="text-lg font-semibold">Promotion History</h3>
-                </div>
-                <ul className="space-y-4">
-                  {employeeData.careerDevelopment.promotionsHistory.map((promotion, index) => (
-                    <li key={index} className="border-l-2 border-neutral-300 pl-4 pb-4">
-                      <div className="text-sm text-neutral-500">{formatDate(promotion.date)}</div>
-                      <div className="font-semibold">
-                        {promotion.fromPosition} → {promotion.toPosition}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-neutral-800 rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <AlertCircle className="text-neutral-300 mr-2" size={24} />
-                <h3 className="text-lg font-semibold">Areas for Improvement</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {employeeData.careerDevelopment.areasForImprovement.map((area, index) => (
-                  <div key={index} className="bg-neutral-900 p-4 rounded-lg">
-                    <span>{area}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Projects and Contributions */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Projects & Contributions
-            </h2>
-
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4">Current Projects</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {employeeData.projectsAndContributions.currentProjects.map((project, index) => (
-                  <div key={index} className="bg-neutral-800 p-6 rounded-lg">
-                    <h4 className="font-semibold text-lg mb-2">{project.name}</h4>
-                    <p className="text-neutral-500">Role: {project.role}</p>
-                    <div className="mt-4 flex justify-between items-center">
-                      <div className="w-2/3 h-2 bg-neutral-900 rounded-full">
-                        <div
-                          className="bg-neutral-200 h-2 rounded-full"
-                          style={{ width: `${Math.random() * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-neutral-500">In Progress</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Key Achievements</h3>
-              <ul className="space-y-4">
-                {employeeData.projectsAndContributions.keyAchievements.map((achievement, index) => (
-                  <li key={index} className="bg-neutral-800 p-4 rounded-lg flex items-center gap-3">
-                    <div className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                      <CheckCircle size={16} />
-                    </div>
-                    <span>{achievement}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Compliance and Documentation */}
-        <section className="mb-8 bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 border-b border-neutral-800 pb-2">
-              Compliance & Documentation
-            </h2>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-neutral-800">
-                    <th className="p-4 text-left">Document</th>
-                    <th className="p-4 text-left">Status</th>
-                    <th className="p-4 text-left">Due/Expiration Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employeeData.complianceAndDocumentation.requiredDocuments.map((doc, index) => (
-                    <tr key={index} className="border-b border-neutral-800">
-                      <td className="p-4">{doc.name}</td>
-                      <td className="p-4">
-                        <span
-                          className={`px-2 py-1 rounded text-sm ${
-                            doc.status === "Completed"
-                              ? "bg-green-900 text-green-300"
-                              : "bg-yellow-900 text-yellow-300"
-                          }`}
-                        >
-                          {doc.status}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        {doc.expirationDate
-                          ? formatDate(doc.expirationDate)
-                          : formatDate(doc.dueDate)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="bg-neutral-900 p-6 border-t border-neutral-800">
-        <div className="max-w-7xl mx-auto text-center text-neutral-500">
-          <p>Last Updated: March 31, 2025</p>
-        </div>
-      </footer>
+    <div className="bg-neutral-900 rounded-lg shadow-md p-4">
+      <div className="flex items-center mb-2">
+        <div className="text-neutral-500 mr-2">{icon}</div>
+        <h3 className="text-sm font-medium text-neutral-500">{title}</h3>
+      </div>
+      <p className="text-xl font-semibold text-neutral-300">{value}</p>
     </div>
   );
 };
 
-export default EmployeeReport;
+interface SectionCardProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
+  return (
+    <div className="bg-neutral-900 rounded-lg shadow-md p-6">
+      <h2 className="text-lg font-semibold text-neutral-300 mb-4 border-b border-neutral-800 pb-2">
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+};
+
+const IndividualReport: React.FC = () => {
+  const [reportData, setReportData] = useState<ReportTypes | null>(null);
+
+  const data: ReportTypes = {
+    "Employee ID": "EMP123",
+    Name: "John Doe",
+    Department: "IT",
+    Position: "Software Engineer",
+    "Manager ID": "MGR456",
+    "Joining Date": "2022-03-01",
+    "Total Messages Sent": 500,
+    "Total Emails Sent": 200,
+    "Total Meetings Attended": 30,
+    "Total Work Hours": 1600,
+    "Total Leaves Taken": 12,
+    "Onboarding Feedback": "Smooth onboarding, mentor was helpful",
+    "Initial Training Completed": "Yes",
+    "Last Performance Rating": 4.5,
+    "Manager Feedback": "Great work ethic, potential for leadership",
+    "Total Rewards Earned": 3,
+    "Recent Reward": {
+      Date: "2024-02-10",
+      Type: "Employee of the Month",
+      Points: 500,
+    },
+    "Recent Mood Score": 8.2,
+    "Mood Comment": "Feeling productive and motivated",
+  };
+
+  useEffect(() => {
+    setReportData(data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  };
+
+  const calculateDaysSinceJoining = (): number => {
+    const joinDate = new Date(reportData ? reportData["Joining Date"] : "");
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - joinDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const chartColors = {
+    primary: "#A3A3A3",
+    secondary: "#737373",
+    tertiary: "#525252",
+    accent: "#404040",
+    background: "#262626",
+    text: "#D4D4D4",
+    muted: "#737373",
+  };
+
+  const moodData = reportData && {
+    labels: ["Mood Score", "Remaining"],
+    datasets: [
+      {
+        data: [reportData["Recent Mood Score"], 10 - reportData["Recent Mood Score"]],
+        backgroundColor: [chartColors.primary, chartColors.accent],
+        borderWidth: 0,
+        cutout: "75%",
+      },
+    ],
+  };
+
+  const communicationData = reportData && {
+    labels: ["Messages", "Emails", "Meetings"],
+    datasets: [
+      {
+        label: "Communication Activity",
+        data: [
+          reportData["Total Messages Sent"],
+          reportData["Total Emails Sent"],
+          reportData["Total Meetings Attended"] * 10,
+        ],
+        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.tertiary],
+      },
+    ],
+  };
+
+  const performanceData = reportData && {
+    labels: ["Performance", "Communication", "Rewards", "Mood", "Attendance"],
+    datasets: [
+      {
+        label: "Employee Metrics",
+        data: [
+          reportData["Last Performance Rating"] * 20,
+          (reportData["Total Messages Sent"] + reportData["Total Emails Sent"]) / 100, // Normalized communication
+          reportData["Total Rewards Earned"] * 33.3,
+          reportData["Recent Mood Score"] * 10,
+          100 - (reportData["Total Leaves Taken"] / 24) * 100,
+        ],
+        backgroundColor: `${chartColors.primary}40`,
+        borderColor: chartColors.primary,
+        pointBackgroundColor: chartColors.secondary,
+      },
+    ],
+  };
+
+  const barOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: chartColors.background,
+        titleColor: chartColors.text,
+        bodyColor: chartColors.text,
+        borderColor: chartColors.accent,
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: `${chartColors.accent}40` },
+        ticks: { color: chartColors.text },
+      },
+      x: {
+        grid: { color: `${chartColors.accent}40` },
+        ticks: { color: chartColors.text },
+      },
+    },
+  };
+
+  const doughnutOptions = {
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: chartColors.background,
+        titleColor: chartColors.text,
+        bodyColor: chartColors.text,
+        borderColor: chartColors.accent,
+        borderWidth: 1,
+      },
+    },
+  };
+
+  const radarOptions = {
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          display: false,
+        },
+        pointLabels: {
+          color: chartColors.text,
+          font: {
+            size: 11,
+          },
+        },
+        grid: { color: `${chartColors.accent}40` },
+        angleLines: { color: `${chartColors.accent}40` },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: chartColors.background,
+        titleColor: chartColors.text,
+        bodyColor: chartColors.text,
+        borderColor: chartColors.accent,
+        borderWidth: 1,
+      },
+    },
+  };
+
+  return (
+    <div className="bg-neutral-950 min-h-screen px-4 pb-4 pt-4 xl:px-40 2xl:px-60 lg:pt-12 text-neutral-300">
+      {reportData && (
+        <>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div className="bg-neutral-900 rounded-lg px-4 py-2 flex items-center">
+              <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center mr-3">
+                <User className="text-neutral-400" size={20} />
+              </div>
+              <div>
+                <p className="text-neutral-300 font-medium">{data.Name}</p>
+                <p className="text-neutral-500 text-sm">
+                  {data.Department} — {data.Position}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-6">
+              <SectionCard title="Employee Information">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Employee ID:</span>
+                    <span className="text-neutral-400 font-medium">
+                      {reportData["Employee ID"]}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Department:</span>
+                    <span className="text-neutral-400 font-medium">{data.Department}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Position:</span>
+                    <span className="text-neutral-400 font-medium">{data.Position}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Manager ID:</span>
+                    <span className="text-neutral-400 font-medium">{reportData["Manager ID"]}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Join Date:</span>
+                    <span className="text-neutral-400 font-medium">
+                      {formatDate(reportData["Joining Date"])}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Days at Company:</span>
+                    <span className="text-neutral-400 font-medium">
+                      {calculateDaysSinceJoining()} days
+                    </span>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Performance">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-neutral-400 text-sm mb-1">Last Performance Rating</p>
+                    <div className="flex items-center">
+                      <span className="text-2xl font-bold text-neutral-300 mr-2">
+                        {reportData["Last Performance Rating"]}
+                      </span>
+                      <span className="text-neutral-500 text-sm">/ 5.0</span>
+                    </div>
+                  </div>
+                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                    <Star className="text-neutral-400" size={18} />
+                  </div>
+                </div>
+                <p className="text-neutral-500 text-sm mb-3">Manager Feedback:</p>
+                <p className="text-neutral-400 p-3 bg-neutral-800 rounded-md italic">
+                  "{reportData["Manager Feedback"]}"
+                </p>
+              </SectionCard>
+
+              <SectionCard title="Onboarding Information">
+                <div className="mb-4">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-neutral-500">Training Completed:</span>
+                    <span
+                      className={`text-sm px-2 py-0.5 rounded-full ${
+                        reportData["Initial Training Completed"] === "Yes"
+                          ? "bg-neutral-800 text-neutral-300"
+                          : "bg-neutral-900 text-neutral-500"
+                      }`}
+                    >
+                      {reportData["Initial Training Completed"]}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-neutral-500 text-sm mb-2">Onboarding Feedback:</p>
+                <p className="text-neutral-400 p-3 bg-neutral-800 rounded-md">
+                  {reportData["Onboarding Feedback"]}
+                </p>
+              </SectionCard>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <StatCard
+                  title="Work Hours"
+                  value={reportData["Total Work Hours"]}
+                  icon={<Clock size={18} />}
+                />
+                <StatCard
+                  title="Leaves Taken"
+                  value={reportData["Total Leaves Taken"]}
+                  icon={<Calendar size={18} />}
+                />
+                <StatCard
+                  title="Messages Sent"
+                  value={reportData["Total Messages Sent"]}
+                  icon={<MessageSquare size={18} />}
+                />
+                <StatCard
+                  title="Emails Sent"
+                  value={reportData["Total Emails Sent"]}
+                  icon={<Mail size={18} />}
+                />
+              </div>
+
+              <SectionCard title="Communication Activity">
+                <div className="h-64">
+                  {communicationData && <Bar data={communicationData} options={barOptions} />}
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Performance Overview">
+                <div className="h-64">
+                  {performanceData && <Radar data={performanceData} options={radarOptions} />}
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-sm text-center">
+                  <div className="bg-neutral-800 p-2 rounded">
+                    <p className="text-neutral-500">Performance</p>
+                    <p className="font-medium text-neutral-400">
+                      {reportData["Last Performance Rating"]}/5
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 p-2 rounded">
+                    <p className="text-neutral-500">Rewards</p>
+                    <p className="font-medium text-neutral-400">
+                      {reportData["Total Rewards Earned"]}
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 p-2 rounded">
+                    <p className="text-neutral-500">Attendance</p>
+                    <p className="font-medium text-neutral-400">
+                      {100 - Math.round((reportData["Total Leaves Taken"] / 24) * 100)}%
+                    </p>
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
+
+            <div className="space-y-6">
+              <SectionCard title="Current Mood">
+                <div className="h-40 flex items-center justify-center relative mb-3">
+                  {moodData && <Doughnut data={moodData} options={doughnutOptions} />}
+                  <div className="absolute inset-0 flex items-center justify-center flex-col">
+                    <span className="text-3xl font-bold text-neutral-300">
+                      {reportData["Recent Mood Score"]}
+                    </span>
+                    <span className="text-sm text-neutral-500">out of 10</span>
+                  </div>
+                </div>
+                <div className="bg-neutral-800 p-3 rounded-md flex items-start">
+                  <Smile className="text-neutral-500 mr-2 mt-0.5" size={18} />
+                  <p className="text-neutral-400 italic">"{reportData["Mood Comment"]}"</p>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Rewards & Recognition">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-neutral-400 text-sm mb-1">Total Rewards</p>
+                    <p className="text-2xl font-bold text-neutral-300">
+                      {reportData["Total Rewards Earned"]}
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                    <Award className="text-neutral-400" size={18} />
+                  </div>
+                </div>
+
+                <p className="text-neutral-500 text-sm mb-3">Recent Recognition:</p>
+                <div className="bg-neutral-800 p-4 rounded-md">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="font-medium text-neutral-400">
+                      {reportData["Recent Reward"].Type}
+                    </p>
+                    <span className="text-xs bg-neutral-700 text-neutral-400 px-2 py-0.5 rounded-full">
+                      {formatDate(reportData["Recent Reward"].Date)}
+                    </span>
+                  </div>
+                  <div className="flex items-center mt-2">
+                    <Briefcase className="text-neutral-500 mr-2" size={16} />
+                    <p className="text-neutral-500 text-sm">
+                      {reportData["Recent Reward"].Points} points awarded
+                    </p>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Meeting Activity">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-neutral-400 text-sm mb-1">Total Meetings Attended</p>
+                    <p className="text-2xl font-bold text-neutral-300">
+                      {reportData["Total Meetings Attended"]}
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                    <Calendar className="text-neutral-400" size={18} />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
+                  <div className="flex items-center">
+                    <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-neutral-700 to-neutral-500"
+                        style={{ width: "85%" }}
+                      ></div>
+                    </div>
+                    <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
+                  </div>
+                  <p className="text-neutral-600 text-xs mt-2">
+                    Based on expected department meeting attendance
+                  </p>
+                </div>
+              </SectionCard>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default IndividualReport;

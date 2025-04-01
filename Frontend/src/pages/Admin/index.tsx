@@ -167,249 +167,256 @@ const AdminPage = () => {
 
   return (
     <>
-      <Outlet />
-      <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white">
-        <div className="flex justify-between items-center gap-4 py-4 px-6 border-b-2 border-neutral-800">
-          <div className="flex items-center">
-            <h2 className="text-xl font-medium text-neutral-100">Deloitte</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to={"/admin/upload"}
-              state={{ background: location }}
-              className="py-2 px-5 border-2 border-white bg-white text-black rounded-md"
-            >
-              Modal
-            </Link>
-
-            <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
-              <span>Logout</span>
-              <Icon icon={"mynaui-logout"} className="text-xl" />
-            </button>
-          </div>
-        </div>
-
-        <h1 className="px-6 text-2xl py-5 font-medium">Employee List</h1>
-        <div className="px-6 py-4 border-b border-neutral-800 flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 ">
-          <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-            <SelectTrigger className="w-[100px] cursor-pointer border-neutral-800">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent className="dark ">
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-            <Input
-              placeholder="Search Users"
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="max-w-sm border-neutral-800"
-            />
-
-            <Button variant="outline" className="cursor-pointer text-black">
-              <Download className="mr-2 h-4 w-4 " /> Download
-            </Button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto cursor-pointer ">
-          <Table className="">
-            <TableHeader className="border-neutral-800 border-b-2 hover:bg-transparent">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    className="ml-5 items-center flex border-neutral-600"
-                    checked={
-                      Object.keys(selectedRows).length > 0 &&
-                      Object.keys(selectedRows).length === filteredData.length
-                    }
-                    onCheckedChange={selectAllRows}
-                  />
-                </TableHead>
-
-                <TableHead className="cursor-pointer " onClick={() => handleSort("Name")}>
-                  <div className="ml-5 flex items-center text-white">
-                    User
-                    {sortColumn === "Name" &&
-                      (sortDirection === "asc" ? (
-                        <ChevronUp className="ml-1 h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="ml-1 h-4 w-4" />
-                      ))}
-                  </div>
-                </TableHead>
-
-                <TableHead
-                  className="cursor-pointer  max-md:hidden"
-                  onClick={() => handleSort("Role")}
-                >
-                  <div className="flex items-center text-white">
-                    Department
-                    {sortColumn === "Role" &&
-                      (sortDirection === "asc" ? (
-                        <ChevronUp className="ml-1 h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="ml-1 h-4 w-4" />
-                      ))}
-                  </div>
-                </TableHead>
-
-                <TableHead
-                  className="cursor-pointer  max-md:hidden"
-                  onClick={() => handleSort("Updated at")}
-                >
-                  <div className="flex items-center text-white">
-                    Updated At
-                    {sortColumn === "Updated at" &&
-                      (sortDirection === "asc" ? (
-                        <ChevronUp className="ml-1 h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="ml-1 h-4 w-4" />
-                      ))}
-                  </div>
-                </TableHead>
-
-                <TableHead className="cursor-pointer" onClick={() => handleSort("Status")}>
-                  <div className="flex items-center text-white">
-                    Status
-                    {sortColumn === "Status" &&
-                      (sortDirection === "asc" ? (
-                        <ChevronUp className="ml-1 h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="ml-1 h-4 w-4" />
-                      ))}
-                  </div>
-                </TableHead>
-
-                <TableHead className="text-white">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={13} className="text-center">
-                    No data available
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedData.map((user) => (
-                  <TableRow
-                    key={user.id}
-                    className={`${
-                      selectedRows[user.id] ? "bg-neutral-900" : ""
-                    } border-neutral-800 hover:bg-neutral-900/50`}
-                  >
-                    <TableCell className="">
-                      <Checkbox
-                        className="cursor-pointer ml-5 border-neutral-600"
-                        checked={!!selectedRows[user.id]}
-                        onCheckedChange={() => toggleRowSelected(user.id)}
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-3 ml-5">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback>{getAvatar({ name: user.Name, dp: "" })}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{user.Name}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="max-sm:hidden ">
-                      {userRoleIcons[user.Role] ? (
-                        <div className="flex items-center gap-2">
-                          <span className={userRoleIcons[user.Role].color}>
-                            {userRoleIcons[user.Role].icon}
-                          </span>
-                          <span className="capitalize">{user.Role}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-amber-500"></span>
-                          <span>Unknown</span>
-                        </div>
-                      )}
-                    </TableCell>
-
-                    <TableCell className=" max-md:hidden">
-                      {(() => {
-                        const date = new Date(user["Updated at"]);
-                        return (
-                          <div>
-                            <p className="text-muted-foreground">{moment(date).fromNow()}</p>
-                          </div>
-                        );
-                      })()}
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge
-                        className={`${
-                          userStatusColors[user.Status] || "bg-neutral-200"
-                        } capitalize`}
-                      >
-                        {user.Status || "Unknown"}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-5 ml-auto">
-                        <Eye className="h-4 w-4" />
-
-                        <Download className="mr-2 h-4 w-4" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="flex items-center justify-end px-6 py-4">
-          <div className="flex items-center space-x-6">
-            <p className="text-sm text-white">
-              Showing <strong>{paginatedData.length}</strong> of{" "}
-              <strong>{filteredData.length}</strong> results
-            </p>
-
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className={`cursor-pointer text-black ${
-                  currentPage === 0 &&
-                  "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
-                }`}
-                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+      {location.pathname !== "/admin/auth" && (
+        <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white pb-6">
+          <div className="flex justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
+            <div className="flex items-center">
+              <h2 className="text-2xl tracking-wide font-medium text-neutral-100">Deloitte</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                to={"/admin/upload"}
+                state={{ background: location }}
+                className="py-2 px-5 border border-white bg-white text-black rounded-md"
               >
-                Previous
-              </Button>
+                Upload Files
+              </Link>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className={`cursor-pointer text-black ${
-                  (currentPage + 1) * pageSize >= filteredData.length &&
-                  "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
-                }`}
-                onClick={() => setCurrentPage((p) => p + 1)}
-              >
-                Next
-              </Button>
+              <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
+                <span>Logout</span>
+                <Icon icon={"mynaui-logout"} className="text-xl" />
+              </button>
             </div>
           </div>
-        </div>
-      </main>
+
+          <h1 className="px-6 text-2xl py-5 font-medium">Employee List</h1>
+          <div className="px-6 py-4 border-b border-neutral-800 flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 ">
+            <Select
+              value={pageSize.toString()}
+              onValueChange={(value) => setPageSize(Number(value))}
+            >
+              <SelectTrigger className="w-[100px] cursor-pointer border-neutral-800">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent className="dark ">
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+              <Input
+                placeholder="Search Users"
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                className="max-w-sm border-neutral-800"
+              />
+
+              <Link to={"/report/all"} className="cursor-pointer text-black bg-white rounded-md py-1.5 px-4 flex items-center gap-1">
+                <Download className="mr-2 h-4 w-4 " /> Download
+              </Link>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto cursor-pointer border-b border-neutral-800">
+            <Table className="">
+              <TableHeader className="border-neutral-800 border-b-2 hover:bg-transparent">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      className="ml-5 items-center flex"
+                      checked={
+                        Object.keys(selectedRows).length > 0 &&
+                        Object.keys(selectedRows).length === filteredData.length
+                      }
+                      onCheckedChange={selectAllRows}
+                    />
+                  </TableHead>
+
+                  <TableHead className="cursor-pointer " onClick={() => handleSort("Name")}>
+                    <div className="ml-5 flex items-center text-white">
+                      Employee
+                      {sortColumn === "Name" &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+
+                  <TableHead
+                    className="cursor-pointer  max-md:hidden"
+                    onClick={() => handleSort("Role")}
+                  >
+                    <div className="flex items-center text-white">
+                      Department
+                      {sortColumn === "Role" &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+
+                  <TableHead
+                    className="cursor-pointer  max-md:hidden"
+                    onClick={() => handleSort("Updated at")}
+                  >
+                    <div className="flex items-center text-white">
+                      Updated At
+                      {sortColumn === "Updated at" &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("Status")}>
+                    <div className="flex items-center text-white">
+                      Status
+                      {sortColumn === "Status" &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+
+                  <TableHead className="text-white">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {paginatedData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={13} className="text-center">
+                      No data available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedData.map((user) => (
+                    <TableRow
+                      key={user.id}
+                      className={`${
+                        selectedRows[user.id] ? "bg-neutral-900" : ""
+                      } border-neutral-800 hover:bg-neutral-900/50`}
+                    >
+                      <TableCell className="">
+                        <Checkbox
+                          className="cursor-pointer ml-5 border-neutral-600"
+                          checked={!!selectedRows[user.id]}
+                          onCheckedChange={() => toggleRowSelected(user.id)}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-3 ml-5">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback>
+                              {getAvatar({ name: user.Name, dp: "" })}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.Name}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="max-sm:hidden ">
+                        {userRoleIcons[user.Role] ? (
+                          <div className="flex items-center gap-2">
+                            <span className={userRoleIcons[user.Role].color}>
+                              {userRoleIcons[user.Role].icon}
+                            </span>
+                            <span className="capitalize">{user.Role}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-500"></span>
+                            <span>Unknown</span>
+                          </div>
+                        )}
+                      </TableCell>
+
+                      <TableCell className=" max-md:hidden">
+                        {(() => {
+                          const date = new Date(user["Updated at"]);
+                          return (
+                            <div>
+                              <p className="text-muted-foreground">{moment(date).fromNow()}</p>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          className={`${
+                            userStatusColors[user.Status] || "bg-neutral-200"
+                          } capitalize`}
+                        >
+                          {user.Status || "Unknown"}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-5 ml-auto">
+                          <Link to={`/report/employee/${user.id}`}>
+                          <Download  className="mr-2 h-4 w-4" />
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex items-center justify-end px-6 py-4 mt-6">
+            <div className="flex items-center space-x-6">
+              <p className="text-sm text-white">
+                Showing <strong>{paginatedData.length}</strong> of{" "}
+                <strong>{filteredData.length}</strong> results
+              </p>
+
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`cursor-pointer text-black ${
+                    currentPage === 0 &&
+                    "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
+                  }`}
+                  onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                >
+                  Previous
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`cursor-pointer text-black ${
+                    (currentPage + 1) * pageSize >= filteredData.length &&
+                    "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
+                  }`}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
+      <Outlet />
     </>
   );
 };
