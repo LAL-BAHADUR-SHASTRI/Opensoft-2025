@@ -2,6 +2,7 @@ import type React from "react";
 import { useState } from "react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import { apiClient, routes } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,16 +24,31 @@ export default function AdminAuth() {
       return;
     }
 
-    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("username", adminId);
+    formData.append("password", password);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Successfully authenticated.");
-      navigate("/admin");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Invalid admin ID or Password.");
-    } finally {
+      setIsLoading(true);
+      const response = await apiClient.post(routes.SIGN_IN, formData);
+
+      if (response.status === 201 || response.status === 200) {
+        setIsLoading(false);
+        localStorage.setItem("token", response.data.access_token);
+        toast.success("Login successful! Redirecting...");
+        setTimeout(() => {
+          navigate("/admin");
+        }, 2000);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.log(error);
+      if (error.status === 401) {
+        toast.error("Incorrect credentials, please try again!");
+      } else {
+        toast.error("Internal server error, please try after some time");
+      }
       setIsLoading(false);
     }
   };
@@ -45,13 +61,14 @@ export default function AdminAuth() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
               <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
+              <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
             </div>
             <CardTitle className="text-xl font-light">Welcome back, Admin</CardTitle>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 pb-5">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-neutral-500 uppercase pl-1"> Enter Admin ID</label>
+                <label className="block text-sm font-medium pl-1">Enter Admin ID</label>
                 <Input
                   id="adminId"
                   className="border-neutral-800 bg-neutral-900 placeholder:text-neutral-600"
@@ -59,7 +76,9 @@ export default function AdminAuth() {
                   value={adminId}
                   onChange={(e) => setAdminId(e.target.value)}
                 />
-                <label className="block text-sm font-medium text-neutral-500 uppercase pl-1 mt-3">Password</label>
+                <label className="block text-sm font-medium text-neutral-500 uppercase pl-1 mt-3">
+                  Password
+                </label>
                 <div className="relative">
                   <Input
                     id="password"

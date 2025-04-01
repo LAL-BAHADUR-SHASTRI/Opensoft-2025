@@ -6,6 +6,7 @@ import EmployeeAuth from "./pages/Employee/Auth";
 import AdminPage from "./pages/Admin";
 import AdminAuth from "./pages/Admin/Auth";
 import Upload from "./components/upload";
+// import ProtectedRoute from "./components/protectedRoutes";
 import ReportPage from "./pages/Report";
 import CollectiveReport from "./pages/Report/CollectiveReport";
 import EmployeeReport from "./pages/Report/EmployeeReport";

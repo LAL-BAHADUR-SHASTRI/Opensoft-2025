@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowRight, BriefcaseBusiness, Eye, EyeOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { Link, useNavigate } from "react-router";
+import { apiClient, routes } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,15 +31,30 @@ export default function EmployeeAuth() {
       toast.error("Please enter your credentials!");
       return;
     }
-    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("username", employeeId);
+    formData.append("password", password);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      navigate("/");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Invalid Employee ID or Password.");
-    } finally {
+      setIsLoading(true);
+      const response = await apiClient.post(routes.SIGN_IN, formData);
+
+      if (response.status === 200 || response.status === 201) {
+        setIsLoading(false);
+        localStorage.setItem("employeeData", response.data.access_token);
+        toast.success("Login successful! Redirecting...");
+        navigate("/");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.log(error);
+      if (error.status === 401) {
+        toast.error("Incorrect credentials, please try again!");
+      } else {
+        toast.error("Internal server error, please try after some time");
+      }
+
       setIsLoading(false);
     }
   };
