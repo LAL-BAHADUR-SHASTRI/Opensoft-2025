@@ -62,7 +62,6 @@ export default function AdminAuth() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
               <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
-              {/* <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} /> */}
             </div>
             <CardTitle className="text-xl font-light">Welcome back, Admin</CardTitle>
           </CardHeader>
