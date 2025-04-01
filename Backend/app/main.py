@@ -38,7 +38,7 @@ app = FastAPI(title="Employee Engagement API")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,7 +65,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
         data={"sub": user.username, "role": user.role}, expires_delta=access_token_expires
     )
     
-    response.set_cookie(key="token", value=access_token)    
+    response.set_cookie(key="token", value=access_token, httponly=True, secure=True, samesite="None") 
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "employee_id": user.employee_id}
 
 @app.post("/logout", tags=["authentication"])
