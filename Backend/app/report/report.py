@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy.orm import Session, sessionmaker
 import pandas as pd
 # from app.models import Employee, ActivityTracker, LeaveTracker, OnboardingTracker, PerformanceTracker, RewardsTracker, VibeMeter
@@ -118,6 +119,54 @@ def generate_collective_report(db: Session):
     
     return report
 
+def generate_selective_report(db: Session, employee_ids: List[str]):
+    employees = db.query(Employee).filter(Employee.id.in_(employee_ids)).all()
+    activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id.in_(employee_ids)).all()
+    leaves = db.query(LeaveTracker).filter(LeaveTracker.employee_id.in_(employee_ids)).all()
+    # onboarding = db.query(OnboardingTracker).filter(OnboardingTracker.employee_id.in_(employee_ids)).all()
+    performance = db.query(PerformanceTracker).filter(PerformanceTracker.employee_id.in_(employee_ids)).all()
+    rewards = db.query(RewardsTracker).filter(RewardsTracker.employee_id.in_(employee_ids)).all()
+    vibes = db.query(VibeMeter).filter(VibeMeter.employee_id.in_(employee_ids)).all()
+
+    
+    total_employees = len(employees)
+    activity_df = pd.DataFrame([a.__dict__ for a in activities])
+    avg_work_hours = activity_df.groupby('employee_id')['work_hours'].sum().mean() if not activity_df.empty else 0
+    total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
+    total_emails = activity_df['emails_sent'].sum() if not activity_df.empty else 0
+    total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
+    total_leaves = len(leaves)
+    
+    # onboarding_scores = [o. for o in onboarding if o.satisfaction_score is not None]
+    # avg_onboarding_score = sum(onboarding_scores) / len(onboarding_scores) if onboarding_scores else "N/A"
+    
+    performance_scores = [p.rating for p in performance if p.rating is not None]
+    avg_performance_rating = sum(performance_scores) / len(performance_scores) if performance_scores else "N/A"
+    
+    total_rewards_given = len(rewards)
+    reward_types = [r.reward_type for r in rewards]
+    most_common_reward = max(set(reward_types), key=reward_types.count) if reward_types else "N/A"
+    
+    mood_scores = [v.mood_score for v in vibes if v.mood_score is not None]
+    avg_mood_score = sum(mood_scores) / len(mood_scores) if mood_scores else "N/A"
+    mood_comments = [v.comments for v in vibes if v.comments]
+    
+    report = {
+        "Total Employees": total_employees,
+        "Average Work Hours Per Employee": avg_work_hours,
+        "Total Messages Sent": total_messages,
+        "Total Emails Sent": total_emails,
+        "Total Meetings Attended": total_meetings,
+        "Total Leaves Taken": total_leaves,
+        # "Onboarding Satisfaction Score": avg_onboarding_score,
+        "Average Performance Rating": avg_performance_rating,
+        "Total Rewards Given": total_rewards_given,
+        "Most Common Reward Type": most_common_reward,
+        "Overall Mood Score": avg_mood_score,
+        "Frequent Mood Comments": mood_comments[:5]
+    }
+    
+    return report
 
 def report_test1():
     from sqlalchemy import create_engine

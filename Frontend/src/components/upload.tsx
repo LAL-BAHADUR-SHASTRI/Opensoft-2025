@@ -146,6 +146,7 @@ export default function Upload() {
         setErrDesc("An error occurred while uploading.");
         setErrMsg("Upload failed");
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setErrMsg("Network error");
       setErrDesc("Check your connection and try again.");

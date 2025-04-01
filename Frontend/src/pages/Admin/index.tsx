@@ -1,4 +1,3 @@
-// src/components/UserListTable.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Eye, ChevronUp, ChevronDown } from "lucide-react";
+import { Download, ChevronUp, ChevronDown } from "lucide-react";
 import {
   Crown,
   Shield,
