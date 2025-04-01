@@ -195,7 +195,7 @@ const AdminPage = () => {
                 Upload Files
               </Link>
 
-              <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
+              <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md" onClick={handleLogout}>
                 <span>Logout</span>
                 <Icon icon={"mynaui-logout"} className="text-xl" />
               </button>

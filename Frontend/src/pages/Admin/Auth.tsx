@@ -31,6 +31,7 @@ export default function AdminAuth() {
     try {
       setIsLoading(true);
       const response = await apiClient.post(routes.SIGN_IN, formData, {withCredentials: true});
+      console.log(response);
 
       if (response.status === 201 || response.status === 200) {
         setIsLoading(false);
@@ -61,7 +62,7 @@ export default function AdminAuth() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
               <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
-              <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} />
+              {/* <img src="\src\assets\deloitte-logo.jpg" className="rounded-xl" width={"300px"} /> */}
             </div>
             <CardTitle className="text-xl font-light">Welcome back, Admin</CardTitle>
           </CardHeader>
