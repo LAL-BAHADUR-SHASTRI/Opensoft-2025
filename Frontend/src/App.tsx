@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { apiClient, routes } from "@/lib/api";
 import CollectiveReport from "./pages/Report/CollectiveReport";
 import EmployeeReport from "./pages/Report/EmployeeReport";
-import { n } from "react-router/dist/development/fog-of-war-CGNKxM4z";
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
