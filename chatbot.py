@@ -38,7 +38,7 @@ API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 # Generate a secure API key if not provided
-DEFAULT_API_KEY = ""
+DEFAULT_API_KEY = "test_key" 
 
 # Create image with all dependencies
 image = modal.Image.debian_slim().pip_install([
@@ -1008,7 +1008,7 @@ def main():
     """Run a local web server for API testing"""
     from flask import Flask, request, jsonify
     from flask_cors import CORS
-
+    print("starting server")
     app = Flask(__name__)
     CORS(app, resources={
         r"/*": {
@@ -1122,3 +1122,6 @@ def main():
     
     print("\nStarting web server on http://localhost:8000")
     app.run(host='0.0.0.0', port=8000, debug=False)
+
+if(__name__ == "__main__"):
+    main()
