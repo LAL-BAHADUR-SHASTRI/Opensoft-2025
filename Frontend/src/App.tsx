@@ -1,6 +1,6 @@
 import "./App.css";
 
-import { Route, Routes, useLocation, Navigate, useNavigate } from "react-router";
+import { Route, Routes, useLocation, useNavigate } from "react-router";
 import EmployeePage from "./pages/Employee";
 import EmployeeAuth from "./pages/Employee/Auth";
 import AdminPage from "./pages/Admin";
@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { apiClient, routes } from "@/lib/api";
 import CollectiveReport from "./pages/Report/CollectiveReport";
 import EmployeeReport from "./pages/Report/EmployeeReport";
+import SelectiveReport from "./pages/Report/SelectiveReport";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +48,8 @@ const App = () => {
     if (!isAuthenticated) {
       checkAuthentication();
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   useEffect(() => {
@@ -54,19 +58,21 @@ const App = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (role === "hr") {
-        navigate("/admin");
-      } else if (role === "employee") {
-        navigate("/");
+      if (location.pathname.includes("auth")) {
+        if (role === "hr") {
+          navigate("/admin");
+        } else if (role === "employee") {
+          navigate("/");
+        }
       }
-    } else{
-      if (location.pathname === "/admin") {
+    } else {
+      if (location.pathname.includes("/admin")|| location.pathname.includes("report")) {
         navigate("/admin/auth");
       } else if (location.pathname === "/") {
         navigate("/auth");
       }
     }
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   return (
@@ -85,8 +91,11 @@ const App = () => {
 
           <Route path="/report" element={<ReportPage />}>
             <Route path="all" element={<CollectiveReport />} />
-            <Route path="employee/:id" element={<EmployeeReport />} />
+            <Route path="employee/:employeeId" element={<EmployeeReport />} />
+            <Route path="selective" element={<SelectiveReport />} />
           </Route>
+
+          <Route path="*" element={<NotFoundPage />}/>
         </Routes>
       </>
     )

@@ -24,6 +24,9 @@ import {
   Star,
   Smile,
 } from "lucide-react";
+import { apiClient } from "@/lib/api";
+import { EMPLOYEE_REPORT } from "@/lib/routes";
+import { useParams } from "react-router";
 
 ChartJS.register(
   ArcElement,
@@ -99,36 +102,39 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
 };
 
 const EmployeeReport: React.FC = () => {
-  const [reportData, setReportData] = useState<ReportTypes | null>(null);
+  const { employeeId } = useParams();
 
-  const data: ReportTypes = {
-    "Employee ID": "EMP123",
-    Name: "John Doe",
-    Department: "IT",
-    Position: "Software Engineer",
-    "Manager ID": "MGR456",
-    "Joining Date": "2022-03-01",
-    "Total Messages Sent": 500,
-    "Total Emails Sent": 200,
-    "Total Meetings Attended": 30,
-    "Total Work Hours": 1600,
-    "Total Leaves Taken": 12,
-    "Onboarding Feedback": "Smooth onboarding, mentor was helpful",
-    "Initial Training Completed": "Yes",
-    "Last Performance Rating": 4.5,
-    "Manager Feedback": "Great work ethic, potential for leadership",
-    "Total Rewards Earned": 3,
-    "Recent Reward": {
-      Date: "2024-02-10",
-      Type: "Employee of the Month",
-      Points: 500,
-    },
-    "Recent Mood Score": 8.2,
-    "Mood Comment": "Feeling productive and motivated",
-  };
+  const [reportData, setReportData] = useState<ReportTypes | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setReportData(data);
+    console.log(employeeId);
+    const fetchReport = async () => {
+      try {
+        const response = await apiClient.post(
+          EMPLOYEE_REPORT,
+          {
+            employee_id: employeeId,
+          },
+          { withCredentials: true }
+        );
+
+        if (response.status === 200) {
+          if (response.data.report.error) {
+            setReportData(null);
+            setErrorMsg("No data found for employee");
+          } else {
+            setReportData(response.data.report);
+          }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        setErrorMsg("Error fetching the report");
+        setReportData(null);
+      }
+    };
+
+    fetchReport();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -270,7 +276,7 @@ const EmployeeReport: React.FC = () => {
 
   return (
     <div className="bg-neutral-950 min-h-screen px-4 pb-4 pt-4 xl:px-40 2xl:px-60 lg:pt-12 text-neutral-300">
-      {reportData && (
+      {reportData ? (
         <>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div className="bg-neutral-900 rounded-lg px-4 py-2 flex items-center">
@@ -278,9 +284,9 @@ const EmployeeReport: React.FC = () => {
                 <User className="text-neutral-400" size={20} />
               </div>
               <div>
-                <p className="text-neutral-300 font-medium">{data.Name}</p>
+                <p className="text-neutral-300 font-medium">{reportData.Name}</p>
                 <p className="text-neutral-500 text-sm">
-                  {data.Department} — {data.Position}
+                  {reportData.Department} — {reportData.Position}
                 </p>
               </div>
             </div>
@@ -298,11 +304,11 @@ const EmployeeReport: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Department:</span>
-                    <span className="text-neutral-400 font-medium">{data.Department}</span>
+                    <span className="text-neutral-400 font-medium">{reportData.Department}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Position:</span>
-                    <span className="text-neutral-400 font-medium">{data.Position}</span>
+                    <span className="text-neutral-400 font-medium">{reportData.Position}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Manager ID:</span>
@@ -504,6 +510,13 @@ const EmployeeReport: React.FC = () => {
             </div>
           </div>
         </>
+      ) : (
+        <div className="flex items-center gap-3 flex-col mt-10">
+          <div className="bg-neutral-900 text-xl py-2 px-4 mx-auto w-fit border-2 border-neutral-800 rounded-md">
+            {errorMsg}
+          </div>
+          <div>Please try again after sometime</div>
+        </div>
       )}
     </div>
   );

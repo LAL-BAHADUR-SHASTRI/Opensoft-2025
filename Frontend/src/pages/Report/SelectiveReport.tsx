@@ -14,7 +14,8 @@ import {
 import { Doughnut, Bar } from "react-chartjs-2";
 import { Users, Clock, Mail, Calendar, Award, Star } from "lucide-react";
 import { apiClient } from "@/lib/api";
-import { COLLECTIVE_REPORT } from "@/lib/routes";
+import {  SELECTIVE_REPORT } from "@/lib/routes";
+import { useReportContext } from "@/context/ReportContext";
 
 ChartJS.register(
   ArcElement,
@@ -68,13 +69,20 @@ const Card = ({
   );
 };
 
-const CollectiveReport = () => {
+const SelectiveReport = () => {
+  const { employeeIds } = useReportContext();
   const [reportData, setReportData] = useState<ReportTypes | null>(null);
 
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const response = await apiClient.get(COLLECTIVE_REPORT, { withCredentials: true });
+        const response = await apiClient.post(
+          SELECTIVE_REPORT,
+          {
+            employee_ids: employeeIds,
+          },
+          { withCredentials: true }
+        );
 
         if (response.status === 200) {
           setReportData(response.data.report);
@@ -85,7 +93,10 @@ const CollectiveReport = () => {
       }
     };
 
-    fetchReport();
+    if (!employeeIds) {
+      fetchReport();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const chartColors = {
@@ -328,4 +339,4 @@ const CollectiveReport = () => {
   );
 };
 
-export default CollectiveReport;
+export default SelectiveReport;
