@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router";
+import { SIGN_IN } from "@/lib/routes";
 
 export default function AdminAuth() {
   const [adminId, setAdminId] = useState<string>("");
@@ -30,7 +31,10 @@ export default function AdminAuth() {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post(routes.SIGN_IN, formData, {withCredentials: true});
+       console.log(SIGN_IN)
+      const response = await apiClient.post(routes.SIGN_IN, formData ,{
+        withCredentials: true,
+      });
       console.log(response);
 
       if (response.status === 201 || response.status === 200) {

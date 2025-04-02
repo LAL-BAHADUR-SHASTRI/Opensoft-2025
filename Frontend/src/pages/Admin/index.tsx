@@ -39,23 +39,27 @@ import { apiClient, routes } from "@/lib/api";
 import { Icon } from "@iconify-icon/react";
 
 interface UserType {
-  id: string;
-  Name: string;
-  Role: string;
-
-  "Created at": string;
-  "Updated at": string;
-  Status: string;
+  id: number;
+  email: string;
+  username: string;
+  hashed_password: string;
+  role: string;
+  is_active: boolean;
+  employee_id?: string | null;
+  last_login_date?: string | null;
+  last_chat_date?: string | null;
+  current_mood?: string | null;
 }
 
 // interface UserListTableProps {
 //   tableData?: UserType[];
 // }
 
-const getAvatar = (user: { name: string; dp: string }) => {
+const getAvatar = (user: { name?: string; dp?: string }) => {
   if (user.dp) return user.dp;
 
-  const initials = user.name
+  const name = user.name || "A"; // Ensure we use "A" only when name is missing
+  const initials = name
     .split(" ")
     .map((part) => part[0])
     .join("")
@@ -64,6 +68,7 @@ const getAvatar = (user: { name: string; dp: string }) => {
 
   return initials;
 };
+
 
 const userRoleIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   Admin: { icon: <Crown size={16} />, color: "text-red-500" },
@@ -89,9 +94,9 @@ const AdminPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [data, setData] = useState<UserType[]>(dummyUsers);
+  const [data, setData] = useState<UserType[]>([]);
 
-  const [filteredData, setFilteredData] = useState<UserType[]>(data);
+  const [filteredData, setFilteredData] = useState<UserType[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
@@ -101,7 +106,25 @@ const AdminPage = () => {
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await apiClient.get(routes.USERS, {
+          withCredentials: true,
+        });
+        console.log("this is response", response.data.data);
+        const arrayData = Object.values(response.data.data) as UserType[];
+console.log(arrayData)
+        setData(arrayData);
+        setFilteredData(arrayData)         // Ensure state is updated with fetched data
+      } catch (err) {
+        console.error("Fetch error:", err);
+       
+      }
+    };
 
+    fetchData();
+  }, []); // Empty dependency array ensures it runs only once
   useEffect(() => {
     if (!globalFilter) {
       setFilteredData(data);
@@ -111,7 +134,7 @@ const AdminPage = () => {
     const searchTerm = globalFilter.toLowerCase();
 
     const filtered = data.filter((user) => {
-      const searchContent = [user.Name, user.Role, user.Status, user.id].join(" ").toLowerCase();
+      const searchContent = [user.username, user.role, user.current_mood, user.id].join(" ").toLowerCase();
 
       return searchContent.includes(searchTerm);
     });
@@ -127,37 +150,43 @@ const AdminPage = () => {
       setSortDirection("asc");
     }
   };
-
-  const sortedData = [...filteredData].sort((a, b) => {
+  const sortedData = Array.isArray(filteredData) ? [...filteredData].sort((a, b) => {
     if (!sortColumn) return 0;
-
+  
     const valA = a[sortColumn as keyof UserType];
     const valB = b[sortColumn as keyof UserType];
-
+  
+    if (valA == null || valB == null) return 0; // Handle null or undefined values
     if (valA < valB) return sortDirection === "asc" ? -1 : 1;
     if (valA > valB) return sortDirection === "asc" ? 1 : -1;
     return 0;
-  });
-
+  }) : [];
+  
   const paginatedData =
     pageSize > sortedData.length
       ? sortedData
       : sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
-
-  const selectAllRows = () => {
-    const allSelected = Object.keys(selectedRows).length === filteredData.length;
-
-    if (allSelected) {
-      setSelectedRows({});
-    } else {
-      const newSelected: Record<string, boolean> = {};
-      filteredData.forEach((user) => {
-        newSelected[user.id] = true;
-      });
-      setSelectedRows(newSelected);
-    }
-  };
-
+      const selectAllRows = () => {
+        if (!Array.isArray(filteredData)) {
+          console.error("filteredData is not an array:", filteredData);
+          return;
+        }
+      
+        const allSelected = Object.keys(selectedRows).length === filteredData.length;
+      
+        if (allSelected) {
+          setSelectedRows({});
+        } else {
+          const newSelected: Record<string, boolean> = {};
+      
+          filteredData.forEach((user) => {
+            newSelected[user.id] = true;
+          });
+      
+          setSelectedRows(newSelected);
+        }
+      };
+      
   // Toggle row selection
   const toggleRowSelected = (id: string) => {
     setSelectedRows((prev) => ({
@@ -194,7 +223,7 @@ const AdminPage = () => {
                 Upload Files
               </Link>
 
-              <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md" onClick={handleLogout}>
+              <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer" onClick={handleLogout}>
                 <span>Logout</span>
                 <Icon icon={"mynaui-logout"} className="text-xl" />
               </button>
@@ -313,9 +342,9 @@ const AdminPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedData.map((user) => (
+                  paginatedData.map((user,index) => (
                     <TableRow
-                      key={user.id}
+                      key={index}
                       className={`${
                         selectedRows[user.id] ? "bg-neutral-900" : ""
                       } border-neutral-800 hover:bg-neutral-900/50`}
@@ -324,7 +353,7 @@ const AdminPage = () => {
                         <Checkbox
                           className="cursor-pointer ml-5 border-neutral-600"
                           checked={!!selectedRows[user.id]}
-                          onCheckedChange={() => toggleRowSelected(user.id)}
+                          onCheckedChange={() => toggleRowSelected(user.id.toString())}
                         />
                       </TableCell>
 
@@ -332,22 +361,22 @@ const AdminPage = () => {
                         <div className="flex items-center gap-3 ml-5">
                           <Avatar className="h-9 w-9">
                             <AvatarFallback>
-                              {getAvatar({ name: user.Name, dp: "" })}
+                              {getAvatar({ name: user.username, dp: "" })}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{user.Name}</p>
+                            <p className="font-medium">{user.username}</p>
                           </div>
                         </div>
                       </TableCell>
 
                       <TableCell className="max-sm:hidden ">
-                        {userRoleIcons[user.Role] ? (
+                        {userRoleIcons[user.role] ? (
                           <div className="flex items-center gap-2">
-                            <span className={userRoleIcons[user.Role].color}>
-                              {userRoleIcons[user.Role].icon}
+                            <span className={userRoleIcons[user.role].color}>
+                              {userRoleIcons[user.role].icon}
                             </span>
-                            <span className="capitalize">{user.Role}</span>
+                            <span className="capitalize">{user.role}</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
@@ -359,7 +388,7 @@ const AdminPage = () => {
 
                       <TableCell className=" max-md:hidden">
                         {(() => {
-                          const date = new Date(user["Updated at"]);
+                          const date = new Date(user.last_chat_date || 0);
                           return (
                             <div>
                               <p className="text-muted-foreground">{moment(date).fromNow()}</p>
@@ -371,10 +400,10 @@ const AdminPage = () => {
                       <TableCell>
                         <Badge
                           className={`${
-                            userStatusColors[user.Status] || "bg-neutral-200"
+                            user.current_mood ? userStatusColors[user.current_mood] || "bg-neutral-200" : "bg-neutral-200"
                           } capitalize`}
                         >
-                          {user.Status || "Unknown"}
+                          {user.current_mood || "Unknown"}
                         </Badge>
                       </TableCell>
 
@@ -426,6 +455,7 @@ const AdminPage = () => {
               </div>
             </div>
           </div>
+          
         </main>
       )}
       <Outlet />
