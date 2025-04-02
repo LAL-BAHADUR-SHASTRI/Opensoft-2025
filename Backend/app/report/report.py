@@ -25,8 +25,8 @@ def generate_individual_report(db: Session, employee_id: str):
     
     activity_df = pd.DataFrame([a.__dict__ for a in activities])
     total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
-    total_emails = activity_df['emails_sent'].sum() if not activity_df.empty else 0
-    total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
+    total_emails = int(activity_df['emails_sent'].sum()) if not activity_df.empty else 0
+    total_meetings = int(activity_df['meetings_attended'].sum()) if not activity_df.empty else 0
     total_work_hours = activity_df['work_hours'].sum() if not activity_df.empty else 0
 
     total_leaves = len(leaves)
@@ -84,8 +84,8 @@ def generate_collective_report(db: Session):
     activity_df = pd.DataFrame([a.__dict__ for a in activities])
     avg_work_hours = activity_df.groupby('employee_id')['work_hours'].sum().mean() if not activity_df.empty else 0
     total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
-    total_emails = activity_df['emails_sent'].sum() if not activity_df.empty else 0
-    total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
+    total_emails = int(activity_df['emails_sent'].sum()) if not activity_df.empty else 0
+    total_meetings = int(activity_df['meetings_attended'].sum()) if not activity_df.empty else 0
     total_leaves = len(leaves)
     
     # onboarding_scores = [o. for o in onboarding if o.satisfaction_score is not None]
@@ -120,7 +120,6 @@ def generate_collective_report(db: Session):
     return report
 
 def generate_selective_report(db: Session, employee_ids: List[str]):
-    employees = db.query(Employee).filter(Employee.id.in_(employee_ids)).all()
     activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id.in_(employee_ids)).all()
     leaves = db.query(LeaveTracker).filter(LeaveTracker.employee_id.in_(employee_ids)).all()
     # onboarding = db.query(OnboardingTracker).filter(OnboardingTracker.employee_id.in_(employee_ids)).all()
@@ -129,12 +128,12 @@ def generate_selective_report(db: Session, employee_ids: List[str]):
     vibes = db.query(VibeMeter).filter(VibeMeter.employee_id.in_(employee_ids)).all()
 
     
-    total_employees = len(employees)
+    total_employees = len(employee_ids)
     activity_df = pd.DataFrame([a.__dict__ for a in activities])
     avg_work_hours = activity_df.groupby('employee_id')['work_hours'].sum().mean() if not activity_df.empty else 0
     total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
-    total_emails = activity_df['emails_sent'].sum() if not activity_df.empty else 0
-    total_meetings = activity_df['meetings_attended'].sum() if not activity_df.empty else 0
+    total_emails = int(activity_df['emails_sent'].sum()) if not activity_df.empty else 0
+    total_meetings = int(activity_df['meetings_attended'].sum()) if not activity_df.empty else 0
     total_leaves = len(leaves)
     
     # onboarding_scores = [o. for o in onboarding if o.satisfaction_score is not None]

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, BackgroundTasks, Response
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, BackgroundTasks, Response, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ from app.models.leave import LeaveTracker
 from app.models.performance import PerformanceTracker
 from app.models.rewards import RewardsTracker
 from app.models.onboarding import OnboardingTracker
-from app.report.report import generate_collective_report, generate_individual_report
+from app.report.report import generate_collective_report, generate_individual_report, generate_selective_report
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -244,4 +244,15 @@ async def get_employee_data(
 @app.get("/report/collective", tags=["report"])
 async def get_collective_report(db: Session = Depends(get_db), current_user: User = Depends(is_hr)):
     report = generate_collective_report(db)
+    return {"report": report}
+
+@app.post("/report/employee", tags=["report"])
+async def get_employee_report(payload: dict = Body(...), db: Session = Depends(get_db), current_user: User = Depends(is_hr)):
+    report = generate_individual_report(db, payload["employee_id"])
+    return {"report": report}
+
+@app.post("/report/selective", tags=["report"])
+async def get_employee_report(payload: dict = Body(...),  db: Session = Depends(get_db), current_user: User = Depends(is_hr)):
+    employee_ids: List[str] = payload["employee_ids"]
+    report = generate_selective_report(db, employee_ids)
     return {"report": report}
