@@ -1,26 +1,31 @@
 import "./App.css";
 
+import { useEffect, useState } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
+
 import EmployeePage from "./pages/Employee";
 import EmployeeAuth from "./pages/Employee/Auth";
+
 import AdminPage from "./pages/Admin";
 import AdminAuth from "./pages/Admin/Auth";
 import Upload from "./components/upload";
-import ReportPage from "./pages/Report";
-import { useEffect, useState } from "react";
+
 import { apiClient, routes } from "@/lib/api";
+
+import ReportPage from "./pages/Report";
 import CollectiveReport from "./pages/Report/CollectiveReport";
 import EmployeeReport from "./pages/Report/EmployeeReport";
-import SelectiveReport from "./pages/Report/SelectiveReport";
+
 import NotFoundPage from "./pages/NotFoundPage";
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [role, setRole] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [role, setRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
   const checkAuthentication = async () => {
     setIsLoading(true);
     try {
@@ -48,7 +53,6 @@ const App = () => {
     if (!isAuthenticated) {
       checkAuthentication();
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
@@ -57,21 +61,21 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      if (location.pathname.includes("auth")) {
-        if (role === "hr") {
-          navigate("/admin");
-        } else if (role === "employee") {
-          navigate("/");
-        }
-      }
-    } else {
-      if (location.pathname.includes("/admin")|| location.pathname.includes("report")) {
-        navigate("/admin/auth");
-      } else if (location.pathname === "/") {
-        navigate("/auth");
-      }
-    }
+    // if (isAuthenticated) {
+    //   if (location.pathname.includes("auth")) {
+    //     if (role === "hr") {
+    //       navigate("/admin");
+    //     } else if (role === "employee") {
+    //       navigate("/");
+    //     }
+    //   }
+    // } else {
+    //   if (location.pathname.includes("/admin")|| location.pathname.includes("report")) {
+    //     navigate("/admin/auth");
+    //   } else if (location.pathname === "/") {
+    //     navigate("/auth");
+    //   }
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
@@ -92,7 +96,7 @@ const App = () => {
           <Route path="/report" element={<ReportPage />}>
             <Route path="all" element={<CollectiveReport />} />
             <Route path="employee/:employeeId" element={<EmployeeReport />} />
-            <Route path="selective" element={<SelectiveReport />} />
+            <Route path="employees" element={<CollectiveReport />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />}/>

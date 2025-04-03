@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, ChevronUp, ChevronDown } from "lucide-react";
+import { Download, ChevronUp, ChevronDown, Eye, File, FileDown } from "lucide-react";
 import {
   Crown,
   Shield,
@@ -160,11 +160,21 @@ const AdminPage = () => {
 
   // Toggle row selection
   const toggleRowSelected = (id: string) => {
-    setSelectedRows((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    let newCheckedRows = selectedRows;
+
+    if (newCheckedRows[id]) {
+      delete newCheckedRows[id];
+      console.log(newCheckedRows);
+    } else {
+      newCheckedRows = {
+        ...newCheckedRows,
+        [id]: true,
+      };
+    }
+    setSelectedRows(newCheckedRows);
   };
+
+  useEffect(() => console.log(selectedRows), [selectedRows]);
 
   const handleLogout = async () => {
     try {
@@ -172,10 +182,10 @@ const AdminPage = () => {
       if (response.status === 200) {
         navigate("/admin/auth");
       }
-    }catch (error) {
+    } catch (error) {
       console.error("Error logging out:", error);
     }
-  }
+  };
 
   return (
     <>
@@ -194,7 +204,10 @@ const AdminPage = () => {
                 Upload Files
               </Link>
 
-              <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md" onClick={handleLogout}>
+              <button
+                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md"
+                onClick={handleLogout}
+              >
                 <span>Logout</span>
                 <Icon icon={"mynaui-logout"} className="text-xl" />
               </button>
@@ -226,8 +239,12 @@ const AdminPage = () => {
                 className="max-w-sm border-neutral-800"
               />
 
-              <Link to={"/report/all"} className="cursor-pointer text-black bg-white rounded-md py-1.5 px-4 flex items-center gap-1">
-                <Download className="mr-2 h-4 w-4 " /> Download
+              <Link
+                to={"/report/all"}
+                className="cursor-pointer text-black bg-white rounded-md py-1.5 px-4 flex items-center gap-1"
+              >
+                <FileDown className="mr-2 h-4 w-4 " />
+                Report
               </Link>
             </div>
           </div>
@@ -379,9 +396,12 @@ const AdminPage = () => {
                       </TableCell>
 
                       <TableCell>
-                        <div className="flex items-center gap-5 ml-auto">
-                          <Link to={`/report/employee/${user.id}`}>
-                          <Download  className="mr-2 h-4 w-4" />
+                        <div className="flex items-center">
+                          <Link
+                            to={`/report/employee/${user.id}`}
+                            className="p-1.5 hover:bg-neutral-800 rounded-sm"
+                          >
+                            <FileDown className="h-4 w-4" />
                           </Link>
                         </div>
                       </TableCell>

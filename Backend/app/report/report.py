@@ -88,9 +88,20 @@ def generate_collective_report(db: Session):
     total_meetings = int(activity_df['meetings_attended'].sum()) if not activity_df.empty else 0
     total_leaves = len(leaves)
     
-    # onboarding_scores = [o. for o in onboarding if o.satisfaction_score is not None]
-    # avg_onboarding_score = sum(onboarding_scores) / len(onboarding_scores) if onboarding_scores else "N/A"
+    onboarding_moods = [o.onboarding_feedback for o in onboarding if o.onboarding_feedback is not None]
     
+    mood_counts = {
+        "Poor": 0,
+        "Average": 0,
+        "Good": 0,
+        "Excellent": 0,
+        "Total": len(onboarding_moods)
+    }
+    
+    for mood in onboarding_moods:
+        if mood in mood_counts:
+            mood_counts[mood] += 1
+        
     performance_scores = [p.rating for p in performance if p.rating is not None]
     avg_performance_rating = sum(performance_scores) / len(performance_scores) if performance_scores else "N/A"
     
@@ -109,7 +120,7 @@ def generate_collective_report(db: Session):
         "Total Emails Sent": total_emails,
         "Total Meetings Attended": total_meetings,
         "Total Leaves Taken": total_leaves,
-        # "Onboarding Satisfaction Score": avg_onboarding_score,
+        "Onboarding Moods": mood_counts,
         "Average Performance Rating": avg_performance_rating,
         "Total Rewards Given": total_rewards_given,
         "Most Common Reward Type": most_common_reward,
@@ -122,7 +133,7 @@ def generate_collective_report(db: Session):
 def generate_selective_report(db: Session, employee_ids: List[str]):
     activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id.in_(employee_ids)).all()
     leaves = db.query(LeaveTracker).filter(LeaveTracker.employee_id.in_(employee_ids)).all()
-    # onboarding = db.query(OnboardingTracker).filter(OnboardingTracker.employee_id.in_(employee_ids)).all()
+    onboarding = db.query(OnboardingTracker).filter(OnboardingTracker.employee_id.in_(employee_ids)).all()
     performance = db.query(PerformanceTracker).filter(PerformanceTracker.employee_id.in_(employee_ids)).all()
     rewards = db.query(RewardsTracker).filter(RewardsTracker.employee_id.in_(employee_ids)).all()
     vibes = db.query(VibeMeter).filter(VibeMeter.employee_id.in_(employee_ids)).all()
@@ -136,8 +147,20 @@ def generate_selective_report(db: Session, employee_ids: List[str]):
     total_meetings = int(activity_df['meetings_attended'].sum()) if not activity_df.empty else 0
     total_leaves = len(leaves)
     
-    # onboarding_scores = [o. for o in onboarding if o.satisfaction_score is not None]
-    # avg_onboarding_score = sum(onboarding_scores) / len(onboarding_scores) if onboarding_scores else "N/A"
+    onboarding_moods = [o.onboarding_feedback for o in onboarding if o.onboarding_feedback is not None]
+    
+    mood_counts = {
+        "Poor": 0,
+        "Average": 0,
+        "Good": 0,
+        "Excellent": 0,
+        "Total": len(onboarding_moods)
+    }
+    
+    for mood in onboarding_moods:
+        if mood in mood_counts:
+            mood_counts[mood] += 1
+
     
     performance_scores = [p.rating for p in performance if p.rating is not None]
     avg_performance_rating = sum(performance_scores) / len(performance_scores) if performance_scores else "N/A"
@@ -157,7 +180,7 @@ def generate_selective_report(db: Session, employee_ids: List[str]):
         "Total Emails Sent": total_emails,
         "Total Meetings Attended": total_meetings,
         "Total Leaves Taken": total_leaves,
-        # "Onboarding Satisfaction Score": avg_onboarding_score,
+        "Onboarding Moods": mood_counts,
         "Average Performance Rating": avg_performance_rating,
         "Total Rewards Given": total_rewards_given,
         "Most Common Reward Type": most_common_reward,

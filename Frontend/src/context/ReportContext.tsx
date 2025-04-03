@@ -14,8 +14,8 @@ const ReportContext = createContext<ReportContextType>({
 const useReportContext = () => useContext(ReportContext);
 
 const ReportProvider = ({ children }: { children: ReactNode }) => {
-  const [employeeIds, setEmployeeIds] = useState<string[]>([]);
-
+  const [employeeIds, setEmployeeIds] = useState<string[]>([])
+  
   return (
     <ReportContext.Provider value={{ employeeIds, setEmployeeIds }}>
       {children}

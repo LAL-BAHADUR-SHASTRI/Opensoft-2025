@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
   LineElement,
   RadialLinearScale,
@@ -12,27 +11,17 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Doughnut, Bar, Radar } from "react-chartjs-2";
-import {
-  User,
-  Calendar,
-  Mail,
-  MessageSquare,
-  Clock,
-  Award,
-  Briefcase,
-  Star,
-  Smile,
-} from "lucide-react";
+import { Doughnut, Radar } from "react-chartjs-2";
+import { User, Calendar, Mail, Award, Briefcase, Star, Smile, Users } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { EMPLOYEE_REPORT } from "@/lib/routes";
 import { useParams } from "react-router";
+import { BarChart } from "@/components/charts";
 
 ChartJS.register(
   ArcElement,
   CategoryScale,
   LinearScale,
-  BarElement,
   PointElement,
   LineElement,
   RadialLinearScale,
@@ -67,30 +56,18 @@ interface ReportTypes {
   "Mood Comment": string;
 }
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => {
+const StatCard = ({ title, value }: { title: string; value: string | number }) => {
   return (
     <div className="bg-neutral-900 rounded-lg shadow-md p-4">
       <div className="flex items-center mb-2">
-        <div className="text-neutral-500 mr-2">{icon}</div>
         <h3 className="text-sm font-medium text-neutral-500">{title}</h3>
       </div>
-      <p className="text-xl font-semibold text-neutral-300">{value}</p>
+      <p className="text-3xl font-semibold text-neutral-300">{value}</p>
     </div>
   );
 };
 
-interface SectionCardProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
+const SectionCard = ({ title, children }: { title: string; children: ReactNode }) => {
   return (
     <div className="bg-neutral-900 rounded-lg shadow-md p-6">
       <h2 className="text-lg font-semibold text-neutral-300 mb-4 border-b border-neutral-800 pb-2">
@@ -104,11 +81,10 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, children }) => {
 const EmployeeReport: React.FC = () => {
   const { employeeId } = useParams();
 
-  const [reportData, setReportData] = useState<ReportTypes | null>(null);
+  const [reportData, setReportData] = useState<ReportTypes | null>();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(employeeId);
     const fetchReport = async () => {
       try {
         const response = await apiClient.post(
@@ -172,20 +148,20 @@ const EmployeeReport: React.FC = () => {
     ],
   };
 
-  const communicationData = reportData && {
-    labels: ["Messages", "Emails", "Meetings"],
-    datasets: [
-      {
-        label: "Communication Activity",
-        data: [
-          reportData["Total Messages Sent"],
-          reportData["Total Emails Sent"],
-          reportData["Total Meetings Attended"] * 10,
-        ],
-        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.tertiary],
-      },
-    ],
-  };
+  const communicationData = reportData && [
+    {
+      key: "Emails",
+      value: reportData["Total Emails Sent"],
+    },
+    {
+      key: "Meetings",
+      value: reportData["Total Meetings Attended"],
+    },
+    {
+      key: "Messages",
+      value: reportData["Total Messages Sent"],
+    },
+  ];
 
   const performanceData = reportData && {
     labels: ["Performance", "Communication", "Rewards", "Mood", "Attendance"],
@@ -204,31 +180,6 @@ const EmployeeReport: React.FC = () => {
         pointBackgroundColor: chartColors.secondary,
       },
     ],
-  };
-
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: chartColors.background,
-        titleColor: chartColors.text,
-        bodyColor: chartColors.text,
-        borderColor: chartColors.accent,
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: `${chartColors.accent}40` },
-        ticks: { color: chartColors.text },
-      },
-      x: {
-        grid: { color: `${chartColors.accent}40` },
-        ticks: { color: chartColors.text },
-      },
-    },
   };
 
   const doughnutOptions = {
@@ -370,68 +321,79 @@ const EmployeeReport: React.FC = () => {
                   {reportData["Onboarding Feedback"]}
                 </p>
               </SectionCard>
+
+              <SectionCard title="Meeting Activity">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-neutral-400 text-sm mb-1">Total Meetings Attended</p>
+                    <p className="text-2xl font-bold text-neutral-300">
+                      {reportData["Total Meetings Attended"]}
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                    <Calendar className="text-neutral-400" size={18} />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
+                  <div className="flex items-center">
+                    <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-neutral-700 to-neutral-500"
+                        style={{ width: "85%" }}
+                      ></div>
+                    </div>
+                    <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
+                  </div>
+                  <p className="text-neutral-600 text-xs mt-2">
+                    Based on expected department meeting attendance
+                  </p>
+                </div>
+              </SectionCard>
             </div>
 
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <StatCard
-                  title="Work Hours"
-                  value={reportData["Total Work Hours"]}
-                  icon={<Clock size={18} />}
-                />
-                <StatCard
-                  title="Leaves Taken"
-                  value={reportData["Total Leaves Taken"]}
-                  icon={<Calendar size={18} />}
-                />
-                <StatCard
-                  title="Messages Sent"
-                  value={reportData["Total Messages Sent"]}
-                  icon={<MessageSquare size={18} />}
-                />
-                <StatCard
-                  title="Emails Sent"
-                  value={reportData["Total Emails Sent"]}
-                  icon={<Mail size={18} />}
-                />
+                <StatCard title="Work Hours" value={reportData["Total Work Hours"]} />
+                <StatCard title="Leaves Taken" value={reportData["Total Leaves Taken"]} />
+                <StatCard title="Messages Sent" value={reportData["Total Messages Sent"]} />
+                <StatCard title="Emails Sent" value={reportData["Total Emails Sent"]} />
               </div>
 
               <SectionCard title="Communication Activity">
-                <div className="h-64">
-                  {communicationData && <Bar data={communicationData} options={barOptions} />}
-                </div>
-              </SectionCard>
-
-              <SectionCard title="Performance Overview">
-                <div className="h-64">
-                  {performanceData && <Radar data={performanceData} options={radarOptions} />}
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-sm text-center">
-                  <div className="bg-neutral-800 p-2 rounded">
-                    <p className="text-neutral-500">Performance</p>
-                    <p className="font-medium text-neutral-400">
-                      {reportData["Last Performance Rating"]}/5
-                    </p>
+                <div className="flex flex-col gap-10">
+                  {reportData && communicationData && <BarChart chartData={communicationData} />}
+                  <div className="flex flex-col justify-between gap-3 text-center">
+                    <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
+                      <Mail size={20} className="mx-auto text-neutral-400" />
+                      <p className="text-sm text-neutral-500 mt-1">Emails</p>
+                      <p className="font-medium text-neutral-400 text-lg">
+                        {reportData["Total Emails Sent"].toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
+                      <Calendar size={20} className="mx-auto text-neutral-400" />
+                      <p className="text-sm text-neutral-500 mt-1">Meetings</p>
+                      <p className="font-medium text-neutral-400 text-lg">
+                        {reportData["Total Meetings Attended"].toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
+                      <Users size={20} className="mx-auto text-neutral-400" />
+                      <p className="text-sm text-neutral-500 mt-1">Messages</p>
+                      <p className="font-medium text-neutral-400 text-lg">
+                        {reportData["Total Messages Sent"].toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-neutral-800 p-2 rounded">
-                    <p className="text-neutral-500">Rewards</p>
-                    <p className="font-medium text-neutral-400">
-                      {reportData["Total Rewards Earned"]}
-                    </p>
-                  </div>
-                  <div className="bg-neutral-800 p-2 rounded">
-                    <p className="text-neutral-500">Attendance</p>
-                    <p className="font-medium text-neutral-400">
-                      {100 - Math.round((reportData["Total Leaves Taken"] / 24) * 100)}%
-                    </p>
-                  </div>
-                </div>
+                </div>{" "}
               </SectionCard>
             </div>
 
             <div className="space-y-6">
               <SectionCard title="Current Mood">
-                <div className="h-40 flex items-center justify-center relative mb-3">
+                <div className="h-40 flex items-center justify-center relative mb-5">
                   {moodData && <Doughnut data={moodData} options={doughnutOptions} />}
                   <div className="absolute inset-0 flex items-center justify-center flex-col">
                     <span className="text-3xl font-bold text-neutral-300">
@@ -478,33 +440,31 @@ const EmployeeReport: React.FC = () => {
                 </div>
               </SectionCard>
 
-              <SectionCard title="Meeting Activity">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-neutral-400 text-sm mb-1">Total Meetings Attended</p>
-                    <p className="text-2xl font-bold text-neutral-300">
-                      {reportData["Total Meetings Attended"]}
-                    </p>
-                  </div>
-                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Calendar className="text-neutral-400" size={18} />
+              <SectionCard title="Performance Overview">
+                <div className="grid place-content-center">
+                  <div className="h-64">
+                    {performanceData && <Radar data={performanceData} options={radarOptions} />}
                   </div>
                 </div>
-
-                <div className="mt-4">
-                  <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
-                  <div className="flex items-center">
-                    <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-neutral-700 to-neutral-500"
-                        style={{ width: "85%" }}
-                      ></div>
-                    </div>
-                    <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-sm text-center">
+                  <div className="bg-neutral-800 p-2 rounded">
+                    <p className="text-neutral-500">Performance</p>
+                    <p className="font-medium text-neutral-400 text-lg">
+                      {reportData["Last Performance Rating"]}/5
+                    </p>
                   </div>
-                  <p className="text-neutral-600 text-xs mt-2">
-                    Based on expected department meeting attendance
-                  </p>
+                  <div className="bg-neutral-800 p-2 rounded">
+                    <p className="text-neutral-500">Rewards</p>
+                    <p className="font-medium text-neutral-400 text-lg">
+                      {reportData["Total Rewards Earned"]}
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 p-2 rounded">
+                    <p className="text-neutral-500">Attendance</p>
+                    <p className="font-medium text-neutral-400 text-lg">
+                      {100 - Math.round((reportData["Total Leaves Taken"] / 24) * 100)}%
+                    </p>
+                  </div>
                 </div>
               </SectionCard>
             </div>

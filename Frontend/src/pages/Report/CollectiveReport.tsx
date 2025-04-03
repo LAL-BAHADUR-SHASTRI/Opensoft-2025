@@ -2,30 +2,20 @@ import React, { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
   Tooltip,
-  Legend,
 } from "chart.js";
-import { Doughnut, Bar } from "react-chartjs-2";
-import { Users, Clock, Mail, Calendar, Award, Star } from "lucide-react";
+import { Doughnut } from "react-chartjs-2";
+import { Users, Mail, Calendar } from "lucide-react";
 import { apiClient } from "@/lib/api";
-import { COLLECTIVE_REPORT } from "@/lib/routes";
+import { COLLECTIVE_REPORT, SELECTIVE_REPORT } from "@/lib/routes";
+import { useLocation, useNavigate } from "react-router";
+import { useReportContext } from "@/context/ReportContext";
+
+import { ProgressBar, BarChart } from "@/components/charts";
 
 ChartJS.register(
   ArcElement,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
   Tooltip,
-  Legend
 );
 
 interface ReportTypes {
@@ -35,7 +25,13 @@ interface ReportTypes {
   "Total Emails Sent": number;
   "Total Meetings Attended": number;
   "Total Leaves Taken": number;
-  "Onboarding Satisfaction Score": number;
+  "Onboarding Moods": {
+    Poor: number;
+    Average: number;
+    Good: number;
+    Excellent: number;
+    Total: number;
+  };
   "Average Performance Rating": number;
   "Top Performer": string;
   "Total Rewards Given": number;
@@ -44,35 +40,26 @@ interface ReportTypes {
   "Frequent Mood Comments": string[];
 }
 
-const Card = ({
-  title,
-  value,
-  icon,
-  color,
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color: string;
-}) => {
+const Card = ({ title, value }: { title: string; value: string | number }) => {
   return (
     <div className="bg-neutral-900 rounded-lg shadow-md p-4 flex items-center">
-      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color}`}>
-        {icon}
-      </div>
-      <div className="ml-4">
+      <div className="flex flex-col gap-2">
         <p className="text-neutral-500 text-sm">{title}</p>
-        <p className="text-xl font-semibold text-neutral-300">{value}</p>
+        <p className="text-3xl font-semibold text-neutral-300">{value}</p>
       </div>
     </div>
   );
 };
 
 const CollectiveReport = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const { employeeIds } = useReportContext();
   const [reportData, setReportData] = useState<ReportTypes | null>(null);
 
   useEffect(() => {
-    const fetchReport = async () => {
+    const fetchReportAll = async () => {
       try {
         const response = await apiClient.get(COLLECTIVE_REPORT, { withCredentials: true });
 
@@ -85,7 +72,29 @@ const CollectiveReport = () => {
       }
     };
 
-    fetchReport();
+    const fetchReportSelective = async () => {
+      try {
+        const response = await apiClient.post(
+          SELECTIVE_REPORT,
+          {
+            employee_ids: employeeIds,
+          },
+          { withCredentials: true }
+        );
+
+        if (response.status === 200) {
+          setReportData(response.data.report);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        setReportData(null);
+      }
+    };
+
+    if (location.pathname.includes("all")) fetchReportAll();
+    else if (employeeIds.length !== 0) fetchReportSelective();
+    else navigate("/admin");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const chartColors = {
@@ -110,62 +119,19 @@ const CollectiveReport = () => {
     ],
   };
 
-  const communicationData = reportData && {
-    labels: ["Messages", "Emails", "Meetings"],
+  const performanceData = reportData && {
+    labels: ["Performance Score", "Remaining"],
     datasets: [
       {
-        label: "Communication Metrics",
         data: [
-          reportData["Total Messages Sent"] / reportData["Total Employees"],
-          reportData["Total Emails Sent"] / reportData["Total Employees"],
-          reportData["Total Meetings Attended"] / reportData["Total Employees"],
+          reportData["Average Performance Rating"],
+          5 - reportData["Average Performance Rating"],
         ],
-        backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.tertiary],
+        backgroundColor: [chartColors.primary, chartColors.accent],
+        borderWidth: 0,
+        cutout: "75%",
       },
     ],
-  };
-
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: false,
-      },
-      tooltip: {
-        backgroundColor: chartColors.background,
-        titleColor: chartColors.text,
-        bodyColor: chartColors.text,
-        borderColor: chartColors.accent,
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: "Per Employee Average",
-          color: chartColors.text,
-        },
-        grid: {
-          color: chartColors.accent + "40",
-        },
-        ticks: {
-          color: chartColors.text,
-        },
-      },
-      x: {
-        grid: {
-          color: chartColors.accent + "40",
-        },
-        ticks: {
-          color: chartColors.text,
-        },
-      },
-    },
   };
 
   const doughnutOptions = {
@@ -183,50 +149,47 @@ const CollectiveReport = () => {
     },
   };
 
+  const communicationData = reportData && [
+    {
+      key: "Emails",
+      value: reportData["Total Emails Sent"],
+    },
+    {
+      key: "Meetings",
+      value: reportData["Total Meetings Attended"],
+    },
+    {
+      key: "Messages",
+      value: reportData["Total Messages Sent"],
+    },
+  ];
+
   return (
-    <div className="bg-neutral-950 min-h-screen px-4 pb-4 pt-4 md:px-6 lg:pt-12 xl:px-40 2xl:px-60 text-neutral-300">
+    <div className="bg-neutral-950 min-h-screen px-4 pb-10 pt-4 md:px-6 lg:pt-12 xl:px-40 2xl:px-60 text-neutral-300">
       {reportData ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Card
-              title="Total Employees"
-              value={reportData["Total Employees"]}
-              icon={<Users size={24} className="text-neutral-950" />}
-              color="bg-neutral-500"
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <Card title="Total Employees" value={reportData["Total Employees"]} />
             <Card
               title="Avg. Work Hours"
               value={reportData["Average Work Hours Per Employee"].toFixed(0)}
-              icon={<Clock size={24} className="text-neutral-950" />}
-              color="bg-neutral-600"
             />
-            <Card
-              title="Avg. Performance"
-              value={`${reportData["Average Performance Rating"].toFixed(1)}/5`}
-              icon={<Star size={24} className="text-neutral-950" />}
-              color="bg-neutral-500"
-            />
-            <Card
-              title="Total Rewards"
-              value={reportData["Total Rewards Given"]}
-              icon={<Award size={24} className="text-neutral-950" />}
-              color="bg-neutral-600"
-            />
+            <Card title="Total Rewards" value={reportData["Total Rewards Given"]} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-neutral-900 rounded-lg shadow-md p-6">
               <h2 className="text-lg font-semibold text-neutral-300 mb-4">Overall Mood</h2>
               <div className="h-48 flex items-center justify-center relative">
                 {moodData && <Doughnut data={moodData} options={doughnutOptions} />}
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
                   <span className="text-3xl font-bold text-neutral-300">
-                    {reportData["Overall Mood Score"]}
+                    {reportData["Overall Mood Score"].toFixed(1)}
                   </span>
                   <span className="text-sm text-neutral-500">out of 10</span>
                 </div>
               </div>
-              <div className="mt-4">
+              <div className="mt-8">
                 <h3 className="text-sm font-medium text-neutral-400 mb-2">Common Comments:</h3>
                 <ul className="text-sm text-neutral-500">
                   {reportData["Frequent Mood Comments"].map((comment, index) => (
@@ -236,36 +199,6 @@ const CollectiveReport = () => {
                     </li>
                   ))}
                 </ul>
-              </div>
-            </div>
-
-            <div className="bg-neutral-900 rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-neutral-300 mb-4">Communication Metrics</h2>
-              <div className="h-64">
-                {communicationData && <Bar data={communicationData} options={barOptions} />}
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                <div className="bg-neutral-800 p-2 rounded">
-                  <Mail size={16} className="mx-auto text-neutral-400" />
-                  <p className="text-xs text-neutral-500 mt-1">Emails</p>
-                  <p className="font-medium text-neutral-400">
-                    {reportData["Total Emails Sent"].toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-neutral-800 p-2 rounded">
-                  <Calendar size={16} className="mx-auto text-neutral-400" />
-                  <p className="text-xs text-neutral-500 mt-1">Meetings</p>
-                  <p className="font-medium text-neutral-400">
-                    {reportData["Total Meetings Attended"].toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-neutral-800 p-2 rounded">
-                  <Users size={16} className="mx-auto text-neutral-400" />
-                  <p className="text-xs text-neutral-500 mt-1">Messages</p>
-                  <p className="font-medium text-neutral-400">
-                    {reportData["Total Messages Sent"].toLocaleString()}
-                  </p>
-                </div>
               </div>
             </div>
 
@@ -295,22 +228,55 @@ const CollectiveReport = () => {
                 </p>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-between">
                   <p className="text-sm text-neutral-500">Onboarding Satisfaction</p>
                 </div>
-                <div className="flex items-center">
-                  <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-neutral-600 to-neutral-500"
-                      style={{
-                        width: `${(reportData["Onboarding Satisfaction Score"] / 5) * 100}%`,
-                      }}
-                    ></div>
+                <ProgressBar moodData={reportData["Onboarding Moods"]} />
+              </div>
+            </div>
+          </div>
+          <div className="grid lg:grid-cols-2 mt-6 gap-6">
+            <div className="bg-neutral-900 rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-neutral-300 mb-4">Communication Metrics</h2>
+              <div className="flex flex-col lg:flex-row gap-16">
+                {reportData && communicationData && <BarChart chartData={communicationData} />}
+                <div className="flex flex-col justify-between gap-3 text-center">
+                  <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
+                    <Mail size={20} className="mx-auto text-neutral-400" />
+                    <p className="text-xs text-neutral-500 mt-1">Emails</p>
+                    <p className="font-medium text-neutral-400">
+                      {reportData["Total Emails Sent"].toLocaleString()}
+                    </p>
                   </div>
-                  <span className="ml-3 text-sm font-medium text-neutral-500">
-                    {reportData["Onboarding Satisfaction Score"]}/5
+                  <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
+                    <Calendar size={20} className="mx-auto text-neutral-400" />
+                    <p className="text-xs text-neutral-500 mt-1">Meetings</p>
+                    <p className="font-medium text-neutral-400">
+                      {reportData["Total Meetings Attended"].toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
+                    <Users size={20} className="mx-auto text-neutral-400" />
+                    <p className="text-xs text-neutral-500 mt-1">Messages</p>
+                    <p className="font-medium text-neutral-400">
+                      {reportData["Total Messages Sent"].toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-6 bg-neutral-900 rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-neutral-300">Performance</h2>
+              <div className="relative flex flex-col items-center justify-center w-full h-full">
+                <div className="mx-auto">
+                  {performanceData && <Doughnut data={performanceData} options={doughnutOptions} />}
+                </div>
+                <div className="absolute  top-1/2 left-1/2 -translate-1/2 flex flex-col gap-1 items-center justify-center">
+                  <span className="text-5xl font-bold text-neutral-300">
+                    {reportData["Average Performance Rating"].toFixed(1)}
                   </span>
+                  <span className="text text-neutral-500">out of 5</span>
                 </div>
               </div>
             </div>
