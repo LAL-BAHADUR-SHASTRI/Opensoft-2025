@@ -30,14 +30,18 @@ export default function AdminAuth() {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post(routes.SIGN_IN, formData, {withCredentials: true});
+
+      const response = await apiClient.post(routes.SIGN_IN, formData, {
+        withCredentials: true,
+      });
 
       if (response.status === 201 || response.status === 200) {
-        setIsLoading(false);
+        setIsLoading(false);        
         toast.success("Login successful! Redirecting...");
+
         setTimeout(() => {
           navigate("/admin");
-        }, 2000);
+        }, 1000);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

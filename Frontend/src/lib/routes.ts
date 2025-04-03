@@ -2,6 +2,7 @@ const SIGN_IN = `/token`;
 const USER_INFO = `users/me`;
 const LOGOUT = `/logout`;
 const UPLOAD = `/upload-csv`;
+const USERS=`/data/users`
 
 const REPORT = '/report';
 const COLLECTIVE_REPORT = `${REPORT}/collective`;
@@ -16,4 +17,5 @@ export {
   COLLECTIVE_REPORT,
   EMPLOYEE_REPORT,
   SELECTIVE_REPORT,
+  USERS
 };

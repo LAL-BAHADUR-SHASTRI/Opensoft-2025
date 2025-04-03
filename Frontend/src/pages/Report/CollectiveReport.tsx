@@ -6,8 +6,7 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { Users, Mail, Calendar } from "lucide-react";
-import { apiClient } from "@/lib/api";
-import { COLLECTIVE_REPORT, SELECTIVE_REPORT } from "@/lib/routes";
+import { apiClient, routes } from "@/lib/api";
 import { useLocation, useNavigate } from "react-router";
 import { useReportContext } from "@/context/ReportContext";
 
@@ -61,7 +60,7 @@ const CollectiveReport = () => {
   useEffect(() => {
     const fetchReportAll = async () => {
       try {
-        const response = await apiClient.get(COLLECTIVE_REPORT, { withCredentials: true });
+        const response = await apiClient.get(routes.COLLECTIVE_REPORT, { withCredentials: true });
 
         if (response.status === 200) {
           setReportData(response.data.report);
@@ -75,7 +74,7 @@ const CollectiveReport = () => {
     const fetchReportSelective = async () => {
       try {
         const response = await apiClient.post(
-          SELECTIVE_REPORT,
+          routes.SELECTIVE_REPORT,
           {
             employee_ids: employeeIds,
           },

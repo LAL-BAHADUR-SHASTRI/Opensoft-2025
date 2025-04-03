@@ -5,9 +5,11 @@ import Message from "@/components/ui/message";
 import Calendar from "@/components/ui/calendar";
 import { CircleUserRound } from "lucide-react";
 import { motion } from "framer-motion";
-
+import { apiClient, routes } from "@/lib/api";
+import { useNavigate } from "react-router";
 const EmployeePage = () => {
   const API_KEY = import.meta.env.VITE_API_KEY;
+  const navigate = useNavigate();
   // console.log(API_KEY);
   const [sessionId, setSessionId] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState<boolean>(true);
@@ -138,7 +140,17 @@ const EmployeePage = () => {
       handleChat(e);
     }
   };
-
+  const handleLogout = async () => {
+    try {
+      const response = await apiClient.post(routes.LOGOUT, {}, { withCredentials: true });
+      console.log(response);
+      if (response.status === 200) {
+        navigate("/auth");
+      }
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
   // Filter messages based on the selected date
   const filteredMessages = chatMessages.filter((message) => message.date === chatDate);
 
@@ -187,7 +199,10 @@ const EmployeePage = () => {
               Deloitte<span className="text-green-500 text-3xl">•</span>
             </h2>
           </div>
-          <button className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md">
+          <button
+            className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 cursor-pointer border-neutral-800 rounded-md"
+            onClick={handleLogout}
+          >
             <span>Logout</span>
             <Icon icon={"mynaui-logout"} className="text-xl" />
           </button>

@@ -94,7 +94,8 @@ class CSVProcessor:
             "onboarding_tracker": OnboardingTracker,
             "performance_tracker": PerformanceTracker,
             "rewards_tracker": RewardsTracker,
-            "vibe_meter": VibeMeter
+            "vibe_meter": VibeMeter,
+            "users": User,
         }
     
     def ensure_tables_exist(self):

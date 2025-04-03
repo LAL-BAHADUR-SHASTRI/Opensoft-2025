@@ -13,8 +13,7 @@ import {
 } from "chart.js";
 import { Doughnut, Radar } from "react-chartjs-2";
 import { User, Calendar, Mail, Award, Briefcase, Star, Smile, Users } from "lucide-react";
-import { apiClient } from "@/lib/api";
-import { EMPLOYEE_REPORT } from "@/lib/routes";
+import { apiClient, routes } from "@/lib/api";
 import { useParams } from "react-router";
 import { BarChart } from "@/components/charts";
 
@@ -88,7 +87,7 @@ const EmployeeReport: React.FC = () => {
     const fetchReport = async () => {
       try {
         const response = await apiClient.post(
-          EMPLOYEE_REPORT,
+          routes.EMPLOYEE_REPORT,
           {
             employee_id: employeeId,
           },
