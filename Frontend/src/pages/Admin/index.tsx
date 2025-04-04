@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, ChevronUp, ChevronDown, Eye, File, FileDown } from "lucide-react";
+import { ChevronUp, ChevronDown, FileDown } from "lucide-react";
 import {
   Crown,
   Shield,
@@ -102,6 +102,8 @@ const AdminPage = () => {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
+  const [showReportBtn, setShowReportBtn] = useState(false);
+
   useEffect(() => {
     if (!globalFilter) {
       setFilteredData(data);
@@ -164,17 +166,24 @@ const AdminPage = () => {
 
     if (newCheckedRows[id]) {
       delete newCheckedRows[id];
-      console.log(newCheckedRows);
+      setSelectedRows(newCheckedRows);
     } else {
       newCheckedRows = {
         ...newCheckedRows,
         [id]: true,
       };
+
+      setSelectedRows(newCheckedRows);
     }
-    setSelectedRows(newCheckedRows);
   };
 
-  useEffect(() => console.log(selectedRows), [selectedRows]);
+  useEffect(() => {
+    if (Object.keys(selectedRows).length > 0) {
+      setShowReportBtn(true);
+    } else {
+      setShowReportBtn(false);
+    }
+  }, [selectedRows]);
 
   const handleLogout = async () => {
     try {
@@ -413,6 +422,15 @@ const AdminPage = () => {
           </div>
 
           <div className="flex items-center justify-end px-6 py-4 mt-6">
+            {showReportBtn && (
+              <Link
+                to={"/report/all"}
+                className="cursor-pointer text-black bg-white rounded-md py-1.5 px-4 flex items-center gap-1"
+              >
+                <FileDown className="mr-2 h-4 w-4 " />
+                Report
+              </Link>
+            )}
             <div className="flex items-center space-x-6">
               <p className="text-sm text-white">
                 Showing <strong>{paginatedData.length}</strong> of{" "}

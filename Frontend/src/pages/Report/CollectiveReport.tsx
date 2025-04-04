@@ -5,7 +5,6 @@ import {
   Tooltip,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
-import { Users, Mail, Calendar } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { COLLECTIVE_REPORT, SELECTIVE_REPORT } from "@/lib/routes";
 import { useLocation, useNavigate } from "react-router";
@@ -98,13 +97,10 @@ const CollectiveReport = () => {
   }, []);
 
   const chartColors = {
-    primary: "#A3A3A3",
-    secondary: "#737373",
-    tertiary: "#525252",
-    accent: "#404040",
-    background: "#262626",
+    primary: "#e0b200",
+    accent:  "#e0b20005",
+    background: "#171717",
     text: "#D4D4D4",
-    muted: "#737373",
   };
 
   const moodData = reportData && {
@@ -239,40 +235,15 @@ const CollectiveReport = () => {
           <div className="grid lg:grid-cols-2 mt-6 gap-6">
             <div className="bg-neutral-900 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-neutral-300 mb-4">Communication Metrics</h2>
-              <div className="flex flex-col lg:flex-row gap-16">
                 {reportData && communicationData && <BarChart chartData={communicationData} />}
-                <div className="flex flex-col justify-between gap-3 text-center">
-                  <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
-                    <Mail size={20} className="mx-auto text-neutral-400" />
-                    <p className="text-xs text-neutral-500 mt-1">Emails</p>
-                    <p className="font-medium text-neutral-400">
-                      {reportData["Total Emails Sent"].toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
-                    <Calendar size={20} className="mx-auto text-neutral-400" />
-                    <p className="text-xs text-neutral-500 mt-1">Meetings</p>
-                    <p className="font-medium text-neutral-400">
-                      {reportData["Total Meetings Attended"].toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
-                    <Users size={20} className="mx-auto text-neutral-400" />
-                    <p className="text-xs text-neutral-500 mt-1">Messages</p>
-                    <p className="font-medium text-neutral-400">
-                      {reportData["Total Messages Sent"].toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
             <div className="flex flex-col gap-6 bg-neutral-900 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-neutral-300">Performance</h2>
               <div className="relative flex flex-col items-center justify-center w-full h-full">
-                <div className="mx-auto">
+                <div className="mx-auto max-w-[75vw]">
                   {performanceData && <Doughnut data={performanceData} options={doughnutOptions} />}
                 </div>
-                <div className="absolute  top-1/2 left-1/2 -translate-1/2 flex flex-col gap-1 items-center justify-center">
+                <div className="absolute top-1/2 left-1/2 -translate-1/2 flex flex-col gap-1 items-center justify-center">
                   <span className="text-5xl font-bold text-neutral-300">
                     {reportData["Average Performance Rating"].toFixed(1)}
                   </span>

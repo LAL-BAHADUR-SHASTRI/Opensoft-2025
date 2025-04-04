@@ -1,4 +1,6 @@
 import React, { ReactNode, useEffect, useState } from "react";
+import { useParams } from "react-router";
+
 import {
   Chart as ChartJS,
   ArcElement,
@@ -12,10 +14,12 @@ import {
   Legend,
 } from "chart.js";
 import { Doughnut, Radar } from "react-chartjs-2";
-import { User, Calendar, Mail, Award, Briefcase, Star, Smile, Users } from "lucide-react";
+
+import { User, Calendar, Award, Briefcase, Star, Smile } from "lucide-react";
+
 import { apiClient } from "@/lib/api";
 import { EMPLOYEE_REPORT } from "@/lib/routes";
-import { useParams } from "react-router";
+
 import { BarChart } from "@/components/charts";
 
 ChartJS.register(
@@ -81,7 +85,31 @@ const SectionCard = ({ title, children }: { title: string; children: ReactNode }
 const EmployeeReport: React.FC = () => {
   const { employeeId } = useParams();
 
-  const [reportData, setReportData] = useState<ReportTypes | null>();
+  const [reportData, setReportData] = useState<ReportTypes | null>({
+    "Employee ID": "EMP123",
+    Name: "John Doe",
+    Department: "IT",
+    Position: "Software Engineer",
+    "Manager ID": "MGR456",
+    "Joining Date": "2022-03-01",
+    "Total Messages Sent": 500,
+    "Total Emails Sent": 200,
+    "Total Meetings Attended": 30,
+    "Total Work Hours": 1600,
+    "Total Leaves Taken": 12,
+    "Onboarding Feedback": "Smooth onboarding, mentor was helpful",
+    "Initial Training Completed": "Yes",
+    "Last Performance Rating": 4.5,
+    "Manager Feedback": "Great work ethic, potential for leadership",
+    "Total Rewards Earned": 3,
+    "Recent Reward": {
+      Date: "2024-02-10",
+      Type: "Employee of the Month",
+      Points: 500,
+    },
+    "Recent Mood Score": 8.2,
+    "Mood Comment": "Feeling productive and motivated",
+  });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -127,13 +155,11 @@ const EmployeeReport: React.FC = () => {
   };
 
   const chartColors = {
-    primary: "#A3A3A3",
-    secondary: "#737373",
-    tertiary: "#525252",
-    accent: "#404040",
-    background: "#262626",
+    primary: "#e0b200",
+    secondary: "#e0b200dd",
+    accent:  "#e0b20020",
+    background: "#171717",
     text: "#D4D4D4",
-    muted: "#737373",
   };
 
   const moodData = reportData && {
@@ -209,8 +235,8 @@ const EmployeeReport: React.FC = () => {
             size: 11,
           },
         },
-        grid: { color: `${chartColors.accent}40` },
-        angleLines: { color: `${chartColors.accent}40` },
+        grid: { color: `${chartColors.accent}` },
+        angleLines: { color: `${chartColors.accent}` },
       },
     },
     plugins: {
@@ -232,7 +258,7 @@ const EmployeeReport: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div className="bg-neutral-900 rounded-lg px-4 py-2 flex items-center">
               <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center mr-3">
-                <User className="text-neutral-400" size={20} />
+                <User className="text-[#e0b200]" size={20} />
               </div>
               <div>
                 <p className="text-neutral-300 font-medium">{reportData.Name}</p>
@@ -292,7 +318,7 @@ const EmployeeReport: React.FC = () => {
                     </div>
                   </div>
                   <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Star className="text-neutral-400" size={18} />
+                    <Star className="text-[#e0b200]" size={18} />
                   </div>
                 </div>
                 <p className="text-neutral-500 text-sm mb-3">Manager Feedback:</p>
@@ -316,7 +342,7 @@ const EmployeeReport: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <p className="text-neutral-500 text-sm mb-2">Onboarding Feedback:</p>
+                <p className="text-neutral-500 text-sm mb-3">Onboarding Feedback:</p>
                 <p className="text-neutral-400 p-3 bg-neutral-800 rounded-md">
                   {reportData["Onboarding Feedback"]}
                 </p>
@@ -331,22 +357,22 @@ const EmployeeReport: React.FC = () => {
                     </p>
                   </div>
                   <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Calendar className="text-neutral-400" size={18} />
+                    <Calendar className="text-[#e0b200]" size={18} />
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
                   <div className="flex items-center">
-                    <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-[#e0b20005] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-neutral-700 to-neutral-500"
+                        className="h-full bg-gradient-to-r bg-[#e0b200]"
                         style={{ width: "85%" }}
                       ></div>
                     </div>
                     <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
                   </div>
-                  <p className="text-neutral-600 text-xs mt-2">
+                  <p className="text-neutral-500 text-xs mt-2">
                     Based on expected department meeting attendance
                   </p>
                 </div>
@@ -362,32 +388,7 @@ const EmployeeReport: React.FC = () => {
               </div>
 
               <SectionCard title="Communication Activity">
-                <div className="flex flex-col gap-10">
-                  {reportData && communicationData && <BarChart chartData={communicationData} />}
-                  <div className="flex flex-col justify-between gap-3 text-center">
-                    <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
-                      <Mail size={20} className="mx-auto text-neutral-400" />
-                      <p className="text-sm text-neutral-500 mt-1">Emails</p>
-                      <p className="font-medium text-neutral-400 text-lg">
-                        {reportData["Total Emails Sent"].toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
-                      <Calendar size={20} className="mx-auto text-neutral-400" />
-                      <p className="text-sm text-neutral-500 mt-1">Meetings</p>
-                      <p className="font-medium text-neutral-400 text-lg">
-                        {reportData["Total Meetings Attended"].toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="bg-neutral-800 pt-3 pb-2 px-3 rounded-md">
-                      <Users size={20} className="mx-auto text-neutral-400" />
-                      <p className="text-sm text-neutral-500 mt-1">Messages</p>
-                      <p className="font-medium text-neutral-400 text-lg">
-                        {reportData["Total Messages Sent"].toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>{" "}
+                  {reportData && communicationData && <BarChart chartData={communicationData} alwaysCol={true} />}
               </SectionCard>
             </div>
 
@@ -403,7 +404,7 @@ const EmployeeReport: React.FC = () => {
                   </div>
                 </div>
                 <div className="bg-neutral-800 p-3 rounded-md flex items-start">
-                  <Smile className="text-neutral-500 mr-2 mt-0.5" size={18} />
+                  <Smile className="text-[#e0b200] mr-2 mt-0.5" size={18} />
                   <p className="text-neutral-400 italic">"{reportData["Mood Comment"]}"</p>
                 </div>
               </SectionCard>
@@ -417,7 +418,7 @@ const EmployeeReport: React.FC = () => {
                     </p>
                   </div>
                   <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Award className="text-neutral-400" size={18} />
+                    <Award className="text-[#e0b200]" size={18} />
                   </div>
                 </div>
 
@@ -432,7 +433,7 @@ const EmployeeReport: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex items-center mt-2">
-                    <Briefcase className="text-neutral-500 mr-2" size={16} />
+                    <Briefcase className="text-[#e0b200] mr-2" size={16} />
                     <p className="text-neutral-500 text-sm">
                       {reportData["Recent Reward"].Points} points awarded
                     </p>
