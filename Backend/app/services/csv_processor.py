@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlalchemy.orm import Session
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, text, func
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
@@ -514,26 +514,36 @@ class CSVProcessor:
         
         return tables
     
-    def get_table_data(self, table_name: str, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_table_data(self, table_name: str, limit: int = 100, offset: int = 0):
         """
-        Get data from a specific table
+        Get data from a specific table with pagination
         """
-        if table_name not in self.table_models:
-            raise ValueError(f"Unknown table: {table_name}")
+        table_class = self.get_table_class(table_name)
+        if not table_class:
+            raise ValueError(f"Table {table_name} not found")
         
-        model = self.table_models[table_name]
-        records = self.db.query(model).limit(limit).all()
+        # Query with pagination and explicit ordering
+        # Special handling for users table to ensure consistent ordering
+        if table_name.lower() == "users":
+            # Use explicit ordering by ID to ensure consistent results
+            rows = self.db.query(table_class).order_by(table_class.id).offset(offset).limit(limit).all()
+        else:
+            # For other tables, use default ordering
+            rows = self.db.query(table_class).offset(offset).limit(limit).all()
         
-        # Convert to dict
-        result = []
-        for record in records:
-            item = {}
-            for column in inspect(model).c.keys():
-                item[column] = getattr(record, column)
-            result.append(item)
-            
-        return result
-    
+        # Convert SQLAlchemy objects to dictionaries
+        return [row.__dict__ for row in rows]
+
+    def get_table_count(self, table_name: str):
+        """
+        Get the total number of records in a table
+        """
+        table_class = self.get_table_class(table_name)
+        if not table_class:
+            raise ValueError(f"Table {table_name} not found")
+        
+        return self.db.query(func.count()).select_from(table_class).scalar()
+
     def get_employee_data(self, table_name: str, employee_id: str) -> List[Dict[str, Any]]:
         """
         Get data for a specific employee from a table
@@ -840,3 +850,34 @@ class CSVProcessor:
         thread.start()
         
         return {"job_id": job_id, "status": "queued", "type": "create_users", "batch_id": batch_id}
+    
+    def get_table_class(self, table_name: str):
+        """Get the model class associated with a table name"""
+        table_name_lower = table_name.lower()
+        
+        # Check direct match
+        if table_name_lower in self.table_models:
+            return self.table_models[table_name_lower]
+            
+        # Try pluralization and other common variations
+        if table_name_lower.endswith('s') and table_name_lower[:-1] in self.table_models:
+            return self.table_models[table_name_lower[:-1]]
+            
+        # Check for special cases
+        special_cases = {
+            'employees': 'employee',
+            'users': 'users',
+            'activities': 'activity_tracker',
+            'performances': 'performance_tracker',
+            'leaves': 'leave_tracker',
+            'rewards': 'rewards_tracker',
+            'vibemeter': 'vibe_meter',
+            'onboardings': 'onboarding_tracker'
+        }
+        
+        if table_name_lower in special_cases and special_cases[table_name_lower] in self.table_models:
+            return self.table_models[special_cases[table_name_lower]]
+            
+        # If table is not found, return None
+        logger.warning(f"Table model not found for: {table_name}")
+        return None
