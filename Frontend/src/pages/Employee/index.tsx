@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useContext } from "react";
+import { useEffect, useRef, useState} from "react";
 import { Icon } from "@iconify-icon/react";
 import axios from "axios";
 import Message from "@/components/ui/message";
@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { apiClient, routes } from "@/lib/api";
 import { useNavigate } from "react-router";
 import { useAuthContext } from "@/context/AuthContext";
+import Loader from "@/components/AppLoader";
+
 
 const EmployeePage = () => {
   const API_KEY = import.meta.env.VITE_API_KEY;
@@ -23,7 +25,16 @@ const EmployeePage = () => {
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const {isAuthenticated, isLoading} = useAuthContext();
+  const {isAuthenticated, isLoading, role} = useAuthContext();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated || role !== "employee") {
+        console.log("User is not authenticated, redirecting to auth page...");
+        navigate("/auth");
+      }
+    }
+  }, [isLoading, isAuthenticated, navigate]);
 
   // Scroll to the bottom whenever chatMessages updates
   useEffect(() => {
@@ -163,6 +174,9 @@ const EmployeePage = () => {
   const filteredMessages = chatMessages.filter((message) => message.date === chatDate);
 
   return (
+    <>
+    {isLoading && <Loader></Loader>}
+    {!isLoading && isAuthenticated && role == "employee" && (
     <div className="flex h-screen bg-neutral-950 text-neutral-200">
       <div
         className={`absolute md:static top-0 left-0 h-full ${
@@ -256,7 +270,9 @@ const EmployeePage = () => {
           </form>
         </div>
       </div>
-    </div>
+    </div>)
+    }
+    </>
   );
 };
 

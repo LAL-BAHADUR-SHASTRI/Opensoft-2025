@@ -1,7 +1,7 @@
 import type React from "react";
 
-import { useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, BriefcaseBusiness, Eye, EyeOff, Loader } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { Link, useNavigate } from "react-router";
 import { apiClient, routes } from "@/lib/api";
@@ -16,13 +16,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAuthContext } from "@/context/AuthContext";
+import AppLoader from "@/components/AppLoader";
 
 export default function EmployeeAuth() {
   const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { setIsLoading, isAuthenticated, role, isLoading } = useAuthContext();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (role === "hr") {
+        navigate("/admin");
+      } else if (role === "employee") {
+        navigate("/");
+      }
+    }
+  }
+  , [isAuthenticated, role, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +51,13 @@ export default function EmployeeAuth() {
     formData.append("password", password);
 
     try {
-      setIsLoading(true);
+      setIsAuthLoading(true);
       const response = await apiClient.post(routes.SIGN_IN, formData, { withCredentials: true });
 
       if (response.status === 201 || response.status === 200) {
-        setIsLoading(false);
-        // localStorage.setItem("token", response.data.access_token);
+        setIsAuthLoading(false);
         toast.success("Login successful! Redirecting...");
+        setIsLoading(true);
         setTimeout(() => {
           navigate("/");
         }, 2000);
@@ -56,12 +70,15 @@ export default function EmployeeAuth() {
         toast.error("Internal server error, please try after some time");
       }
 
-      setIsLoading(false);
+      setIsAuthLoading(false);
     }
   };
 
   return (
     <>
+    {(isLoading || role == "hr") && (<AppLoader></AppLoader>)}
+    {!isLoading && !isAuthenticated && (
+      <>
       <Toaster richColors />
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 dark select-none">
         <Card className="w-full max-w-md shadow-lg bg-neutral-900">
@@ -111,9 +128,9 @@ export default function EmployeeAuth() {
               <Button
                 type="submit"
                 className="bg-white w-full pt-3 cursor-pointer"
-                disabled={isLoading}
+                disabled={isAuthLoading}
               >
-                {isLoading ? (
+                {isAuthLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     Authenticating...
@@ -136,7 +153,7 @@ export default function EmployeeAuth() {
             </div>
           </form>
         </Card>
-      </div>
+      </div></>)}
     </>
   );
 }

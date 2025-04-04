@@ -1,5 +1,4 @@
 
-import AuthContext from "./context/AuthContext";
 import { useEffect, useState } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 import EmployeePage from "./pages/Employee";
@@ -14,26 +13,6 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { apiClient, routes } from "./lib/api";
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [role, setRole] = useState("");
-  
-  const checkAuthentication = async () => {
-    setIsLoading(true);
-    try {
-      const response = await apiClient.get(routes.USER_INFO, {
-        withCredentials: true,
-      });
-      if (response.status === 200) {
-        setIsAuthenticated(true);
-        setRole(response.data.role);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Error checking authentication:", error);
-      setIsLoading(false);
-    }
-  };
 
   // useEffect(() => {
   //   if (location.pathname === "/admin/upload") {
@@ -48,9 +27,9 @@ const App = () => {
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [location]);
 
-  useEffect(() => {
-    checkAuthentication();
-  }, []);
+  // useEffect(() => {
+  //   checkAuthentication();
+  // }, []);
 
   // useEffect(() => {
   //   if (isAuthenticated) {
@@ -72,7 +51,6 @@ const App = () => {
   // }, [isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading}}>
       <Routes>
         {/* Employee Routes */}
         <Route path="/" element={<EmployeePage />} />
@@ -93,7 +71,6 @@ const App = () => {
         {/* Fallback Route */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </AuthContext.Provider>
   );
 };
 

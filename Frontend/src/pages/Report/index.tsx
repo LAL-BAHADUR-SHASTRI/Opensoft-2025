@@ -1,10 +1,22 @@
 import { Icon } from "@iconify-icon/react"
 import { useEffect } from "react"
 import { Outlet, useLocation, useNavigate } from "react-router"
+import { useAuthContext } from "@/context/AuthContext"
+import AppLoader from "@/components/AppLoader"
 
 const ReportPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading, role } = useAuthContext();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated || role !== "hr") {
+        console.log("User is not authenticated, redirecting to auth page...");
+        navigate("/admin/auth");
+      }
+    }
+  }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (location.pathname === "/report") {
@@ -14,6 +26,9 @@ const ReportPage = () => {
   }, [])
 
   return (
+    <>
+      {isLoading && <AppLoader></AppLoader>}
+      {!isLoading && isAuthenticated && role == "hr" && (
     <main className="min-h-screen bg-neutral-950 text-white">
       <header className="flex items-center gap-4 pb-6 pt-10 px-4 md:px-6 xl:px-40 2xl:px-60">
         <button onClick={() => {
@@ -26,6 +41,7 @@ const ReportPage = () => {
 
       <Outlet />
     </main>
-  )
+  )}
+  </>)
 }
 export default ReportPage

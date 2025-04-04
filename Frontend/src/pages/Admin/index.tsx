@@ -34,6 +34,8 @@ import {
 import moment from "moment";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { apiClient, routes } from "@/lib/api";
+import { useAuthContext } from "@/context/AuthContext";
+import AppLoader from "@/components/AppLoader";
 
 import { Icon } from "@iconify-icon/react";
 
@@ -63,7 +65,6 @@ const getAvatar = (user: { name?: string; dp?: string }) => {
 
   return initials;
 };
-
 
 const userRoleIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   Admin: { icon: <Crown size={16} />, color: "text-red-500" },
@@ -122,6 +123,17 @@ console.log(arrayData)
   }, []); // Empty dependency array ensures it runs only once
 
   const [showReportBtn, setShowReportBtn] = useState(false);
+
+  const { isAuthenticated, isLoading, role } = useAuthContext();
+
+  useEffect(() => {
+      if (!isLoading) {
+        if (!isAuthenticated || role !== "hr") {
+          console.log("User is not authenticated, redirecting to auth page...");
+          navigate("/admin/auth");
+        }
+      }
+    }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!globalFilter) {
@@ -223,7 +235,8 @@ console.log(arrayData)
 
   return (
     <>
-      {location.pathname !== "/admin/auth" && (
+      {isLoading && <AppLoader></AppLoader>}
+      {!isLoading && isAuthenticated && role == "hr" && (
         <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white pb-6">
           <div className="flex justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
             <div className="flex items-center">

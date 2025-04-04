@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { apiClient, routes } from "@/lib/api";
@@ -8,13 +8,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router";
+import { useAuthContext } from "@/context/AuthContext";
+import AppLoader from "@/components/AppLoader";
 
 export default function AdminAuth() {
   const [adminId, setAdminId] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean | undefined>(false);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean | undefined>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { setIsLoading } = useAuthContext();
+  const { isAuthenticated, role, isLoading } = useAuthContext();
+
+  useEffect(() => {
+      if (isAuthenticated) {
+        if (role === "employee") {
+          navigate("/");
+        } else if (role === "hr") {
+          navigate("/admin");
+        }
+      }
+    }
+    , [isLoading,isAuthenticated, role, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +44,7 @@ export default function AdminAuth() {
     formData.append("password", password);
 
     try {
-      setIsLoading(true);
+      setIsAuthLoading(true);
 
       const response = await apiClient.post(routes.SIGN_IN, formData, {
         withCredentials: true,
@@ -38,9 +53,9 @@ export default function AdminAuth() {
       console.log(response.status, response.data);
 
       if (response.status === 201 || response.status === 200) {
-        setIsLoading(false);        
+        setIsAuthLoading(false);        
         toast.success("Login successful! Redirecting...");
-
+        setIsLoading(true);
         setTimeout(() => {
           navigate("/admin");
         }, 1000);
@@ -54,12 +69,15 @@ export default function AdminAuth() {
       } else {
         toast.error("Internal server error, please try after some time");
       }
-      setIsLoading(false);
+      setIsAuthLoading(false);
     }
   };
 
   return (
     <>
+    {(isLoading) && (<AppLoader></AppLoader>)}
+    {!isLoading && !isAuthenticated && (
+      <>
       <Toaster richColors />
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 dark select-none">
         <Card className="w-full max-w-md shadow-lg bg-transparent border-0 sm:border-2 sm:bg-neutral-900">
@@ -103,8 +121,8 @@ export default function AdminAuth() {
               </div>
             </CardContent>
             <CardFooter className="mb-1">
-              <Button type="submit" className="w-full bg-white cursor-pointer" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" className="w-full bg-white cursor-pointer" disabled={isAuthLoading}>
+                {isAuthLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     Authenticating...
@@ -125,6 +143,7 @@ export default function AdminAuth() {
           </form>
         </Card>
       </div>
+      </>)}
     </>
   );
 }

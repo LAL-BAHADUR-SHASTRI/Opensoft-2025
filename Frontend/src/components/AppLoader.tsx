@@ -1,4 +1,4 @@
-const Loader=()=> {
+const AppLoader=()=> {
   return (
     <div className="flex items-center justify-center h-screen bg-neutral-900">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
@@ -7,4 +7,4 @@ const Loader=()=> {
   )
 }
 
-export default Loader;
+export default AppLoader;
