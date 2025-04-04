@@ -47,10 +47,13 @@ const EmployeePage = () => {
       try {
         const response = await axios.post(
           "http://localhost:8000/start_chat",
-          { employee_id: "EMP0048" },
-          { headers: { "X-API-Key": API_KEY, "Content-Type": "application/json" } }
+          { employee_id: "EMP0048" }, // Request body
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true, // Move it here
+          }
         );
-
+        
         setSessionId(response.data.session_id);
 
         if (!savedChats) {
@@ -99,7 +102,10 @@ const EmployeePage = () => {
       const response = await axios.post(
         "http://localhost:8000/chat",
         { session_id: sessionId, message: userMessage },
-        { headers: { "X-API-Key": API_KEY, "Content-Type": "application/json" } }
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true, // Move it here
+        }
       );
 
       setTimeout(() => {
