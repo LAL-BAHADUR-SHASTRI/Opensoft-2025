@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import { Icon } from "@iconify-icon/react";
 import axios from "axios";
 import Message from "@/components/ui/message";
@@ -7,10 +7,11 @@ import { CircleUserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { apiClient, routes } from "@/lib/api";
 import { useNavigate } from "react-router";
+import { useAuthContext } from "@/context/AuthContext";
+
 const EmployeePage = () => {
   const API_KEY = import.meta.env.VITE_API_KEY;
   const navigate = useNavigate();
-  // console.log(API_KEY);
   const [sessionId, setSessionId] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState<boolean>(true);
   const [userMessage, setUserMessage] = useState<string>("");
@@ -22,6 +23,7 @@ const EmployeePage = () => {
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const {isAuthenticated, isLoading} = useAuthContext();
 
   // Scroll to the bottom whenever chatMessages updates
   useEffect(() => {

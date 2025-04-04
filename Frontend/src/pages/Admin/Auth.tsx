@@ -35,6 +35,8 @@ export default function AdminAuth() {
         withCredentials: true,
       });
 
+      console.log(response.status, response.data);
+
       if (response.status === 201 || response.status === 200) {
         setIsLoading(false);        
         toast.success("Login successful! Redirecting...");
