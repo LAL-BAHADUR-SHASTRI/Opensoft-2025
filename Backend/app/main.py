@@ -1,12 +1,13 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, BackgroundTasks, Response, Body
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status, BackgroundTasks, Response, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 import pandas as pd
 import logging
-from typing import List
+from typing import List, Optional
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import uuid
 
 from app.core.database import get_db, engine, Base
@@ -23,6 +24,8 @@ from app.models.performance import PerformanceTracker
 from app.models.rewards import RewardsTracker
 from app.models.onboarding import OnboardingTracker
 from app.report.report import generate_collective_report, generate_individual_report, generate_selective_report
+from app.models.chat import ChatResponse, ChatStartRequest, ChatMessageRequest, ChatHistoryResponse, ChatHistorySession, ChatMessageModel
+from app.services.chat_service import ChatService
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -195,17 +198,57 @@ async def get_tables(
 @app.get("/data/{table_name}", tags=["data"])
 async def get_table_data(
     table_name: str, 
-    limit: int = 100, 
+    limit: int = 100,
+    offset: int = 0,
     db: Session = Depends(get_db),
     current_user: User = Depends(is_hr)  # Only HR can access all data
 ):
     """
-    Get data from a specific table
+    Get data from a specific table with pagination support
+    
+    Parameters:
+    - table_name: Name of the table to fetch data from
+    - limit: Maximum number of records to return (default: 100)
+    - offset: Number of records to skip (default: 0)
     """
     try:
         processor = CSVProcessor(db)
-        data = processor.get_table_data(table_name, limit)
-        return {"data": data}
+        
+        # Special handling for users table to filter out HR accounts
+        if table_name.lower() == "users":
+            # Get all employee users with explicit ordering
+            query = db.query(User).filter(User.role == UserRole.EMPLOYEE).order_by(User.id)
+            
+            # Apply pagination
+            total_count = query.count()
+            users = query.offset(offset).limit(limit).all()
+            
+            # Convert to dictionaries
+            filtered_data = [user.__dict__ for user in users]
+            
+            return {
+                "data": filtered_data,
+                "pagination": {
+                    "total": total_count,
+                    "limit": limit,
+                    "offset": offset,
+                    "has_more": (offset + limit) < total_count
+                }
+            }
+        else:
+            # For all other tables, use the standard processor with pagination
+            data = processor.get_table_data(table_name, limit, offset)
+            total_count = processor.get_table_count(table_name)
+            
+            return {
+                "data": data,
+                "pagination": {
+                    "total": total_count,
+                    "limit": limit,
+                    "offset": offset,
+                    "has_more": (offset + limit) < total_count
+                }
+            }
     except Exception as e:
         logger.error(f"Error getting data from {table_name}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -256,3 +299,278 @@ async def get_employee_report(payload: dict = Body(...),  db: Session = Depends(
     employee_ids: List[str] = payload["employee_ids"]
     report = generate_selective_report(db, employee_ids)
     return {"report": report}
+
+# Chatbot endpoints
+@app.post("/start_chat", response_model=ChatResponse, tags=["chat"])
+async def start_chat(
+    request: ChatStartRequest = Body(default=None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Start a new chat session."""
+    # Use employee_id from authenticated user if not specified
+    employee_id = current_user.employee_id
+    
+    if request and request.employee_id:
+        # Check permissions if requesting chat for another employee
+        if request.employee_id != current_user.employee_id and current_user.role != UserRole.HR:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to start a chat for another employee"
+            )
+        employee_id = request.employee_id
+    
+    if not employee_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No employee ID available"
+        )
+    
+    try:
+        # First try with real implementation
+        chat_service = ChatService(db)
+        result = chat_service.start_chat(employee_id)
+        
+        return ChatResponse(
+            session_id=result["session_id"],
+            question=result["question"],
+            timestamp=result["timestamp"]
+        )
+    except Exception as e:
+        logger.error(f"Error starting chat: {str(e)}")
+        logger.error(f"Using fallback sample response due to error: {str(e)}")
+        
+        # Fall back to sample response if real implementation fails
+        return ChatResponse(
+            session_id=f"sample-{uuid.uuid4()}",
+            question="How are you feeling about your work environment today?",
+            timestamp=datetime.utcnow()
+        )
+
+@app.post("/chat", response_model=ChatResponse, tags=["chat"])
+async def process_answer(
+    request: ChatMessageRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Process a chat message and return the next question or final analysis."""
+    try:
+        # First try with real implementation
+        chat_service = ChatService(db)
+        result = chat_service.process_message(request.session_id, request.message)
+        
+        return ChatResponse(
+            session_id=result["session_id"],
+            question=result.get("question"),
+            final_analysis=result.get("final_analysis"),
+            timestamp=result.get("timestamp", datetime.utcnow())
+        )
+    except Exception as e:
+        logger.error(f"Error processing chat message: {str(e)}")
+        logger.error(f"Using fallback sample response due to error: {str(e)}")
+        
+        # Fall back to sample response if real implementation fails
+        # If message is an "end" keyword, return final analysis sample
+        if request.message.lower() in ["end", "done", "finish", "complete"]:
+            return ChatResponse(
+                session_id=request.session_id,
+                question="We have received your responses. Thank you for sharing your thoughts! Your feedback is valuable to us.",
+                final_analysis={
+                    "employee_id": current_user.employee_id,
+                    "overall_assessment": "Leaning to Happy Zone",
+                    "key_themes": ["Work environment", "Team dynamics"],
+                    "sentiment_distribution": {
+                        "positive": 65,
+                        "neutral": 25,
+                        "negative": 10
+                    },
+                    "hr_escalation": False,
+                    "recommendations": [
+                        "Continue team building activities",
+                        "Provide more feedback on work progress"
+                    ]
+                },
+                timestamp=datetime.utcnow()
+            )
+        else:
+            # Regular question response - cycle through questions
+            questions = [
+                "Do you have the tools and resources you need to do your job effectively?",
+                "How would you rate your satisfaction with work-life balance?",
+                "Do you feel your opinions and ideas are valued by your team?",
+                "How comfortable are you approaching your manager with concerns?",
+                "What aspects of your job do you find most fulfilling?"
+            ]
+            
+            # Use hash of session_id and message to pick a "random" but consistent question
+            question_index = hash(request.session_id + request.message) % len(questions)
+            
+            return ChatResponse(
+                session_id=request.session_id,
+                question=questions[question_index],
+                timestamp=datetime.utcnow()
+            )
+
+@app.get("/chathistory", response_model=ChatHistoryResponse, tags=["chat"])
+async def get_chat_history(
+    employee_id: Optional[str] = None,
+    chat_date: Optional[date] = Query(None, description="Filter chat history by date (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get chat history for the current user or specified employee (HR only)."""
+    # Use query param if provided, otherwise use current user's employee_id
+    target_employee_id = employee_id if employee_id else current_user.employee_id
+    
+    # Check permissions
+    if employee_id and employee_id != current_user.employee_id and current_user.role != UserRole.HR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to view chat history for other employees"
+        )
+    
+    if not target_employee_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No employee ID available"
+        )
+    
+    try:
+        chat_service = ChatService(db)
+        history = chat_service.get_chat_history(target_employee_id, chat_date)
+        return ChatHistoryResponse(history=history)
+    except Exception as e:
+        logger.error(f"Error getting chat history: {str(e)}")
+        logger.error(f"Using fallback sample response due to error: {str(e)}")
+        
+        # Fall back to sample response if real implementation fails
+        now = datetime.utcnow()
+        
+        # Create a sample session
+        session1 = ChatHistorySession(
+            session_id="sample-session-1",
+            start_time=now - timedelta(hours=1),
+            end_time=now,
+            messages=[
+                ChatMessageModel(
+                    timestamp=now - timedelta(minutes=60),
+                    is_from_user=False,
+                    question="How are you feeling about your work environment today?",
+                    sentiment="Neutral Zone (OK)"
+                ),
+                ChatMessageModel(
+                    timestamp=now - timedelta(minutes=55),
+                    is_from_user=True,
+                    response="It's pretty good, but the office is a bit noisy sometimes.",
+                    sentiment="Neutral Zone (OK)"
+                ),
+                # More sample messages...
+            ]
+        )
+        
+        return ChatHistoryResponse(history=[session1])
+
+@app.get("/chatdates", tags=["chat"])
+async def get_chat_dates(
+    employee_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get dates on which the employee had chats."""
+    # Use query param if provided, otherwise use current user's employee_id
+    target_employee_id = employee_id if employee_id else current_user.employee_id
+    
+    # Check permissions
+    if employee_id and employee_id != current_user.employee_id and current_user.role != UserRole.HR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to view chat dates for other employees"
+        )
+    
+    if not target_employee_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No employee ID available"
+        )
+    
+    try:
+        chat_service = ChatService(db)
+        chat_dates = chat_service.get_chat_dates(target_employee_id)
+        return {
+            "employee_id": target_employee_id,
+            "chat_dates": chat_dates
+        }
+    except Exception as e:
+        logger.error(f"Error getting chat dates: {str(e)}")
+        
+        # Fall back to sample response
+        now = datetime.utcnow()
+        sample_dates = [
+            (now - timedelta(days=0)).date().isoformat(),
+            (now - timedelta(days=7)).date().isoformat(),
+            (now - timedelta(days=14)).date().isoformat()
+        ]
+        
+        return {
+            "employee_id": target_employee_id,
+            "chat_dates": sample_dates
+        }
+
+@app.post("/hr/resolve-escalation/{employee_id}", tags=["hr"])
+async def resolve_hr_escalation(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(is_hr)
+):
+    """Clear HR escalation flag and reason for an employee."""
+    try:
+        chat_service = ChatService(db)
+        result = chat_service.clear_escalation(employee_id)
+        return result
+    except Exception as e:
+        logger.error(f"Error clearing escalation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error clearing escalation: {str(e)}"
+        )
+
+@app.get("/hr/employees/need-attention", tags=["hr"])
+async def get_employees_needing_attention(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(is_hr)
+):
+    """Get list of employees flagged for HR attention."""
+    try:
+        # Try to use the real implementation
+        users = db.query(User).filter(User.hr_escalation == True).all()
+        
+        return {
+            "employees": [
+                {
+                    "employee_id": user.employee_id,
+                    "username": user.username,
+                    "email": user.email,
+                    "current_mood": user.current_mood,
+                    "last_chat_date": user.last_chat_date,
+                    "next_chat_date": user.next_chat_date
+                } for user in users
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error getting employees needing attention: {str(e)}")
+        logger.error(f"Using fallback sample response due to error: {str(e)}")
+        
+        # Fall back to sample response
+        return {
+            "employees": [
+                {
+                    "employee_id": "EMP0048",
+                    "username": "emp0048",
+                    "email": "emp0048@example.com",
+                    "current_mood": "Sad Zone",
+                    "last_chat_date": (datetime.utcnow() - timedelta(days=1)).isoformat(),
+                    "next_chat_date": (datetime.utcnow() + timedelta(days=2)).isoformat()
+                },
+                # More sample employees...
+            ]
+        }

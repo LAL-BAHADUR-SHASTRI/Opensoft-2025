@@ -34,6 +34,8 @@ import {
 import moment from "moment";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { apiClient, routes } from "@/lib/api";
+import { useAuthContext } from "@/context/AuthContext";
+import AppLoader from "@/components/AppLoader";
 
 import { Icon } from "@iconify-icon/react";
 import { useReportContext } from "@/context/ReportContext";
@@ -129,6 +131,17 @@ const AdminPage = () => {
     setEmployeeIds(ids);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRows]);
+
+  const { isAuthenticated, isLoading, role } = useAuthContext();
+
+  useEffect(() => {
+      if (!isLoading) {
+        if (!isAuthenticated || role !== "hr") {
+          console.log("User is not authenticated, redirecting to auth page...");
+          navigate("/admin/auth");
+        }
+      }
+    }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!globalFilter) {
@@ -233,7 +246,8 @@ const AdminPage = () => {
 
   return (
     <>
-      {location.pathname !== "/admin/auth" && (
+      {isLoading && <AppLoader></AppLoader>}
+      {!isLoading && isAuthenticated && role == "hr" && (
         <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white pb-6">
           <div className="flex justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
             <div className="flex items-center">
