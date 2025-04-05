@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
@@ -48,8 +47,11 @@ interface UserType {
   role: string;
   is_active: boolean;
   employee_id: string;
-  last_login_date?: string | null;
-  last_chat_date?: string | null;
+  last_login_date: string | null;
+  last_chat_date: string | null;
+  hr_escalation: boolean;
+  next_chat_data: string | null;
+  escalation_reason: string | null;
   current_mood?: string | null;
 }
 
@@ -87,6 +89,7 @@ const userStatusColors: Record<string, string> = {
   happy: "bg-green-800/50 text-green-100",
   excited: "bg-yellow-700/50 text-yellow-100",
 };
+
 const AdminPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -104,7 +107,7 @@ const AdminPage = () => {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  const {setEmployeeIds } = useReportContext();
+  const { setEmployeeIds } = useReportContext();
   const [showReportBtn, setShowReportBtn] = useState(false);
 
   useEffect(() => {
@@ -115,11 +118,11 @@ const AdminPage = () => {
         });
 
         if (response.status === 200) {
-          console.log(response.data.data);
           setData(response.data.data);
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
-        console.error("Fetch error:", err);
+        setData([]);
       }
     };
 
@@ -135,13 +138,13 @@ const AdminPage = () => {
   const { isAuthenticated, isLoading, role } = useAuthContext();
 
   useEffect(() => {
-      if (!isLoading) {
-        if (!isAuthenticated || role !== "hr") {
-          console.log("User is not authenticated, redirecting to auth page...");
-          navigate("/admin/auth");
-        }
+    if (!isLoading) {
+      if (!isAuthenticated || role !== "hr") {
+        navigate("/admin/auth");
       }
-    }, [isLoading, isAuthenticated, navigate]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!globalFilter) {
@@ -192,7 +195,6 @@ const AdminPage = () => {
 
   const selectAllRows = () => {
     if (!Array.isArray(filteredData)) {
-      console.error("filteredData is not an array:", filteredData);
       return;
     }
 
@@ -239,8 +241,9 @@ const AdminPage = () => {
       if (response.status === 200) {
         navigate("/admin/auth");
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error("Error logging out:", error);
+      alert("Error logging out!");
     }
   };
 
@@ -364,6 +367,21 @@ const AdminPage = () => {
                     </div>
                   </TableHead>
 
+                  <TableHead
+                    className="cursor-pointer  max-md:hidden"
+                    onClick={() => handleSort("Updated at")}
+                  >
+                    <div className="flex items-center text-white">
+                      Needs Help
+                      {sortColumn === "Updated at" &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+
                   <TableHead className="cursor-pointer" onClick={() => handleSort("Status")}>
                     <div className="flex items-center text-white">
                       Status
@@ -443,16 +461,35 @@ const AdminPage = () => {
                         })()}
                       </TableCell>
 
+                      <TableCell className=" max-md:hidden">
+                        {(() => {
+                          return (
+                            <div>
+                              <div
+                                className={`py-0.5 px-2 text-sm rounded-md ${
+                                  user.hr_escalation ? "bg-red-700" : "bg-green-700"
+                                } w-fit`}
+                              >
+                                <p className="text-white">{`${
+                                  user.hr_escalation ? "Yes!" : "No"
+                                }`}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+
                       <TableCell>
-                        <Badge
-                          className={`${
+                        <div
+                          className={`w-fit py-0.5 px-2 text-sm rounded-md ${
                             user.current_mood
-                              ? userStatusColors[user.current_mood] || "bg-neutral-200"
+                              ? userStatusColors[user.current_mood.toLowerCase()] ||
+                                "bg-neutral-200"
                               : "bg-neutral-800"
                           } capitalize`}
                         >
                           {user.current_mood || "Unknown"}
-                        </Badge>
+                        </div>
                       </TableCell>
 
                       <TableCell>

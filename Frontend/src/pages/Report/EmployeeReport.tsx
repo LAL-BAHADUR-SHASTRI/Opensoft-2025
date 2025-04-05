@@ -20,6 +20,7 @@ import { User, Calendar, Award, Briefcase, Star, Smile } from "lucide-react";
 import { apiClient, routes } from "@/lib/api";
 
 import { BarChart } from "@/components/charts";
+import moment from "moment";
 
 ChartJS.register(
   ArcElement,
@@ -40,6 +41,10 @@ interface ReportTypes {
   Position: string;
   "Manager ID": string;
   "Joining Date": string;
+  "Last Chat Date": string;
+  "Current Mood": string;
+  "Hr Escalation": boolean;
+  "Escalation Reason": string;
   "Total Messages Sent": number;
   "Total Emails Sent": number;
   "Total Meetings Attended": number;
@@ -79,6 +84,14 @@ const SectionCard = ({ title, children }: { title: string; children: ReactNode }
       {children}
     </div>
   );
+};
+
+const userStatusColors: Record<string, string> = {
+  okay: "bg-green-700/50 text-green-100",
+  frustrated: "bg-red-700/50 text-red-100",
+  sad: "bg-blue-800/50 text-blue-100",
+  happy: "bg-green-800/50 text-green-100",
+  excited: "bg-yellow-700/50 text-yellow-100",
 };
 
 const EmployeeReport: React.FC = () => {
@@ -122,17 +135,10 @@ const EmployeeReport: React.FC = () => {
     return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   };
 
-  const calculateDaysSinceJoining = (): number => {
-    const joinDate = new Date(reportData ? reportData["Joining Date"] : "");
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - joinDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
   const chartColors = {
     primary: "#e0b200",
     secondary: "#e0b200dd",
-    accent:  "#e0b20020",
+    accent: "#e0b20020",
     background: "#171717",
     text: "#D4D4D4",
   };
@@ -231,20 +237,11 @@ const EmployeeReport: React.FC = () => {
       {reportData ? (
         <>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div className="bg-neutral-900 rounded-lg px-4 py-2 flex items-center">
+            <div className="bg-neutral-900 rounded-lg px-6 py-2 flex items-center">
               <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center mr-3">
                 <User className="text-[#e0b200]" size={20} />
               </div>
-              <div>
-                <p className="text-neutral-300 font-medium">{reportData["Employee ID"]}</p>
-                <p className="text-neutral-500 text-sm">
-                  {reportData.Department}
-                  {
-                    reportData.Department !== "Unassigned" && ` — ${reportData.Position}`
-                  }
-               
-                </p>
-              </div>
+              <div className="text-neutral-300 font-medium">{reportData["Employee ID"]}</div>
             </div>
           </div>
 
@@ -253,33 +250,58 @@ const EmployeeReport: React.FC = () => {
               <SectionCard title="Employee Information">
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-neutral-500">Employee ID:</span>
-                    <span className="text-neutral-400 font-medium">
-                      {reportData["Employee ID"]}
+                    <span className="text-neutral-500">Current Mood:</span>
+                    <span
+                      className={`py-0.5 px-2 text-sm font-medium ${
+                        reportData["Current Mood"]
+                          ? userStatusColors[reportData["Current Mood"].toLowerCase()]
+                          : "bg-neutral-800"
+                      } rounded-md`}
+                    >
+                      {reportData["Current Mood"] ?? "Unknown"}
                     </span>
                   </div>
+
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Department:</span>
                     <span className="text-neutral-400 font-medium">{reportData.Department}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Position:</span>
-                    <span className="text-neutral-400 font-medium">{reportData.Position}</span>
+                    <span className="text-neutral-400 font-medium">
+                      {reportData.Position ?? "Unassigned"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Manager ID:</span>
-                    <span className="text-neutral-400 font-medium">{reportData["Manager ID"]}</span>
+                    <span className="text-neutral-400 font-medium">
+                      {reportData["Manager ID"] ?? "Unassigned"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500">Join Date:</span>
                     <span className="text-neutral-400 font-medium">
-                      {formatDate(reportData["Joining Date"])}
+                      {reportData["Joining Date"] !== "N/A"
+                        ? moment(reportData["Joining Date"]).format("DD MMM YYYY")
+                        : "Unknown"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-neutral-500">Days at Company:</span>
+                    <span className="text-neutral-500">Last Chat Date:</span>
                     <span className="text-neutral-400 font-medium">
-                      {calculateDaysSinceJoining()} days
+                      {reportData["Last Chat Date"]
+                        ? moment(reportData["Last Chat Date"]).format("DD MMM YYYY")
+                        : "Unknown"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Attention Needed:</span>
+                    <span
+                      className={`py-0.5 px-2 text-sm rounded-md ${
+                        reportData["Hr Escalation"] ? "bg-red-700" : "bg-green-700"
+                      } w-fit`}
+                    >
+                      {`${reportData["Hr Escalation"] ? "Yes!" : "No"}`}
                     </span>
                   </div>
                 </div>
@@ -343,11 +365,8 @@ const EmployeeReport: React.FC = () => {
                 <div className="mt-4">
                   <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
                   <div className="flex items-center">
-                    <div className="flex-1 h-2 bg-[#e0b20005] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r bg-[#e0b200]/50"
-                        style={{ width: "85%" }}
-                      ></div>
+                    <div className="flex-1 h-2 bg-primary/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#e0b200]" style={{ width: "85%" }}></div>
                     </div>
                     <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
                   </div>
@@ -366,8 +385,16 @@ const EmployeeReport: React.FC = () => {
                 <StatCard title="Emails Sent" value={reportData["Total Emails Sent"]} />
               </div>
 
+              {reportData["Escalation Reason"] && reportData["Hr Escalation"] && (
+                <SectionCard title="Reason For Attention">
+                  <div className="text-lg">{reportData["Escalation Reason"]}</div>
+                </SectionCard>
+              )}
+
               <SectionCard title="Communication Activity">
-                  {reportData && communicationData && <BarChart chartData={communicationData} alwaysCol={true} />}
+                {reportData && communicationData && (
+                  <BarChart chartData={communicationData} alwaysCol={true} />
+                )}
               </SectionCard>
             </div>
 
@@ -375,7 +402,7 @@ const EmployeeReport: React.FC = () => {
               <SectionCard title="Current Mood">
                 <div className="h-40 flex items-center justify-center relative mb-5">
                   {moodData && <Doughnut data={moodData} options={doughnutOptions} />}
-                  <div className="absolute inset-0 flex items-center justify-center flex-col">
+                  <div className="absolute inset-0 flex items-center justify-center flex-col gap-1">
                     <span className="text-3xl font-bold text-neutral-300">
                       {reportData["Recent Mood Score"]}
                     </span>
@@ -426,20 +453,20 @@ const EmployeeReport: React.FC = () => {
                     {performanceData && <Radar data={performanceData} options={radarOptions} />}
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-sm text-center">
-                  <div className="bg-neutral-800 p-2 rounded">
+                <div className="mt-4 grid 2xl:grid-cols-3 gap-2 text-sm text-center">
+                  <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
                     <p className="text-neutral-500">Performance</p>
                     <p className="font-medium text-neutral-400 text-lg">
                       {reportData["Last Performance Rating"]}/5
                     </p>
                   </div>
-                  <div className="bg-neutral-800 p-2 rounded">
+                  <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
                     <p className="text-neutral-500">Rewards</p>
                     <p className="font-medium text-neutral-400 text-lg">
                       {reportData["Total Rewards Earned"]}
                     </p>
                   </div>
-                  <div className="bg-neutral-800 p-2 rounded">
+                  <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
                     <p className="text-neutral-500">Attendance</p>
                     <p className="font-medium text-neutral-400 text-lg">
                       {100 - Math.round((reportData["Total Leaves Taken"] / 24) * 100)}%

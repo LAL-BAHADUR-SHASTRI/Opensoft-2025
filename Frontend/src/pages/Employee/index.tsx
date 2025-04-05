@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify-icon/react";
 import axios from "axios";
 import Message from "@/components/ui/message";
@@ -10,9 +10,7 @@ import { useNavigate } from "react-router";
 import { useAuthContext } from "@/context/AuthContext";
 import Loader from "@/components/AppLoader";
 
-
 const EmployeePage = () => {
-  const API_KEY = import.meta.env.VITE_API_KEY;
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState<boolean>(true);
@@ -25,15 +23,15 @@ const EmployeePage = () => {
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const {isAuthenticated, isLoading, role} = useAuthContext();
+  const { isAuthenticated, isLoading, role } = useAuthContext();
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated || role !== "employee") {
-        console.log("User is not authenticated, redirecting to auth page...");
         navigate("/auth");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, isAuthenticated, navigate]);
 
   // Scroll to the bottom whenever chatMessages updates
@@ -64,7 +62,7 @@ const EmployeePage = () => {
             withCredentials: true, // Move it here
           }
         );
-        
+
         setSessionId(response.data.session_id);
 
         if (!savedChats) {
@@ -87,6 +85,7 @@ const EmployeePage = () => {
     if (!sessionId) {
       getSessionId();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleChat = async (e: React.FormEvent) => {
@@ -175,103 +174,106 @@ const EmployeePage = () => {
 
   return (
     <>
-    {isLoading && <Loader></Loader>}
-    {!isLoading && isAuthenticated && role == "employee" && (
-    <div className="flex h-screen bg-neutral-950 text-neutral-200">
-      <div
-        className={`absolute md:static top-0 left-0 h-full ${
-          menuOpen ? "w-full md:w-[440px] lg:w-[400px] whitespace-nowrap text-nowrap" : "w-0"
-        } flex flex-col bg-neutral-900 transition-all duration-500 overflow-hidden`}
-      >
-        <div className="py-4 px-4 flex items-center">
-          <button
-            onClick={() => setMenuOpen(false)}
-            className="cursor-pointer p-1.5 pb-0 hover:bg-neutral-800 rounded-md transition-all duration-300"
+      {isLoading && <Loader></Loader>}
+      {!isLoading && isAuthenticated && role == "employee" && (
+        <div className="flex h-screen bg-neutral-950 text-neutral-200">
+          <div
+            className={`absolute md:static top-0 left-0 h-full ${
+              menuOpen ? "w-full md:w-[440px] lg:w-[400px] whitespace-nowrap text-nowrap" : "w-0"
+            } flex flex-col bg-neutral-900 transition-all duration-500 overflow-hidden`}
           >
-            <Icon icon="mynaui-sidebar-alt" className="text-2xl" />
-          </button>
-          <h2 className="text-xl md:hidden font-medium text-neutral-100 pl-4">Deloitte</h2>
-        </div>
-
-        <div className="p-4 flex flex-col">
-          <h3 className="text-neutral-500 font-semibold text-sm uppercase mb-2">Calendar</h3>
-          <Calendar
-            chatHistory={chatMessages.map((message) => ({ id: message.id, date: message.date }))}
-            setChatDate={setChatDate} // Pass setChatDate function to the Calendar
-          />
-        </div>
-      </div>
-
-      <div
-        className={`${
-          menuOpen ? "w-full" : "w-full"
-        }  flex flex-col h-full transition-all duration-300`}
-      >
-        <div className="flex justify-between items-center gap-4 py-4 px-4">
-          <div className="flex items-center">
-            {!menuOpen && (
+            <div className="py-4 px-4 flex items-center">
               <button
-                onClick={() => setMenuOpen(true)}
-                className="cursor-pointer p-1.5 pb-0 hover:bg-neutral-900 rounded-md transition-all duration-300"
+                onClick={() => setMenuOpen(false)}
+                className="cursor-pointer p-1.5 pb-0 hover:bg-neutral-800 rounded-md transition-all duration-300"
               >
                 <Icon icon="mynaui-sidebar-alt" className="text-2xl" />
               </button>
-            )}
-            <h2 className="text-2xl font-bold text-white pl-4 flex items-center gap-1">
-              Deloitte<span className="text-green-500 text-3xl">•</span>
-            </h2>
-          </div>
-          <button
-            className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 cursor-pointer border-neutral-800 rounded-md"
-            onClick={handleLogout}
-          >
-            <span>Logout</span>
-            <Icon icon={"mynaui-logout"} className="text-xl" />
-          </button>
-        </div>
-        <div
-          ref={chatContainerRef}
-          className="flex-1 pt-20 pb-4 px-6 h-full flex flex-col overflow-auto mx-auto w-[90%] max-w-[1200px]"
-        >
-          {filteredMessages.map((message) => (
-            <motion.div
-              className={`${message.sender === "user" ? "flex justify-end" : ""}`}
-              key={message.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Message message={message} />
-            </motion.div>
-          ))}
-          {isTyping && (
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-md bg-neutral-900">
-                <CircleUserRound className="text-[#86bc25]/50 text-xl" />
-              </div>
-              <div className="text-neutral-500 pt-1 pb-2 px-3">...</div>
+              <h2 className="text-xl md:hidden font-medium text-neutral-100 pl-4">Deloitte</h2>
             </div>
-          )}
-        </div>
 
-        <div className="py-4 lg:py-6">
-          <form className="flex items-center space-x-2 mx-auto w-[90%] max-w-[1000px] bg-neutral-900 pr-6 rounded-lg">
-            <textarea
-              ref={textAreaRef}
-              value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
-              placeholder="Type a message"
-              onKeyDown={handleKeyDown}
-              className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
-            />
-            <button className="text-2xl cursor-pointer" onClick={handleChat}>
-              <Icon icon="mynaui-send-solid" />
-            </button>
-          </form>
+            <div className="p-4 flex flex-col">
+              <h3 className="text-neutral-500 font-semibold text-sm uppercase mb-2">Calendar</h3>
+              <Calendar
+                chatHistory={chatMessages.map((message) => ({
+                  id: message.id,
+                  date: message.date,
+                }))}
+                setChatDate={setChatDate} // Pass setChatDate function to the Calendar
+              />
+            </div>
+          </div>
+
+          <div
+            className={`${
+              menuOpen ? "w-full" : "w-full"
+            }  flex flex-col h-full transition-all duration-300`}
+          >
+            <div className="flex justify-between items-center gap-4 py-4 px-4">
+              <div className="flex items-center">
+                {!menuOpen && (
+                  <button
+                    onClick={() => setMenuOpen(true)}
+                    className="cursor-pointer p-1.5 pb-0 hover:bg-neutral-900 rounded-md transition-all duration-300"
+                  >
+                    <Icon icon="mynaui-sidebar-alt" className="text-2xl" />
+                  </button>
+                )}
+                <h2 className="text-2xl font-bold text-white pl-4 flex items-center gap-1">
+                  Deloitte<span className="text-green-500 text-3xl">•</span>
+                </h2>
+              </div>
+              <button
+                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 cursor-pointer border-neutral-800 rounded-md"
+                onClick={handleLogout}
+              >
+                <span>Logout</span>
+                <Icon icon={"mynaui-logout"} className="text-xl" />
+              </button>
+            </div>
+            <div
+              ref={chatContainerRef}
+              className="flex-1 pt-20 pb-4 px-6 h-full flex flex-col overflow-auto mx-auto w-[90%] max-w-[1200px]"
+            >
+              {filteredMessages.map((message) => (
+                <motion.div
+                  className={`${message.sender === "user" ? "flex justify-end" : ""}`}
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Message message={message} />
+                </motion.div>
+              ))}
+              {isTyping && (
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-md bg-neutral-900">
+                    <CircleUserRound className="text-[#86bc25]/50 text-xl" />
+                  </div>
+                  <div className="text-neutral-500 pt-1 pb-2 px-3">...</div>
+                </div>
+              )}
+            </div>
+
+            <div className="py-4 lg:py-6">
+              <form className="flex items-center space-x-2 mx-auto w-[90%] max-w-[1000px] bg-neutral-900 pr-6 rounded-lg">
+                <textarea
+                  ref={textAreaRef}
+                  value={userMessage}
+                  onChange={(e) => setUserMessage(e.target.value)}
+                  placeholder="Type a message"
+                  onKeyDown={handleKeyDown}
+                  className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
+                />
+                <button className="text-2xl cursor-pointer" onClick={handleChat}>
+                  <Icon icon="mynaui-send-solid" />
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>)
-    }
+      )}
     </>
   );
 };

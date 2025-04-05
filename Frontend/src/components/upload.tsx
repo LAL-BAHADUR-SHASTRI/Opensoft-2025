@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,6 @@ import jschardet from "jschardet";
 import { apiClient, routes } from "@/lib/api";
 
 import { useNavigate } from "react-router";
-
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -97,10 +95,6 @@ export default function Upload() {
       setDragActive(true);
     }
   };
-
-  // useEffect(() => {
-  //   console.log(files);
-  // }, [files]);
 
   const handleDragLeave = () => {
     setDragActive(false);
@@ -220,7 +214,7 @@ export default function Upload() {
               </div>
 
               <Button
-                className="disabled:bg-neutral-500 disabled:text-neutral-200 bg-neutral-300 text-neutral-900 hover:bg-neutral-400 hover:text-neutral-900 cursor-pointer"
+                className="disabled:bg-neutral-500 disabled:text-neutral-200 bg-primary text-neutral-900 hover:bg-primary/90 hover:text-neutral-900 cursor-pointer"
                 onClick={handleUpload}
                 disabled={files.length === 0}
               >

@@ -1,4 +1,3 @@
-
 import { Route, Routes } from "react-router";
 import EmployeePage from "./pages/Employee";
 import EmployeeAuth from "./pages/Employee/Auth";
@@ -12,26 +11,27 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 const App = () => {
   return (
-      <Routes>
-        {/* Employee Routes */}
-        <Route path="/" element={<EmployeePage />} />
-        <Route path="/auth" element={<EmployeeAuth />} />
+    <Routes>
+      {/* Employee Routes */}
+      <Route path="/" element={<EmployeePage />} />
+      <Route path="/auth" element={<EmployeeAuth />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminPage />}>
-          <Route path="auth" element={<AdminAuth />} />
-          <Route path="upload" element={<Upload />} />
-        </Route>
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminPage />}>
+        <Route path="auth" element={<AdminAuth />} />
+        <Route path="upload" element={<Upload />} />
+      </Route>
 
-        {/* Report Routes */}
-        <Route path="/report" element={<ReportPage />}>
-          <Route path="all" element={<CollectiveReport />} />
-          <Route path="employee/:id" element={<EmployeeReport />} />
-        </Route>
+      {/* Report Routes */}
+      <Route path="/report" element={<ReportPage />}>
+        <Route path="all" element={<CollectiveReport />} />
+        <Route path="employee/:employeeId" element={<EmployeeReport />} />
+        <Route path="employees" element={<CollectiveReport />} />
+      </Route>
 
-        {/* Fallback Route */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      {/* Fallback Route */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 };
 
