@@ -101,7 +101,7 @@ export default function AdminAuth() {
               </div>
             </CardContent>
             <CardFooter className="mb-1">
-              <Button type="submit" className="w-full bg-white cursor-pointer" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-primary cursor-pointer" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

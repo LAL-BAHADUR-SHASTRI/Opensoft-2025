@@ -40,8 +40,8 @@ def generate_individual_report(db: Session, employee_id: str):
     total_rewards = len(rewards)
     recent_reward = {
         "Date": rewards[0].date.strftime("%Y-%m-%d") if rewards else "N/A",
-        "Type": rewards[0].type if rewards else "N/A",
-        "Points": rewards[0].points if rewards else 0
+        "Type": rewards[0].reward_type if rewards else "N/A",
+        "Points": rewards[0].amount if rewards else 0
     }
     
     recent_mood_score = vibe.mood_score if vibe else "N/A"

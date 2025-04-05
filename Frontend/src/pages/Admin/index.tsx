@@ -36,6 +36,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { apiClient, routes } from "@/lib/api";
 
 import { Icon } from "@iconify-icon/react";
+import { useReportContext } from "@/context/ReportContext";
 
 interface UserType {
   id: number;
@@ -44,7 +45,7 @@ interface UserType {
   hashed_password: string;
   role: string;
   is_active: boolean;
-  employee_id?: string | null;
+  employee_id: string;
   last_login_date?: string | null;
   last_chat_date?: string | null;
   current_mood?: string | null;
@@ -53,7 +54,7 @@ interface UserType {
 const getAvatar = (user: { name?: string; dp?: string }) => {
   if (user.dp) return user.dp;
 
-  const name = user.name || "A"; 
+  const name = user.name || "A";
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -63,7 +64,6 @@ const getAvatar = (user: { name?: string; dp?: string }) => {
 
   return initials;
 };
-
 
 const userRoleIcons: Record<string, { icon: React.ReactNode; color: string }> = {
   Admin: { icon: <Crown size={16} />, color: "text-red-500" },
@@ -101,27 +101,34 @@ const AdminPage = () => {
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const {setEmployeeIds } = useReportContext();
+  const [showReportBtn, setShowReportBtn] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await apiClient.get(routes.USERS, {
           withCredentials: true,
         });
-        console.log("this is response", response.data.data);
-        const arrayData = Object.values(response.data.data) as UserType[];
-console.log(arrayData)
-        setData(arrayData);
-        setFilteredData(arrayData)         // Ensure state is updated with fetched data
+
+        if (response.status === 200) {
+          console.log(response.data.data);
+          setData(response.data.data);
+        }
       } catch (err) {
         console.error("Fetch error:", err);
-       
       }
     };
 
     fetchData();
-  }, []); // Empty dependency array ensures it runs only once
+  }, []);
 
-  const [showReportBtn, setShowReportBtn] = useState(false);
+  useEffect(() => {
+    const ids = Object.keys(selectedRows);
+    setEmployeeIds(ids);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRows]);
 
   useEffect(() => {
     if (!globalFilter) {
@@ -132,7 +139,9 @@ console.log(arrayData)
     const searchTerm = globalFilter.toLowerCase();
 
     const filtered = data.filter((user) => {
-      const searchContent = [user.username, user.role, user.current_mood, user.id].join(" ").toLowerCase();
+      const searchContent = [user.username, user.role, user.current_mood, user.id]
+        .join(" ")
+        .toLowerCase();
 
       return searchContent.includes(searchTerm);
     });
@@ -148,58 +157,59 @@ console.log(arrayData)
       setSortDirection("asc");
     }
   };
-  const sortedData = Array.isArray(filteredData) ? [...filteredData].sort((a, b) => {
-    if (!sortColumn) return 0;
-  
-    const valA = a[sortColumn as keyof UserType];
-    const valB = b[sortColumn as keyof UserType];
-  
-    if (valA == null || valB == null) return 0; // Handle null or undefined values
-    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  }) : [];
-  
+
+  const sortedData = Array.isArray(filteredData)
+    ? [...filteredData].sort((a, b) => {
+        if (!sortColumn) return 0;
+
+        const valA = a[sortColumn as keyof UserType];
+        const valB = b[sortColumn as keyof UserType];
+
+        if (valA == null || valB == null) return 0;
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      })
+    : [];
+
   const paginatedData =
     pageSize > sortedData.length
       ? sortedData
       : sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
-      const selectAllRows = () => {
-        if (!Array.isArray(filteredData)) {
-          console.error("filteredData is not an array:", filteredData);
-          return;
-        }
-      
-        const allSelected = Object.keys(selectedRows).length === filteredData.length;
-      
-        if (allSelected) {
-          setSelectedRows({});
-        } else {
-          const newSelected: Record<string, boolean> = {};
-      
-          filteredData.forEach((user) => {
-            newSelected[user.id] = true;
-          });
-      
-          setSelectedRows(newSelected);
-        }
-      };
-      
-  // Toggle row selection
-  const toggleRowSelected = (id: string) => {
-    let newCheckedRows = selectedRows;
 
-    if (newCheckedRows[id]) {
-      delete newCheckedRows[id];
-      setSelectedRows(newCheckedRows);
-    } else {
-      newCheckedRows = {
-        ...newCheckedRows,
-        [id]: true,
-      };
-
-      setSelectedRows(newCheckedRows);
+  const selectAllRows = () => {
+    if (!Array.isArray(filteredData)) {
+      console.error("filteredData is not an array:", filteredData);
+      return;
     }
+
+    const allSelected = Object.keys(selectedRows).length === filteredData.length;
+
+    if (allSelected) {
+      setSelectedRows({});
+    } else {
+      const newSelected: Record<string, boolean> = {};
+
+      filteredData.forEach((user) => {
+        newSelected[user.employee_id] = true;
+      });
+
+      setSelectedRows(newSelected);
+    }
+  };
+
+  const toggleRowSelected = (id: string) => {
+    setSelectedRows((prevSelectedRows) => {
+      const newSelectedRows = { ...prevSelectedRows };
+
+      if (newSelectedRows[id]) {
+        delete newSelectedRows[id];
+      } else {
+        newSelectedRows[id] = true;
+      }
+
+      return newSelectedRows;
+    });
   };
 
   useEffect(() => {
@@ -233,7 +243,7 @@ console.log(arrayData)
               <Link
                 to={"/admin/upload"}
                 state={{ background: location }}
-                className="py-2 px-5 border border-white bg-white text-black rounded-md"
+                className="py-2 px-5 border border-primary bg-primary text-black rounded-md"
               >
                 Upload Files
               </Link>
@@ -275,10 +285,10 @@ console.log(arrayData)
 
               <Link
                 to={"/report/all"}
-                className="cursor-pointer text-black bg-white rounded-md py-1.5 px-4 flex items-center gap-1"
+                className="cursor-pointer text-black bg-primary rounded-md py-1.5 px-4 flex items-center gap-1"
               >
                 <FileDown className="mr-2 h-4 w-4 " />
-                Report
+                <span className="text-nowrap">Report All</span>
               </Link>
             </div>
           </div>
@@ -364,18 +374,18 @@ console.log(arrayData)
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedData.map((user,index) => (
+                  paginatedData.map((user, index) => (
                     <TableRow
                       key={index}
                       className={`${
-                        selectedRows[user.id] ? "bg-neutral-900" : ""
+                        selectedRows[user.employee_id] ? "bg-neutral-900" : ""
                       } border-neutral-800 hover:bg-neutral-900/50`}
                     >
                       <TableCell className="">
                         <Checkbox
                           className="cursor-pointer ml-5 border-neutral-600"
-                          checked={!!selectedRows[user.id]}
-                          onCheckedChange={() => toggleRowSelected(user.id.toString())}
+                          checked={!!selectedRows[user.employee_id]}
+                          onCheckedChange={() => toggleRowSelected(user.employee_id)}
                         />
                       </TableCell>
 
@@ -387,7 +397,7 @@ console.log(arrayData)
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{user.username}</p>
+                            <p className="font-medium">{user.employee_id}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -422,7 +432,9 @@ console.log(arrayData)
                       <TableCell>
                         <Badge
                           className={`${
-                            user.current_mood ? userStatusColors[user.current_mood] || "bg-neutral-200" : "bg-neutral-200"
+                            user.current_mood
+                              ? userStatusColors[user.current_mood] || "bg-neutral-200"
+                              : "bg-neutral-800"
                           } capitalize`}
                         >
                           {user.current_mood || "Unknown"}
@@ -432,7 +444,7 @@ console.log(arrayData)
                       <TableCell>
                         <div className="flex items-center">
                           <Link
-                            to={`/report/employee/${user.id}`}
+                            to={`/report/employee/${user.employee_id}`}
                             className="p-1.5 hover:bg-neutral-800 rounded-sm"
                           >
                             <FileDown className="h-4 w-4" />
@@ -446,11 +458,11 @@ console.log(arrayData)
             </Table>
           </div>
 
-          <div className="flex items-center justify-end px-6 py-4 mt-6">
+          <div className="flex items-center gap-4 justify-end px-6 py-4 mt-6">
             {showReportBtn && (
               <Link
-                to={"/report/all"}
-                className="cursor-pointer text-black bg-white rounded-md py-1.5 px-4 flex items-center gap-1"
+                to={"/report/employees"}
+                className="cursor-pointer text-black bg-primary rounded-md py-1.5 px-4 flex items-center gap-1"
               >
                 <FileDown className="mr-2 h-4 w-4 " />
                 Report
@@ -466,7 +478,7 @@ console.log(arrayData)
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`cursor-pointer text-black ${
+                  className={`bg-primary cursor-pointer border-primary hover:bg-primary/90 text-black ${
                     currentPage === 0 &&
                     "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
                   }`}
@@ -478,7 +490,7 @@ console.log(arrayData)
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`cursor-pointer text-black ${
+                  className={`bg-primary cursor-pointer border-primary hover:bg-primary/90 text-black ${
                     (currentPage + 1) * pageSize >= filteredData.length &&
                     "pointer-events-none text-neutral-500 bg-neutral-700 border-neutral-700"
                   }`}
@@ -489,7 +501,6 @@ console.log(arrayData)
               </div>
             </div>
           </div>
-          
         </main>
       )}
       <Outlet />

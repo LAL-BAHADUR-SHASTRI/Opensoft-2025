@@ -67,7 +67,7 @@ export default function EmployeeAuth() {
         <Card className="w-full max-w-md shadow-lg bg-neutral-900">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
-              <BriefcaseBusiness className="h-12 w-12 text-primary" />
+              <BriefcaseBusiness className="h-12 w-12 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back, Employee</CardTitle>
             <CardDescription>Enter your details to continue</CardDescription>
@@ -110,7 +110,7 @@ export default function EmployeeAuth() {
             <CardFooter>
               <Button
                 type="submit"
-                className="bg-white w-full pt-3 cursor-pointer"
+                className="bg-primary w-full pt-3 cursor-pointer"
                 disabled={isLoading}
               >
                 {isLoading ? (

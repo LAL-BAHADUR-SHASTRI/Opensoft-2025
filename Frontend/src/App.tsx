@@ -58,24 +58,24 @@ const App = () => {
     checkAuthentication();
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      if (location.pathname.includes("auth")) {
-        if (role === "hr") {
-          navigate("/admin");
-        } else if (role === "employee") {
-          navigate("/");
-        }
-      }
-    } else {
-      if (location.pathname.includes("/admin")|| location.pathname.includes("report")) {
-        navigate("/admin/auth");
-      } else if (location.pathname === "/") {
-        navigate("/auth");
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     if (location.pathname.includes("auth")) {
+  //       if (role === "hr") {
+  //         navigate("/admin");
+  //       } else if (role === "employee") {
+  //         navigate("/");
+  //       }
+  //     }
+  //   } else {
+  //     if (location.pathname.includes("/admin")|| location.pathname.includes("report")) {
+  //       navigate("/admin/auth");
+  //     } else if (location.pathname === "/") {
+  //       navigate("/auth");
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [isAuthenticated]);
 
   return (
     !isLoading && (

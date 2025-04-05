@@ -59,13 +59,13 @@ interface ReportTypes {
   "Mood Comment": string;
 }
 
-const StatCard = ({ title, value }: { title: string; value: string | number }) => {
+const StatCard = ({ title, value }: { title: string; value: number }) => {
   return (
     <div className="bg-neutral-900 rounded-lg shadow-md p-4">
       <div className="flex items-center mb-2">
         <h3 className="text-sm font-medium text-neutral-500">{title}</h3>
       </div>
-      <p className="text-3xl font-semibold text-neutral-300">{value}</p>
+      <p className="text-3xl font-semibold text-neutral-300">{value.toFixed(0)}</p>
     </div>
   );
 };
@@ -236,9 +236,13 @@ const EmployeeReport: React.FC = () => {
                 <User className="text-[#e0b200]" size={20} />
               </div>
               <div>
-                <p className="text-neutral-300 font-medium">{reportData.Name}</p>
+                <p className="text-neutral-300 font-medium">{reportData["Employee ID"]}</p>
                 <p className="text-neutral-500 text-sm">
-                  {reportData.Department} — {reportData.Position}
+                  {reportData.Department}
+                  {
+                    reportData.Department !== "Unassigned" && ` — ${reportData.Position}`
+                  }
+               
                 </p>
               </div>
             </div>
@@ -341,7 +345,7 @@ const EmployeeReport: React.FC = () => {
                   <div className="flex items-center">
                     <div className="flex-1 h-2 bg-[#e0b20005] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r bg-[#e0b200]"
+                        className="h-full bg-gradient-to-r bg-[#e0b200]/50"
                         style={{ width: "85%" }}
                       ></div>
                     </div>
