@@ -10,6 +10,9 @@ import random  # Add this import for personalized messages
 from fastapi import HTTPException
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.models.user import User
 from app.models.chat import ChatMessage  # Changed from ChatMessageModel
@@ -23,11 +26,11 @@ class ChatService:
         self.db = db
         
         # API configuration
-        self.api_endpoints = {
-            'check_api_key': 'https://mybooi097--employee-sentiment-analysis-chatbot-check-api-key.modal.run',
-            'start_chat': 'https://mybooi097--employee-sentiment-analysis-chatbot-start-chat.modal.run',
-            'chat': 'https://mybooi097--employee-sentiment-analysis-chatbot-chat.modal.run'
-        }
+        self.endpoints = {
+'check_api_key': os.getenv("CHECK_API_KEY", "https://harshrajdubey-swg--chatbot-chatbot-check-api-key.modal.run"),
+'start_chat': os.getenv("START_CHAT", "https://harshrajdubey-swg--chatbot-chatbot-start-chat.modal.run"),
+'chat': os.getenv("CHAT", "https://harshrajdubey-swg--chatbot-chatbot-chat.modal.run")
+                    }
         
         # Default API key - in production this should be loaded from environment variables
         self.api_key = "DVaz_Aa2FLTZA-PA_oJlwbXt2GeK8Hf8CJSTsFnS-UA"
@@ -46,7 +49,7 @@ class ChatService:
         try:
             # Call the chatbot API to start a session
             response = requests.post(
-                self.api_endpoints['start_chat'],
+                self.endpoints['start_chat'],
                 headers=self.headers,
                 json={'employee_id': employee_id}
             )
@@ -107,7 +110,7 @@ class ChatService:
             
             # Call the chatbot API
             response = requests.post(
-                self.api_endpoints['chat'],
+                self.endpoints['chat'],
                 headers=self.headers,
                 json={
                     'session_id': session_id,
