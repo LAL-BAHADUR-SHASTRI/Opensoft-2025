@@ -102,6 +102,7 @@ const AdminPage = () => {
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const { isAuthenticated, isLoading, role } = useAuthContext();
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -118,13 +119,13 @@ console.log(arrayData)
        
       }
     };
-
-    fetchData();
-  }, []); // Empty dependency array ensures it runs only once
+    if(isAuthenticated && !data.length) {
+      fetchData();
+    } // Only fetch data if authenticated
+  }, [isAuthenticated]); // Empty dependency array ensures it runs only once
 
   const [showReportBtn, setShowReportBtn] = useState(false);
 
-  const { isAuthenticated, isLoading, role } = useAuthContext();
 
   useEffect(() => {
       if (!isLoading) {
@@ -252,7 +253,7 @@ console.log(arrayData)
               </Link>
 
               <button
-                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md"
+                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-800"
                 onClick={handleLogout}
               >
                 <span>Logout</span>

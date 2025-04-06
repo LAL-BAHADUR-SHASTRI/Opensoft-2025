@@ -76,7 +76,7 @@ export default function EmployeeAuth() {
 
   return (
     <>
-    {(isLoading || role == "hr") && (<AppLoader></AppLoader>)}
+    {(isLoading || (isAuthenticated && role == "hr")) && (<AppLoader></AppLoader>)}
     {!isLoading && !isAuthenticated && (
       <>
       <Toaster richColors />

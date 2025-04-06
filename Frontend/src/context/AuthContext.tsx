@@ -7,19 +7,24 @@ interface AuthContextType {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   role: string;
+  id: string;
+  logout: () => void;  // Add this function
 }
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   setIsLoading: () => {},
-  role: ""
+  role: "",
+  id: "",
+  logout: () => {}  // Add this
 });
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState("");
+  const [id, setId] = useState("");
   const location = useLocation();
 
   const checkAuthentication = async () => {
@@ -33,6 +38,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.status === 200) {
         setIsAuthenticated(true);
         setRole(response.data.role);
+        setId(response.data.employee_id);
       }
     } catch (error) {
       console.error("Error checking authentication:", error);
@@ -42,12 +48,27 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const logout = () => {
+    setIsAuthenticated(false);
+    setRole("");
+    setId("");
+  };
+
   useEffect(() => {
     checkAuthentication();
   }, [location.pathname]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, setIsLoading, role }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      isLoading, 
+      setIsLoading, 
+      role, 
+      id, 
+      logout  // Add this
+    }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 
