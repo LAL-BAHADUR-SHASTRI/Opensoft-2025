@@ -40,8 +40,6 @@ class ChatMessageModel(BaseModel):  # Keep the Pydantic model name the same
     is_from_user: bool
     question: Optional[str] = None
     response: Optional[str] = None
-    sentiment: Optional[str] = None
-    keywords: Optional[List[str]] = None
 
 class ChatHistorySession(BaseModel):
     session_id: str

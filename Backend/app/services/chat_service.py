@@ -264,10 +264,10 @@ class ChatService:
         # Default to neutral if mood is unknown
         return mood_scores.get(mood, 3)
     
-    def get_chat_history(self, employee_id: str, chat_date: Optional[date] = None):
-        """Get chat history for an employee"""
+    def get_chat_history(self, employee_id: str, chat_date: Optional[date] = None) -> List[Dict[str, Any]]:
+        """Get chat history for an employee without grouping by session"""
         logger.info(f"Getting chat history for employee {employee_id}")
-        
+
         try:
             # Base query for getting messages for this employee
             query = self.db.query(ChatMessage).filter(
@@ -279,54 +279,31 @@ class ChatService:
                 query = query.filter(
                     func.date(ChatMessage.timestamp) == chat_date
                 )
+            else:
+                # If no date provided, get today's chats
+                today = datetime.now().date()
+                query = query.filter(
+                    func.date(ChatMessage.timestamp) == today
+                )
             
-            # Get all messages
-            messages = query.order_by(ChatMessage.timestamp).all()
+            # Get all messages and sort by timestamp
+            messages = query.order_by(ChatMessage.timestamp.asc()).all()
             
-            # Group messages by session_id
-            sessions = {}
-            for msg in messages:
-                if msg.session_id not in sessions:
-                    sessions[msg.session_id] = {
-                        "session_id": msg.session_id,
-                        "messages": [],
-                        "start_time": msg.timestamp,
-                        "end_time": msg.timestamp
-                    }
-                
-                # Add message to session
-                message_dict = {
+            # Return messages directly without grouping
+            return [
+                {
                     "timestamp": msg.timestamp,
                     "is_from_user": msg.is_from_user,
+                    "question": msg.question,
+                    "response": msg.response
                 }
-                
-                if msg.is_from_user:
-                    message_dict["response"] = msg.response
-                else:
-                    message_dict["question"] = msg.question
-                
-                if msg.sentiment:
-                    message_dict["sentiment"] = msg.sentiment
-                
-                if msg.keywords:
-                    message_dict["keywords"] = msg.keywords
-                
-                sessions[msg.session_id]["messages"].append(message_dict)
-                
-                # Update session end time if this message is later
-                if msg.timestamp > sessions[msg.session_id]["end_time"]:
-                    sessions[msg.session_id]["end_time"] = msg.timestamp
-            
-            # Convert to list and sort by start_time (newest first)
-            history = list(sessions.values())
-            history.sort(key=lambda x: x["start_time"], reverse=True)
-            
-            return history
+                for msg in messages
+            ]
             
         except Exception as e:
             logger.error(f"Error getting chat history: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error retrieving chat history: {str(e)}")
-    
+            
     def get_chat_dates(self, employee_id: str) -> List[str]:
         """Get distinct dates on which the employee had chats"""
         logger.info(f"Getting chat dates for employee {employee_id}")

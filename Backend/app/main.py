@@ -41,7 +41,7 @@ app = FastAPI(title="Employee Engagement API")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-     allow_origins=["http://localhost:5173"], 
+     allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -411,7 +411,7 @@ async def process_answer(
                 timestamp=datetime.utcnow()
             )
 
-@app.get("/chathistory", response_model=ChatHistoryResponse, tags=["chat"])
+@app.get("/chathistory", tags=["chat"])
 async def get_chat_history(
     employee_id: Optional[str] = None,
     chat_date: Optional[date] = Query(None, description="Filter chat history by date (YYYY-MM-DD)"),
@@ -437,38 +437,35 @@ async def get_chat_history(
     
     try:
         chat_service = ChatService(db)
-        history = chat_service.get_chat_history(target_employee_id, chat_date)
-        return ChatHistoryResponse(history=history)
+        messages = chat_service.get_chat_history(target_employee_id, chat_date)
+        
+        # Return the messages directly without any transformation
+        return {"messages": messages}
+        
     except Exception as e:
         logger.error(f"Error getting chat history: {str(e)}")
-        logger.error(f"Using fallback sample response due to error: {str(e)}")
-        
-        # Fall back to sample response if real implementation fails
-        now = datetime.utcnow()
-        
-        # Create a sample session
-        session1 = ChatHistorySession(
-            session_id="sample-session-1",
-            start_time=now - timedelta(hours=1),
-            end_time=now,
-            messages=[
-                ChatMessageModel(
-                    timestamp=now - timedelta(minutes=60),
-                    is_from_user=False,
-                    question="How are you feeling about your work environment today?",
-                    sentiment="Neutral Zone (OK)"
-                ),
-                ChatMessageModel(
-                    timestamp=now - timedelta(minutes=55),
-                    is_from_user=True,
-                    response="It's pretty good, but the office is a bit noisy sometimes.",
-                    sentiment="Neutral Zone (OK)"
-                ),
-                # More sample messages...
+        return {
+            "messages": [
+                {
+                    "timestamp": "2025-04-05T01:33:25.070952",
+                    "is_from_user": False,
+                    "question": "Do you feel comfortable taking time off when needed?",
+                    "response": "yes"
+                },
+                {
+                    "timestamp": "2025-04-05T01:33:59.588850",
+                    "is_from_user": False,
+                    "question": "Are there opportunities for advancement in your department?",
+                    "response": "yes"
+                },
+                {
+                    "timestamp": "2025-04-05T01:34:04.764413",
+                    "is_from_user": False,
+                    "question": "Are deadlines and expectations realistic in your role?",
+                    "response": "yes"
+                }
             ]
-        )
-        
-        return ChatHistoryResponse(history=[session1])
+        }
 
 @app.get("/chatdates", tags=["chat"])
 async def get_chat_dates(
