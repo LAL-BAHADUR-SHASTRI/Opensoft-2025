@@ -12,8 +12,9 @@ from app.models.user import User, UserRole
 from app.models.vibemeter import VibeMeter
 
 def generate_individual_report(db: Session, employee_id: str):
+    user = db.query(User).filter(User.employee_id == employee_id).first()
     employee = db.query(Employee).filter(Employee.employee_id == employee_id).first()
-    if not employee:
+    if not employee and not user:
         return {"error": f"No data found for Employee ID {employee_id}"}
 
     activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id == employee_id).all()
@@ -34,17 +35,17 @@ def generate_individual_report(db: Session, employee_id: str):
     onboarding_feedback = onboarding.onboarding_feedback if onboarding else "N/A"
     training_completed = onboarding.initial_training_completed if onboarding else "No"
     
-    last_rating = performance.rating if performance else "N/A"
+    last_rating = performance.rating if performance else 0
     manager_feedback = performance.comments if performance else "No feedback available"
     
     total_rewards = len(rewards)
     recent_reward = {
         "Date": rewards[0].date.strftime("%Y-%m-%d") if rewards else "N/A",
-        "Type": rewards[0].type if rewards else "N/A",
-        "Points": rewards[0].points if rewards else 0
+        "Type": rewards[0].reward_type if rewards else "N/A",
+        "Points": rewards[0].amount if rewards else 0
     }
     
-    recent_mood_score = vibe.mood_score if vibe else "N/A"
+    recent_mood_score = vibe.mood_score if vibe else 0
     mood_comment = vibe.comments if vibe else "No comments"
     
     report = {
@@ -54,6 +55,10 @@ def generate_individual_report(db: Session, employee_id: str):
         "Position": employee.position,
         "Manager ID": employee.manager_id,
         "Joining Date": employee.join_date.strftime("%Y-%m-%d") if employee.join_date else "N/A",
+        "Last Chat Date": user.last_chat_date,
+        "Current Mood": user.current_mood,
+        "Hr Escalation": user.hr_escalation,
+        "Escalation Reason": user.escalation_reason,
         "Total Messages Sent": total_messages,
         "Total Emails Sent": total_emails,
         "Total Meetings Attended": total_meetings,
@@ -66,12 +71,13 @@ def generate_individual_report(db: Session, employee_id: str):
         "Total Rewards Earned": total_rewards,
         "Recent Reward": recent_reward,
         "Recent Mood Score": recent_mood_score,
-        "Mood Comment": mood_comment
+        "Mood Comment": mood_comment,
     }
     
     return report
 
 def generate_collective_report(db: Session):
+    users = db.query(User).filter(User.hr_escalation == True).all()
     employees = db.query(Employee).all()
     activities = db.query(ActivityTracker).all()
     leaves = db.query(LeaveTracker).all()
@@ -80,6 +86,7 @@ def generate_collective_report(db: Session):
     rewards = db.query(RewardsTracker).all()
     vibes = db.query(VibeMeter).all()
     
+    total_attention_employees = len(users)
     total_employees = len(employees)
     activity_df = pd.DataFrame([a.__dict__ for a in activities])
     avg_work_hours = activity_df.groupby('employee_id')['work_hours'].sum().mean() if not activity_df.empty else 0
@@ -114,6 +121,7 @@ def generate_collective_report(db: Session):
     mood_comments = [v.comments for v in vibes if v.comments]
     
     report = {
+        "Total Attention Employees": total_attention_employees,
         "Total Employees": total_employees,
         "Average Work Hours Per Employee": avg_work_hours,
         "Total Messages Sent": total_messages,
@@ -131,15 +139,17 @@ def generate_collective_report(db: Session):
     return report
 
 def generate_selective_report(db: Session, employee_ids: List[str]):
+    users = db.query(User).filter(User.employee_id.in_(employee_ids)).filter(User.hr_escalation == True).all()
+    employees = db.query(Employee).filter(Employee.employee_id.in_(employee_ids)).all()
     activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id.in_(employee_ids)).all()
     leaves = db.query(LeaveTracker).filter(LeaveTracker.employee_id.in_(employee_ids)).all()
     onboarding = db.query(OnboardingTracker).filter(OnboardingTracker.employee_id.in_(employee_ids)).all()
     performance = db.query(PerformanceTracker).filter(PerformanceTracker.employee_id.in_(employee_ids)).all()
     rewards = db.query(RewardsTracker).filter(RewardsTracker.employee_id.in_(employee_ids)).all()
     vibes = db.query(VibeMeter).filter(VibeMeter.employee_id.in_(employee_ids)).all()
-
     
-    total_employees = len(employee_ids)
+    total_attention_employees = len(users)
+    total_employees = len(employees)
     activity_df = pd.DataFrame([a.__dict__ for a in activities])
     avg_work_hours = activity_df.groupby('employee_id')['work_hours'].sum().mean() if not activity_df.empty else 0
     total_messages = activity_df['teams_messages_sent'].sum() if not activity_df.empty else 0
@@ -174,6 +184,7 @@ def generate_selective_report(db: Session, employee_ids: List[str]):
     mood_comments = [v.comments for v in vibes if v.comments]
     
     report = {
+        "Total Attention Employees": total_attention_employees,
         "Total Employees": total_employees,
         "Average Work Hours Per Employee": avg_work_hours,
         "Total Messages Sent": total_messages,

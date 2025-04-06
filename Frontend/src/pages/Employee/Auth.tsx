@@ -1,7 +1,7 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Eye, EyeOff, Loader } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Eye, EyeOff } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { Link, useNavigate } from "react-router";
 import { apiClient, routes } from "@/lib/api";
@@ -62,8 +62,8 @@ export default function EmployeeAuth() {
           navigate("/");
         }, 2000);
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.log(error);
       if (error.status === 401) {
         toast.error("Incorrect credentials, please try again!");
       } else {
@@ -84,7 +84,7 @@ export default function EmployeeAuth() {
         <Card className="w-full max-w-md shadow-lg bg-neutral-900">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
-              <BriefcaseBusiness className="h-12 w-12 text-primary" />
+              <BriefcaseBusiness className="h-12 w-12 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back, Employee</CardTitle>
             <CardDescription>Enter your details to continue</CardDescription>

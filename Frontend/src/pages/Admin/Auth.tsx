@@ -50,8 +50,6 @@ export default function AdminAuth() {
         withCredentials: true,
       });
 
-      console.log(response.status, response.data);
-
       if (response.status === 201 || response.status === 200) {
         setIsAuthLoading(false);        
         toast.success("Login successful! Redirecting...");
@@ -63,7 +61,6 @@ export default function AdminAuth() {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.log(error);
       if (error.status === 401) {
         toast.error("Incorrect credentials, please try again!");
       } else {

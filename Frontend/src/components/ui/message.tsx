@@ -1,5 +1,5 @@
 import ReactMarkdown from "react-markdown";
-import { Briefcase,Bot,CircleUserRound } from "lucide-react";
+import { CircleUserRound } from "lucide-react";
 const Message = ({message} : {message: {
   id: number;
   sender: string;

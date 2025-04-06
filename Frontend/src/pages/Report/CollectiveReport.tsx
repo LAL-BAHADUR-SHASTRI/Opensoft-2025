@@ -21,6 +21,7 @@ ChartJS.register(
 
 interface ReportTypes {
   "Total Employees": number;
+  "Total Attention Employees": number;
   "Average Work Hours Per Employee": number;
   "Total Messages Sent": number;
   "Total Emails Sent": number;
@@ -166,8 +167,10 @@ const CollectiveReport = () => {
     <div className="bg-neutral-950 min-h-screen px-4 pb-10 pt-4 md:px-6 lg:pt-12 xl:px-40 2xl:px-60 text-neutral-300">
       {reportData ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
             <Card title="Total Employees" value={reportData["Total Employees"]} />
+            <Card title="Employees for Attention!!" value={reportData["Total Attention Employees"]} />
+
             <Card
               title="Avg. Work Hours"
               value={reportData["Average Work Hours Per Employee"].toFixed(0)}
@@ -241,15 +244,15 @@ const CollectiveReport = () => {
             </div>
             <div className="flex flex-col gap-6 bg-neutral-900 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-neutral-300">Performance</h2>
-              <div className="relative flex flex-col items-center justify-center w-full h-full">
+              <div className="relative grid place-content-center w-full h-full">
                 <div className="mx-auto max-w-[75vw]">
                   {performanceData && <Doughnut data={performanceData} options={doughnutOptions} />}
                 </div>
                 <div className="absolute top-1/2 left-1/2 -translate-1/2 flex flex-col gap-1 items-center justify-center">
-                  <span className="text-5xl font-bold text-neutral-300">
+                  <span className="text-xl sm:text-2xl lg:text-4xl xl:text-5xl font-bold text-neutral-300">
                     {reportData["Average Performance Rating"].toFixed(1)}
                   </span>
-                  <span className="text text-neutral-500">out of 5</span>
+                  <span className="text-xs sm:text-base text-neutral-500">out of 5</span>
                 </div>
               </div>
             </div>

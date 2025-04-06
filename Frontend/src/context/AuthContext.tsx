@@ -20,6 +20,8 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {}  // Add this
 });
 
+const useAuthContext = () => useContext(AuthContext);
+
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,20 +30,19 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
 
   const checkAuthentication = async () => {
-    console.log("Checking authentication on mount");
     setIsLoading(true);
     try {
       const response = await apiClient.get(routes.USER_INFO, {
         withCredentials: true,
       });
-      console.log("Response from authentication check:", response);
+
       if (response.status === 200) {
         setIsAuthenticated(true);
         setRole(response.data.role);
         setId(response.data.employee_id);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error("Error checking authentication:", error);
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false); // Ensure isLoading is set to false after the request
@@ -72,6 +73,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-const useAuthContext = () => useContext(AuthContext);
+// eslint-disable-next-line react-refresh/only-export-components
 export { useAuthContext };
 export default AuthProvider;

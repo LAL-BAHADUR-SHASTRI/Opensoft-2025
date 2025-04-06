@@ -11,7 +11,6 @@ import { useAuthContext } from "@/context/AuthContext";
 import Loader from "@/components/AppLoader";
 
 const EmployeePage = () => {
-  const API_KEY = import.meta.env.VITE_API_KEY;
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string>("");
   const [startedChat, setStartedChat] = useState<boolean>(false);
@@ -31,10 +30,10 @@ const EmployeePage = () => {
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated || role !== "employee") {
-        console.log("User is not authenticated, redirecting to auth page...");
         navigate("/auth");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, isAuthenticated, navigate]);
 
   // Scroll to the bottom whenever chatMessages updates
