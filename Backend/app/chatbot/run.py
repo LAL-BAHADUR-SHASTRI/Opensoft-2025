@@ -2,6 +2,10 @@ import requests
 import json
 import time
 import sys
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class ChatbotClient:
     """Client for interacting with the Modal-deployed chatbot API."""
@@ -10,9 +14,9 @@ class ChatbotClient:
         """Initialize the client with API endpoints and key."""
         # API endpoints
         self.endpoints = {
-'check_api_key': 'https://mybooi097--employee-sentiment-analysis-chatbot-check-api-key.modal.run',
-    'start_chat': 'https://mybooi097--employee-sentiment-analysis-chatbot-start-chat.modal.run',
-    'chat': 'https://mybooi097--employee-sentiment-analysis-chatbot-chat.modal.run'
+'check_api_key': os.getenv("CHECK_API_KEY", "https://harshrajdubey-swg--chatbot-chatbot-check-api-key.modal.run"),
+'start_chat': os.getenv("START_CHAT", "https://harshrajdubey-swg--chatbot-chatbot-start-chat.modal.run"),
+'chat': os.getenv("CHAT", "https://harshrajdubey-swg--chatbot-chatbot-chat.modal.run")
                     }
         
         # Default API key

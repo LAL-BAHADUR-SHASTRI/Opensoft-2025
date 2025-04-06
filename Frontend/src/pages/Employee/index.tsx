@@ -13,6 +13,7 @@ import Loader from "@/components/AppLoader";
 const EmployeePage = () => {
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string>("");
+  const [startedChat, setStartedChat] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(true);
   const [userMessage, setUserMessage] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<
@@ -23,7 +24,8 @@ const EmployeePage = () => {
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const { isAuthenticated, isLoading, role } = useAuthContext();
+  const { isAuthenticated, isLoading, role, id, logout } = useAuthContext();
+  const isLoggingOut = useRef(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -42,7 +44,12 @@ const EmployeePage = () => {
   }, [chatMessages]);
 
   useEffect(() => {
-    const savedChats = localStorage.getItem("chatMessages_EMP0048");
+    // Skip everything if we're in the process of logging out
+    if (isLoggingOut.current) {
+      return;
+    }
+
+    const savedChats = localStorage.getItem(`chatMessages_${id}`);
     if (savedChats) {
       try {
         const parsedChats = JSON.parse(savedChats);
@@ -56,7 +63,7 @@ const EmployeePage = () => {
       try {
         const response = await axios.post(
           "http://localhost:8000/start_chat",
-          { employee_id: "EMP0048" }, // Request body
+          { employee_id: id }, // Request body
           {
             headers: { "Content-Type": "application/json" },
             withCredentials: true, // Move it here
@@ -75,18 +82,29 @@ const EmployeePage = () => {
           };
 
           setChatMessages([initialMessage]);
-          localStorage.setItem("chatMessages_EMP0048", JSON.stringify([initialMessage]));
+          localStorage.setItem(`chatMessages_${id}`, JSON.stringify([initialMessage]));
         }
       } catch (error) {
         console.error("Error starting chat:", error);
       }
     };
-
-    if (!sessionId) {
-      getSessionId();
+    
+    console.log("in useEffect", isAuthenticated, startedChat, id);
+    if (isAuthenticated && !startedChat && id) {
+      if (!sessionId) {
+        getSessionId();
+      }
+      setStartedChat(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    
+    // Cleanup function when component unmounts or dependencies change
+    return () => {
+      if (!isAuthenticated) {
+        setStartedChat(false);
+        setSessionId("");
+      }
+    };
+  }, [isAuthenticated, id, startedChat, sessionId]);
 
   const handleChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +120,7 @@ const EmployeePage = () => {
 
     setChatMessages((prev) => {
       const updatedMessages = [...prev, newMessage];
-      localStorage.setItem("chatMessages_EMP0048", JSON.stringify(updatedMessages));
+      localStorage.setItem(`chatMessages_${id}`, JSON.stringify(updatedMessages));
       return updatedMessages;
     });
 
@@ -140,7 +158,7 @@ const EmployeePage = () => {
 
         setChatMessages((prev) => {
           const updatedMessages = [...prev, assistantMessage];
-          localStorage.setItem("chatMessages_EMP0048", JSON.stringify(updatedMessages));
+          localStorage.setItem(`chatMessages_${id}`, JSON.stringify(updatedMessages));
           return updatedMessages;
         });
 
@@ -160,13 +178,19 @@ const EmployeePage = () => {
   };
   const handleLogout = async () => {
     try {
+      isLoggingOut.current = true; // Set flag before any state changes
+      setStartedChat(false);
+      setSessionId("");
+      
       const response = await apiClient.post(routes.LOGOUT, {}, { withCredentials: true });
       console.log(response);
       if (response.status === 200) {
+        logout(); // Call the logout function from context
         navigate("/auth");
       }
     } catch (error) {
       console.error("Error logging out:", error);
+      isLoggingOut.current = false; // Reset flag if logout fails
     }
   };
   // Filter messages based on the selected date

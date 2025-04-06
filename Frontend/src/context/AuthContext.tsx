@@ -7,6 +7,8 @@ interface AuthContextType {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   role: string;
+  id: string;
+  logout: () => void;  // Add this function
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,6 +16,8 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   setIsLoading: () => {},
   role: "",
+  id: "",
+  logout: () => {}  // Add this
 });
 
 const useAuthContext = () => useContext(AuthContext);
@@ -22,6 +26,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState("");
+  const [id, setId] = useState("");
   const location = useLocation();
 
   const checkAuthentication = async () => {
@@ -34,6 +39,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.status === 200) {
         setIsAuthenticated(true);
         setRole(response.data.role);
+        setId(response.data.employee_id);
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
@@ -43,12 +49,25 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const logout = () => {
+    setIsAuthenticated(false);
+    setRole("");
+    setId("");
+  };
+
   useEffect(() => {
     checkAuthentication();
   }, [location.pathname]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, setIsLoading, role }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      isLoading, 
+      setIsLoading, 
+      role, 
+      id, 
+      logout  // Add this
+    }}>
       {children}
     </AuthContext.Provider>
   );

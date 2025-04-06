@@ -83,11 +83,21 @@ const userRoleIcons: Record<string, { icon: React.ReactNode; color: string }> = 
 };
 
 const userStatusColors: Record<string, string> = {
-  okay: "bg-green-700/50 text-green-100",
-  frustrated: "bg-red-700/50 text-red-100",
-  sad: "bg-blue-800/50 text-blue-100",
-  happy: "bg-green-800/50 text-green-100",
-  excited: "bg-yellow-700/50 text-yellow-100",
+  "neutral zone (ok)": "bg-green-700/50 text-green-100",
+  "frustrated zone": "bg-red-700/50 text-red-100",
+  "sad zone": "bg-blue-800/50 text-blue-100",
+  "leaning to happy zone": "bg-green-800/50 text-green-100",
+  "happy zone": "bg-yellow-700/50 text-yellow-100",
+  "leaning to sad zone": "bg-blue-700/50 text-blue-100",
+};
+
+const zoneMappings: Record<string, string> = {
+  "neutral zone (ok)": "neutral zone",
+  "frustrated zone": "frustrated zone",
+  "sad zone": "sad zone",
+  "leaning to happy zone": "happy zone",
+  "happy zone": "excited zone",
+  "leaning to sad zone": "sad zone",
 };
 
 const AdminPage = () => {
@@ -106,10 +116,9 @@ const AdminPage = () => {
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-
+  const { isAuthenticated, isLoading, role } = useAuthContext();
   const { setEmployeeIds } = useReportContext();
   const [showReportBtn, setShowReportBtn] = useState(false);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -125,9 +134,10 @@ const AdminPage = () => {
         setData([]);
       }
     };
-
-    fetchData();
-  }, []);
+    if(isAuthenticated && !data.length) {
+      fetchData();
+    } // Only fetch data if authenticated
+  }, [isAuthenticated]); // Empty dependency array ensures it runs only once
 
   useEffect(() => {
     const ids = Object.keys(selectedRows);
@@ -135,7 +145,6 @@ const AdminPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRows]);
 
-  const { isAuthenticated, isLoading, role } = useAuthContext();
 
   useEffect(() => {
     if (!isLoading) {
@@ -266,7 +275,7 @@ const AdminPage = () => {
               </Link>
 
               <button
-                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md"
+                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-800"
                 onClick={handleLogout}
               >
                 <span>Logout</span>
@@ -488,7 +497,7 @@ const AdminPage = () => {
                               : "bg-neutral-800"
                           } capitalize`}
                         >
-                          {user.current_mood || "Unknown"}
+                          {user.current_mood ? zoneMappings[user.current_mood.toLowerCase()] : "Unknown"}
                         </div>
                       </TableCell>
 
