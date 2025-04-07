@@ -35,25 +35,7 @@ def setup_database():
         print("HR user created with username 'hruser' and password 'hruser'")
     else:
         print("HR user already exists")
-    
-    # Create an employee user for testing
-    existing_emp = db.query(User).filter(User.username == "emp0048").first()
-    if not existing_emp:
-        # Create default employee user
-        emp_user = User(
-            email="emp0048@example.com",
-            username="emp0048",
-            hashed_password=get_password_hash("emp0048"),
-            role=UserRole.EMPLOYEE,
-            employee_id="EMP0048",
-            is_active=True
-        )
-        db.add(emp_user)
-        db.commit()
-        print("Employee user created with username 'emp0048' and password 'emp0048'")
-    else:
-        print("Employee user already exists")
-    
+        
     # Close the session
     db.close()
     print("Database initialized successfully")

@@ -453,18 +453,21 @@ async def get_chat_history(
         return {
             "messages": [
                 {
+                    "session_id": "sample-session-id",
                     "timestamp": "2025-04-05T01:33:25.070952",
                     "is_from_user": False,
                     "question": "Do you feel comfortable taking time off when needed?",
                     "response": "yes"
                 },
                 {
+                    "session_id": "sample-session-id",
                     "timestamp": "2025-04-05T01:33:59.588850",
                     "is_from_user": False,
                     "question": "Are there opportunities for advancement in your department?",
                     "response": "yes"
                 },
                 {
+                    "session_id": "sample-session-id",
                     "timestamp": "2025-04-05T01:34:04.764413",
                     "is_from_user": False,
                     "question": "Are deadlines and expectations realistic in your role?",
@@ -565,15 +568,5 @@ async def get_employees_needing_attention(
         
         # Fall back to sample response
         return {
-            "employees": [
-                {
-                    "employee_id": "EMP0048",
-                    "username": "emp0048",
-                    "email": "emp0048@example.com",
-                    "current_mood": "Sad Zone",
-                    "last_chat_date": (datetime.utcnow() - timedelta(days=1)).isoformat(),
-                    "next_chat_date": (datetime.utcnow() + timedelta(days=2)).isoformat()
-                },
-                # More sample employees...
-            ]
+            "employees": []
         }

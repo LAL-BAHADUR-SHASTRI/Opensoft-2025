@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlalchemy.orm import Session
-from sqlalchemy import inspect, text, func
+from sqlalchemy import inspect, text, func, create_engine
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
@@ -8,6 +8,12 @@ import re
 import os
 import threading
 import uuid
+import multiprocessing
+from functools import partial
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
+from sqlalchemy.orm import sessionmaker
+from app.config import settings
 
 from app.core.database import Base, engine
 
@@ -245,163 +251,154 @@ class CSVProcessor:
         return {"job_id": job_id, "status": "processing", "filename": filename}
     
     def create_users_from_employee_ids_async(self):
-        """Run user creation in background thread and return job ID"""
+        """Create users from all employee IDs in a background job"""
         job_id = str(uuid.uuid4())
         
-        def background_task():
-            try:
-                # Create a new session for this thread
-                from app.core.database import SessionLocal
-                db = SessionLocal()
+        # Start the background task
+        background_tasks.add_task(
+            self._create_users_from_employee_ids_task, 
+            job_id=job_id
+        )
+        
+        return {"job_id": job_id}
+    
+    async def _create_users_from_employee_ids_task(self, job_id):
+        """Background task to create users from all employee IDs using multiprocessing"""
+        self.logger.info(f"Starting job {job_id}: Creating users from employee IDs")
+        
+        try:
+            # Create a job record
+            job = BackgroundJob(
+                id=job_id,
+                job_type="create_users",
+                status=JobStatus.RUNNING,
+                start_time=datetime.now()
+            )
+            self.db.add(job)
+            self.db.commit()
+            
+            # Get all employee IDs from the database
+            employees = self.db.query(Employee).all()
+            total_count = len(employees)
+            
+            if total_count == 0:
+                self.logger.warning("No employee records found in database")
+                self._update_job_status(job_id, JobStatus.COMPLETED, f"No employee records found")
+                return
+            
+            self.logger.info(f"Found {total_count} employee records")
+            
+            # Get all existing users to avoid duplicates
+            existing_users = self.db.query(User.employee_id).all()
+            existing_ids = set([u[0] for u in existing_users])
+            
+            # Filter employees that don't have users yet
+            employees_to_process = [e for e in employees if e.employee_id not in existing_ids]
+            
+            if not employees_to_process:
+                self.logger.info("All employees already have user accounts")
+                self._update_job_status(job_id, JobStatus.COMPLETED, f"All employees already have user accounts")
+                return
+            
+            self.logger.info(f"Creating users for {len(employees_to_process)} employees")
+            
+            # Set up progress tracking
+            total = len(employees_to_process)
+            created_count = 0
+            error_count = 0
+            
+            # Split employees into chunks for parallel processing
+            chunk_size = max(1, total // (multiprocessing.cpu_count() * 2))
+            employee_chunks = [employees_to_process[i:i+chunk_size] for i in range(0, total, chunk_size)]
+            
+            # Create a database URL without the SQLAlchemy connection info for worker processes
+            db_url = settings.DATABASE_URL
+            
+            # Process chunks in parallel
+            with ProcessPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
+                # Create partial function with database URL
+                process_chunk_fn = partial(self._process_employee_chunk, db_url=db_url)
                 
+                # Submit all chunks for processing
+                futures = {executor.submit(process_chunk_fn, chunk): i for i, chunk in enumerate(employee_chunks)}
+                
+                # Process results as they complete
+                for future in as_completed(futures):
+                    chunk_result = future.result()
+                    created_count += chunk_result['created']
+                    error_count += chunk_result['errors']
+                    
+                    # Update progress
+                    progress = int((created_count + error_count) / total * 100)
+                    self._update_job_status(
+                        job_id, 
+                        JobStatus.RUNNING, 
+                        f"Progress: {progress}%. Created: {created_count}, Errors: {error_count}"
+                    )
+            
+            # Job completed
+            self._update_job_status(
+                job_id, 
+                JobStatus.COMPLETED,
+                f"Created {created_count} users with {error_count} errors"
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error in job {job_id}: {str(e)}")
+            self._update_job_status(job_id, JobStatus.FAILED, str(e))
+    
+    @staticmethod
+    def _process_employee_chunk(employees, db_url):
+        """Process a chunk of employees in a worker process"""
+        # Create a new database connection for this process
+        engine = create_engine(db_url)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        
+        created = 0
+        errors = 0
+        
+        with SessionLocal() as session:
+            for employee in employees:
                 try:
-                    # Check if any data exists in tables
-                    has_data = False
-                    table_counts = {}
+                    # Create a username from employee ID (lowercase)
+                    username = employee.employee_id.lower()
                     
-                    for table_name, model in self.table_models.items():
-                        count = db.query(model).count()
-                        table_counts[table_name] = count
-                        if count > 0:
-                            has_data = True
+                    # Create a new user
+                    user = User(
+                        username=username,
+                        email=f"{username}@example.com",
+                        hashed_password=get_password_hash(username),  # Default password is the username
+                        is_active=True,
+                        role=UserRole.EMPLOYEE,
+                        employee_id=employee.employee_id
+                    )
                     
-                    if not has_data:
-                        logger.warning("No data found in any tables. Upload data first before creating users.")
-                        background_jobs[job_id] = {
-                            "status": "completed",
-                            "result": {
-                                "employees_created": 0,
-                                "users_created": 0,
-                                "message": "No data found in tables. Please upload CSV data first."
-                            },
-                            "completed_at": datetime.now().isoformat(),
-                            "table_counts": table_counts
-                        }
-                        return
+                    session.add(user)
+                    session.commit()
+                    created += 1
                     
-                    # Get unique employee IDs from all tables
-                    unique_employee_ids = set()
-                    employee_sources = {}
-                    
-                    for table_name, model in self.table_models.items():
-                        if hasattr(model, 'employee_id'):
-                            try:
-                                # Get all unique employee IDs from this table
-                                employee_ids = db.query(model.employee_id).distinct().all()
-                                found_ids = [record[0] for record in employee_ids if record[0]]
-                                
-                                if found_ids:
-                                    employee_sources[table_name] = len(found_ids)
-                                    unique_employee_ids.update(found_ids)
-                                    
-                                logger.info(f"Found {len(found_ids)} unique employee IDs in {table_name}")
-                            except Exception as e:
-                                logger.error(f"Error getting employee IDs from {table_name}: {str(e)}")
-                    
-                    if not unique_employee_ids:
-                        logger.warning("No employee IDs found in any tables.")
-                        background_jobs[job_id] = {
-                            "status": "completed",
-                            "result": {
-                                "employees_created": 0,
-                                "users_created": 0,
-                                "message": "No employee IDs found in data."
-                            },
-                            "completed_at": datetime.now().isoformat(),
-                            "employee_sources": employee_sources
-                        }
-                        return
-                    
-                    logger.info(f"Found {len(unique_employee_ids)} unique employee IDs from these tables: {employee_sources}")
-                    
-                    # Import these inside the function to avoid circular imports
-                    from app.models.user import User
-                    from app.models.employee import Employee
-                    from app.core.auth import get_password_hash
-                    
-                    users_created = 0
-                    employees_created = 0
-                    
-                    # Process each employee ID
-                    for emp_id in unique_employee_ids:
-                        # Check if Employee record exists
-                        existing_employee = db.query(Employee).filter(Employee.employee_id == emp_id).first()
-                        if not existing_employee:
-                            employee = Employee(
-                                employee_id=emp_id,
-                                name=f"Employee {emp_id}",
-                                department="Unassigned"
-                            )
-                            db.add(employee)
-                            employees_created += 1
-                        
-                        # Check if User record exists
-                        existing_user = db.query(User).filter(User.employee_id == emp_id).first()
-                        if not existing_user:
-                            user = User(
-                                email=f"{emp_id.lower()}@example.com",
-                                username=emp_id.lower(),
-                                hashed_password=get_password_hash(emp_id.lower()),
-                                role="employee",
-                                employee_id=emp_id
-                            )
-                            db.add(user)
-                            users_created += 1
-                    
-                    # Commit changes
-                    db.commit()
-                    
-                    result = {
-                        "employees_created": employees_created,
-                        "users_created": users_created,
-                        "total_ids_found": len(unique_employee_ids),
-                        "sources": employee_sources
-                    }
-                    
-                    # Update job status
-                    background_jobs[job_id] = {
-                        "status": "completed",
-                        "result": result,
-                        "completed_at": datetime.now().isoformat()
-                    }
-                    
-                    logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
-                    
-                except Exception as e:
-                    logger.error(f"Error in user creation process: {str(e)}")
-                    background_jobs[job_id] = {
-                        "status": "failed",
-                        "error": str(e),
-                        "completed_at": datetime.now().isoformat()
-                    }
-                    # Rollback in case of error
-                    db.rollback()
-                
-                finally:
-                    # Always close the session
-                    db.close()
-                    
-            except Exception as e:
-                logger.error(f"Failed to create database session: {str(e)}")
-                background_jobs[job_id] = {
-                    "status": "failed",
-                    "error": f"Database connection error: {str(e)}",
-                    "completed_at": datetime.now().isoformat()
-                }
+                except Exception:
+                    errors += 1
+                    session.rollback()
         
-        # Initialize job status
-        background_jobs[job_id] = {
-            "status": "processing",
-            "type": "create_users",
-            "started_at": datetime.now().isoformat()
+        return {
+            'created': created,
+            'errors': errors
         }
-        
-        # Start background thread
-        thread = threading.Thread(target=background_task)
-        thread.daemon = True
-        thread.start()
-        
-        return {"job_id": job_id, "status": "processing", "type": "create_users"}
+    
+    def _update_job_status(self, job_id, status, message=None):
+        """Update the status and message of a background job"""
+        try:
+            job = self.db.query(BackgroundJob).filter(BackgroundJob.id == job_id).first()
+            if job:
+                job.status = status
+                if message:
+                    job.message = message
+                if status in [JobStatus.COMPLETED, JobStatus.FAILED]:
+                    job.end_time = datetime.now()
+                self.db.commit()
+        except Exception as e:
+            self.logger.error(f"Error updating job {job_id} status: {str(e)}")
     
     def get_job_status(self, job_id):
         """Get the status of a background job"""

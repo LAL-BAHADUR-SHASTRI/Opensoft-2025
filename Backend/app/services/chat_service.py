@@ -295,6 +295,7 @@ class ChatService:
             # Return messages directly without grouping
             return [
                 {
+                    "session_id": msg.session_id,
                     "timestamp": msg.timestamp,
                     "is_from_user": msg.is_from_user,
                     "question": msg.question,
