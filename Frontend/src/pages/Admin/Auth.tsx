@@ -130,7 +130,7 @@ export default function AdminAuth() {
                 <CardFooter className="mb-1">
                   <Button
                     type="submit"
-                    className="w-full bg-white cursor-pointer"
+                    className="w-full bg-primary cursor-pointer"
                     disabled={isAuthLoading}
                   >
                     {isAuthLoading ? (

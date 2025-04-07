@@ -15,13 +15,14 @@ import {
 } from "chart.js";
 import { Doughnut, Radar } from "react-chartjs-2";
 
-import { User, Calendar, Award, Briefcase, Star, Smile , Download} from "lucide-react";
-import html2canvas from 'html2canvas-pro';
+import { User, Calendar, Award, Briefcase, Star, Download } from "lucide-react";
+import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import { apiClient, routes } from "@/lib/api";
 
 import { BarChart } from "@/components/charts";
 import moment from "moment";
+import { Icon } from "@iconify-icon/react/dist/iconify.mjs";
 
 ChartJS.register(
   ArcElement,
@@ -95,7 +96,6 @@ const userStatusColors: Record<string, string> = {
   excited: "bg-yellow-700/50 text-yellow-100",
 };
 
-
 const EmployeeReport: React.FC = () => {
   const reportRef = React.useRef<HTMLDivElement>(null);
   const { employeeId } = useParams();
@@ -103,53 +103,44 @@ const EmployeeReport: React.FC = () => {
   const [reportData, setReportData] = useState<ReportTypes | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-
-
-
-
-     
   const handleDownloadPDF = async () => {
-
-    
     if (!reportRef.current || !reportData) return;
-    
-    
+
     try {
       setIsGeneratingPDF(true);
-      
+
       const reportElement = reportRef.current;
       const canvas = await html2canvas(reportElement, {
-        scale: 2, 
+        scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: "#171717"
+        backgroundColor: "#171717",
       });
-      
-      const imgData = canvas.toDataURL('image/png');
-      
-      
-      const imgWidth = 210; 
-      const pageHeight = 297  ; 
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const pdf = new jsPDF("p", "mm", "a4");
 
       let heightLeft = imgHeight;
       let position = 0;
       let pageNumber = 1;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
-      
+
       while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
         pageNumber++;
       }
-      
+
       pdf.save(`Employee_Report_${reportData["Employee ID"]}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -158,9 +149,6 @@ const EmployeeReport: React.FC = () => {
     }
   };
   useEffect(() => {
-   
- 
-      
     const fetchReport = async () => {
       try {
         const response = await apiClient.post(
@@ -179,7 +167,7 @@ const EmployeeReport: React.FC = () => {
             setReportData(response.data.report);
           }
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         setErrorMsg("Error fetching the report");
         setReportData(null);
@@ -187,7 +175,6 @@ const EmployeeReport: React.FC = () => {
     };
 
     fetchReport();
-    
   }, []);
 
   const formatDate = (dateString: string): string => {
@@ -196,9 +183,9 @@ const EmployeeReport: React.FC = () => {
   };
 
   const chartColors = {
-    primary: "#e0b200",
-    secondary: "#e0b200dd",
-    accent: "#e0b20020",
+    primary: "#6aad43",
+    secondary: "#6aa64340",
+    accent: "#1c1f1a",
     background: "#171717",
     text: "#D4D4D4",
   };
@@ -294,13 +281,12 @@ const EmployeeReport: React.FC = () => {
 
   return (
     <div className="bg-neutral-950 min-h-screen px-4 pb-4 pt-4 xl:px-40 2xl:px-60 lg:pt-12 text-neutral-300">
-      
-        {reportData ? (
+      {reportData ? (
         <>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div className="bg-neutral-900 rounded-lg px-6 py-2 flex items-center">
               <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center mr-3">
-                <User className="text-[#e0b200]" size={20} />
+                <User className="text-primary" size={20} />
               </div>
               <div className="text-neutral-300 font-medium">{reportData["Employee ID"]}</div>
             </div>
@@ -314,237 +300,253 @@ const EmployeeReport: React.FC = () => {
             </button>
           </div>
           <div ref={reportRef}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="space-y-6">
-              <SectionCard title="Employee Information">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Current Mood:</span>
-                    <span
-                      className={`py-0.5 px-2 text-sm font-medium ${
-                        reportData["Current Mood"]
-                          ? userStatusColors[reportData["Current Mood"].toLowerCase()]
-                          : "bg-neutral-800"
-                      } rounded-md`}
-                    >
-                      {reportData["Current Mood"] ?? "Unknown"}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Department:</span>
-                    <span className="text-neutral-400 font-medium">{reportData.Department}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Position:</span>
-                    <span className="text-neutral-400 font-medium">
-                      {reportData.Position ?? "Unassigned"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Manager ID:</span>
-                    <span className="text-neutral-400 font-medium">
-                      {reportData["Manager ID"] ?? "Unassigned"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Join Date:</span>
-                    <span className="text-neutral-400 font-medium">
-                      {reportData["Joining Date"] !== "N/A"
-                        ? moment(reportData["Joining Date"]).format("DD MMM YYYY")
-                        : "Unknown"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Last Chat Date:</span>
-                    <span className="text-neutral-400 font-medium">
-                      {reportData["Last Chat Date"]
-                        ? moment(reportData["Last Chat Date"]).format("DD MMM YYYY")
-                        : "Unknown"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Attention Needed:</span>
-                    <span
-                      className={`py-0.5 px-2 text-sm rounded-md ${
-                        reportData["Hr Escalation"] ? "bg-red-700" : "bg-green-700"
-                      } w-fit`}
-                    >
-                      {`${reportData["Hr Escalation"] ? "Yes!" : "No"}`}
-                    </span>
-                  </div>
-                </div>
-              </SectionCard>
-
-              <SectionCard title="Performance">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-neutral-400 text-sm mb-1">Last Performance Rating</p>
-                    <div className="flex items-center">
-                      <span className="text-2xl font-bold text-neutral-300 mr-2">
-                        {reportData["Last Performance Rating"]}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="space-y-6">
+                <SectionCard title="Employee Information">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Current Mood:</span>
+                      <span
+                        className={`py-0.5 px-2 text-sm font-medium ${
+                          reportData["Current Mood"]
+                            ? userStatusColors[reportData["Current Mood"].toLowerCase()]
+                            : "bg-neutral-800"
+                        } rounded-md`}
+                      >
+                        {reportData["Current Mood"] ?? "Unknown"}
                       </span>
-                      <span className="text-neutral-500 text-sm">/ 5.0</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Department:</span>
+                      <span className="text-neutral-400 font-medium">{reportData.Department}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Position:</span>
+                      <span className="text-neutral-400 font-medium">
+                        {reportData.Position ?? "Unassigned"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Manager ID:</span>
+                      <span className="text-neutral-400 font-medium">
+                        {reportData["Manager ID"] ?? "Unassigned"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Join Date:</span>
+                      <span className="text-neutral-400 font-medium">
+                        {reportData["Joining Date"] !== "N/A"
+                          ? moment(reportData["Joining Date"]).format("DD MMM YYYY")
+                          : "Unknown"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Last Chat Date:</span>
+                      <span className="text-neutral-400 font-medium">
+                        {reportData["Last Chat Date"]
+                          ? moment(reportData["Last Chat Date"]).format("DD MMM YYYY")
+                          : "Unknown"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Attention Needed:</span>
+                      <span
+                        className={`py-0.5 px-2 text-sm rounded-md ${
+                          reportData["Hr Escalation"] ? "bg-red-700" : "bg-green-700"
+                        } w-fit`}
+                      >
+                        {`${reportData["Hr Escalation"] ? "Yes!" : "No"}`}
+                      </span>
                     </div>
                   </div>
-                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Star className="text-[#e0b200]" size={18} />
-                  </div>
-                </div>
-                <p className="text-neutral-500 text-sm mb-3">Manager Feedback:</p>
-                <p className="text-neutral-400 p-3 bg-neutral-800 rounded-md italic">
-                  "{reportData["Manager Feedback"]}"
-                </p>
-              </SectionCard>
+                </SectionCard>
 
-              <SectionCard title="Onboarding Information">
-                <div className="mb-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-neutral-500">Training Completed:</span>
-                    <span
-                      className={`text-sm px-2 py-0.5 rounded-full ${
-                        reportData["Initial Training Completed"] === "Yes"
-                          ? "bg-neutral-800 text-neutral-300"
-                          : "bg-neutral-900 text-neutral-500"
-                      }`}
-                    >
-                      {reportData["Initial Training Completed"]}
-                    </span>
+                <SectionCard title="Performance">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-neutral-400 text-sm mb-1">Last Performance Rating</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold text-neutral-300 mr-2">
+                          {reportData["Last Performance Rating"]}
+                        </span>
+                        <span className="text-neutral-500 text-sm">/ 5.0</span>
+                      </div>
+                    </div>
+                    <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                      <Star className="text-primary" size={18} />
+                    </div>
                   </div>
-                </div>
-                <p className="text-neutral-500 text-sm mb-3">Onboarding Feedback:</p>
-                <p className="text-neutral-400 p-3 bg-neutral-800 rounded-md">
-                  {reportData["Onboarding Feedback"]}
-                </p>
-              </SectionCard>
+                  <p className="text-neutral-500 text-sm mb-3">Manager Feedback:</p>
+                  <p className="text-neutral-400 p-3 bg-neutral-800 rounded-md italic">
+                    "{reportData["Manager Feedback"]}"
+                  </p>
+                </SectionCard>
 
-              <SectionCard title="Meeting Activity">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-neutral-400 text-sm mb-1">Total Meetings Attended</p>
-                    <p className="text-2xl font-bold text-neutral-300">
-                      {reportData["Total Meetings Attended"]}
+                <SectionCard title="Onboarding Information">
+                  <div className="mb-4">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-neutral-500">Training Completed:</span>
+                      <span
+                        className={`text-sm px-2 py-0.5 rounded-full ${
+                          reportData["Initial Training Completed"] === "Yes"
+                            ? "bg-neutral-800 text-neutral-300"
+                            : "bg-neutral-900 text-neutral-500"
+                        }`}
+                      >
+                        {reportData["Initial Training Completed"]}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-neutral-500 text-sm mb-3">Onboarding Feedback:</p>
+                  <p className="text-neutral-400 italic p-3 bg-neutral-800 rounded-md">
+                    "{reportData["Onboarding Feedback"]}""
+                  </p>
+                </SectionCard>
+
+                <SectionCard title="Meeting Activity">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-neutral-400 text-sm mb-1">Total Meetings Attended</p>
+                      <p className="text-2xl font-bold text-neutral-300">
+                        {reportData["Total Meetings Attended"]}
+                      </p>
+                    </div>
+                    <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                      <Calendar className="text-primary" size={18} />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
+                    <div className="flex items-center">
+                      <div className="flex-1 h-2 bg-primary/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-primary" style={{ width: "85%" }}></div>
+                      </div>
+                      <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
+                    </div>
+                    <p className="text-neutral-500 text-xs mt-2">
+                      Based on expected department meeting attendance
                     </p>
                   </div>
-                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Calendar className="text-[#e0b200]" size={18} />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <p className="text-neutral-500 text-sm mb-2">Meeting Participation Rate</p>
-                  <div className="flex items-center">
-                    <div className="flex-1 h-2 bg-primary/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#e0b200]" style={{ width: "85%" }}></div>
-                    </div>
-                    <span className="ml-3 text-sm font-medium text-neutral-500">85%</span>
-                  </div>
-                  <p className="text-neutral-500 text-xs mt-2">
-                    Based on expected department meeting attendance
-                  </p>
-                </div>
-              </SectionCard>
-            </div>
-
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <StatCard title="Work Hours" value={reportData["Total Work Hours"]} />
-                <StatCard title="Leaves Taken" value={reportData["Total Leaves Taken"]} />
-                <StatCard title="Messages Sent" value={reportData["Total Messages Sent"]} />
-                <StatCard title="Emails Sent" value={reportData["Total Emails Sent"]} />
+                </SectionCard>
               </div>
 
-              {reportData["Escalation Reason"] && reportData["Hr Escalation"] && (
-                <SectionCard title="Reason For Attention">
-                  <div className="text-lg">{reportData["Escalation Reason"]}</div>
-                </SectionCard>
-              )}
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <StatCard title="Work Hours" value={reportData["Total Work Hours"]} />
+                  <StatCard title="Leaves Taken" value={reportData["Total Leaves Taken"]} />
+                  <StatCard title="Messages Sent" value={reportData["Total Messages Sent"]} />
+                  <StatCard title="Emails Sent" value={reportData["Total Emails Sent"]} />
+                </div>
 
-              <SectionCard title="Communication Activity">
-                {reportData && communicationData && (
-                  <BarChart chartData={communicationData} alwaysCol={true} />
+                {reportData["Escalation Reason"] && reportData["Hr Escalation"] && (
+                  <SectionCard title="Reason For Attention">
+                    <div className="text-lg">{reportData["Escalation Reason"]}</div>
+                  </SectionCard>
                 )}
-              </SectionCard>
-            </div>
 
-            <div className="space-y-6">
-              <SectionCard title="Current Mood">
-                <div className="h-40 flex items-center justify-center relative mb-5">
-                  {moodData && <Doughnut data={moodData} options={doughnutOptions} />}
-                  <div className="absolute inset-0 flex items-center justify-center flex-col gap-1">
-                    <span className="text-3xl font-bold text-neutral-300">
-                      {reportData["Recent Mood Score"]}
+                <SectionCard title="Communication Activity">
+                  {reportData && communicationData && (
+                    <BarChart chartData={communicationData} alwaysCol={true} />
+                  )}
+                </SectionCard>
+              </div>
+
+              <div className="space-y-6">
+                <SectionCard title="Current Mood">
+                  <div className="h-40 flex items-center justify-center relative mb-5">
+                    {moodData && <Doughnut data={moodData} options={doughnutOptions} />}
+                    <div className="absolute inset-0 flex items-center justify-center flex-col gap-1">
+                      <span className="text-3xl font-bold text-neutral-300">
+                        {reportData["Recent Mood Score"]}
+                      </span>
+                      <span className="text-sm text-neutral-500">out of 10</span>
+                    </div>
+                  </div>
+                  <div className="bg-neutral-800 p-3 pb-1 rounded-md flex items-start gap-2">
+                    <span className="text-primary">
+                      {reportData["Mood Comment"].toLowerCase().includes("frustrated") && (
+                        <Icon
+                          icon={"material-symbols-light:sentiment-frustrated-outline-rounded"}
+                          className="text-2xl"
+                        />
+                      )}
+                      {reportData["Mood Comment"].toLowerCase().includes("sad") && (
+                        <Icon icon={"lets-icons:sad"} className="text-2xl" />
+                      )}
+                      {reportData["Mood Comment"].toLowerCase().includes("neutral") && (
+                        <Icon icon={"icon-park-outline:neutral-face"} className="text-2xl" />
+                      )}{" "}
+                      {reportData["Mood Comment"].toLowerCase().includes("happy") && (
+                        <Icon icon={"formkit:happy"} className="text-2xl" />
+                      )}
                     </span>
-                    <span className="text-sm text-neutral-500">out of 10</span>
+                    <p className="text-neutral-400 italic">"{reportData["Mood Comment"]}"</p>
                   </div>
-                </div>
-                <div className="bg-neutral-800 p-3 rounded-md flex items-start">
-                  <Smile className="text-[#e0b200] mr-2 mt-0.5" size={18} />
-                  <p className="text-neutral-400 italic">"{reportData["Mood Comment"]}"</p>
-                </div>
-              </SectionCard>
+                </SectionCard>
 
-              <SectionCard title="Rewards & Recognition">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-neutral-400 text-sm mb-1">Total Rewards</p>
-                    <p className="text-2xl font-bold text-neutral-300">
-                      {reportData["Total Rewards Earned"]}
-                    </p>
+                <SectionCard title="Rewards & Recognition">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-neutral-400 text-sm mb-1">Total Rewards</p>
+                      <p className="text-2xl font-bold text-neutral-300">
+                        {reportData["Total Rewards Earned"]}
+                      </p>
+                    </div>
+                    <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
+                      <Award className="text-primary" size={18} />
+                    </div>
                   </div>
-                  <div className="bg-neutral-800 h-10 w-10 rounded-full flex items-center justify-center">
-                    <Award className="text-[#e0b200]" size={18} />
-                  </div>
-                </div>
 
-                <p className="text-neutral-500 text-sm mb-3">Recent Recognition:</p>
-                <div className="bg-neutral-800 p-4 rounded-md">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-medium text-neutral-400">
-                      {reportData["Recent Reward"].Type}
-                    </p>
-                    <span className="text-xs bg-neutral-700 text-neutral-400 px-2 py-0.5 rounded-full">
-                      {formatDate(reportData["Recent Reward"].Date)}
-                    </span>
+                  <p className="text-neutral-500 text-sm mb-3">Recent Recognition:</p>
+                  <div className="bg-neutral-800 p-4 rounded-md">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="font-medium text-neutral-400">
+                        {reportData["Recent Reward"].Type}
+                      </p>
+                      <span className="text-xs bg-neutral-700 text-neutral-400 px-2 py-0.5 rounded-full">
+                        {formatDate(reportData["Recent Reward"].Date)}
+                      </span>
+                    </div>
+                    <div className="flex items-center mt-2">
+                      <Briefcase className="text-primary mr-2" size={16} />
+                      <p className="text-neutral-500 text-sm">
+                        {reportData["Recent Reward"].Points} points awarded
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center mt-2">
-                    <Briefcase className="text-[#e0b200] mr-2" size={16} />
-                    <p className="text-neutral-500 text-sm">
-                      {reportData["Recent Reward"].Points} points awarded
-                    </p>
-                  </div>
-                </div>
-              </SectionCard>
+                </SectionCard>
 
-              <SectionCard title="Performance Overview">
-                <div className="grid place-content-center">
-                  <div className="h-64">
-                    {performanceData && <Radar data={performanceData} options={radarOptions} />}
+                <SectionCard title="Performance Overview">
+                  <div className="grid place-content-center">
+                    <div className="h-64">
+                      {performanceData && <Radar data={performanceData} options={radarOptions} />}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 grid 2xl:grid-cols-3 gap-2 text-sm text-center">
-                  <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
-                    <p className="text-neutral-500">Performance</p>
-                    <p className="font-medium text-neutral-400 text-lg">
-                      {reportData["Last Performance Rating"]}/5
-                    </p>
+                  <div className="mt-4 grid 2xl:grid-cols-3 gap-2 text-sm text-center">
+                    <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
+                      <p className="text-neutral-500">Performance</p>
+                      <p className="font-medium text-neutral-400 text-lg">
+                        {reportData["Last Performance Rating"]}/5
+                      </p>
+                    </div>
+                    <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
+                      <p className="text-neutral-500">Rewards</p>
+                      <p className="font-medium text-neutral-400 text-lg">
+                        {reportData["Total Rewards Earned"]}
+                      </p>
+                    </div>
+                    <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
+                      <p className="text-neutral-500">Attendance</p>
+                      <p className="font-medium text-neutral-400 text-lg">
+                        {100 - Math.round((reportData["Total Leaves Taken"] / 24) * 100)}%
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
-                    <p className="text-neutral-500">Rewards</p>
-                    <p className="font-medium text-neutral-400 text-lg">
-                      {reportData["Total Rewards Earned"]}
-                    </p>
-                  </div>
-                  <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
-                    <p className="text-neutral-500">Attendance</p>
-                    <p className="font-medium text-neutral-400 text-lg">
-                      {100 - Math.round((reportData["Total Leaves Taken"] / 24) * 100)}%
-                    </p>
-                  </div>
-                </div>
-              </SectionCard>
+                </SectionCard>
+              </div>
             </div>
-          </div>
           </div>
         </>
       ) : (
@@ -555,9 +557,7 @@ const EmployeeReport: React.FC = () => {
           <div>Please try again after sometime</div>
         </div>
       )}
-      </div>
-    
-
+    </div>
   );
 };
 

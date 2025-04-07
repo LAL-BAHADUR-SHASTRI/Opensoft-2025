@@ -119,6 +119,7 @@ const AdminPage = () => {
   const { isAuthenticated, isLoading, role } = useAuthContext();
   const { setEmployeeIds } = useReportContext();
   const [showReportBtn, setShowReportBtn] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -127,6 +128,7 @@ const AdminPage = () => {
         });
 
         if (response.status === 200) {
+          console.log(response.data.data);
           setData(response.data.data);
         }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -137,6 +139,7 @@ const AdminPage = () => {
     if(isAuthenticated && !data.length) {
       fetchData();
     } // Only fetch data if authenticated
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Empty dependency array ensures it runs only once
 
   useEffect(() => {
@@ -275,7 +278,7 @@ const AdminPage = () => {
               </Link>
 
               <button
-                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-800"
+                className="flex items-center gap-2 text-white bg-wh py-2 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-800"
                 onClick={handleLogout}
               >
                 <span>Logout</span>
@@ -378,7 +381,7 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Updated at")}
+                    onClick={() => handleSort("Needs Help")}
                   >
                     <div className="flex items-center text-white">
                       Needs Help
@@ -446,14 +449,10 @@ const AdminPage = () => {
                       <TableCell className="max-sm:hidden ">
                         {userRoleIcons[user.role] ? (
                           <div className="flex items-center gap-2">
-                            <span className={userRoleIcons[user.role].color}>
-                              {userRoleIcons[user.role].icon}
-                            </span>
                             <span className="capitalize">{user.role}</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className="text-amber-500"></span>
                             <span>Unknown</span>
                           </div>
                         )}
@@ -464,7 +463,7 @@ const AdminPage = () => {
                           const date = new Date(user.last_chat_date || 0);
                           return (
                             <div>
-                              <p className="text-muted-foreground">{moment(date).fromNow()}</p>
+                              <p className="text-muted-foreground">{user.last_chat_date ? moment(date).fromNow() : "--"}</p>
                             </div>
                           );
                         })()}

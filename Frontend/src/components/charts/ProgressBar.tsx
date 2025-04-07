@@ -42,22 +42,34 @@ const ProgressBar = ({
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-4 gap-3 mt-5 cursor-default">
-        <div className="w-full py-3 px-4 flex flex-col gap-0.4 items-center bg-primary/25 rounded-md">
-          <span className="opacity-80 uppercase text-xs font-bold tracking-wide">Poor</span>
-          <span className="font-semibold">{moodData["Poor"]}</span>
+      <div className="flex flex-col gap-3 mt-10 cursor-default">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-4 bg-primary/25 rounded-sm"></div>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">Poor</span>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">
+            ({moodData.Poor})
+          </span>
         </div>
-        <div className="w-full py-3 px-4 flex flex-col gap-0.4 items-center bg-primary/50 rounded-md">
-          <span className="opacity-80 uppercase text-xs font-bold tracking-wide">Average</span>
-          <span className="font-semibold">{moodData["Average"]}</span>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-4 bg-primary/50 rounded-sm"></div>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">Average</span>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">
+            ({moodData.Average})
+          </span>
         </div>
-        <div className="w-full py-3 px-4 flex flex-col gap-0.4 items-center bg-primary/75 rounded-md text-black">
-          <span className="opacity-80 uppercase text-xs font-bold tracking-wide">Good</span>
-          <span className="font-semibold">{moodData["Good"]}</span>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-4 bg-primary/75 rounded-sm"></div>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">Good</span>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">
+            ({moodData.Good})
+          </span>
         </div>
-        <div className="w-full py-3 px-4 flex flex-col gap-0.4 items-center bg-primary rounded-md text-black">
-          <span className="opacity-80 uppercase text-xs font-bold tracking-wide">Excellent</span>
-          <span className="font-semibold">{moodData["Excellent"]}</span>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-4 bg-primary rounded-sm"></div>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">Excellent</span>
+          <span className="opacity-80 uppercase text-sm font-bold tracking-wide">
+            ({moodData.Excellent})
+          </span>
         </div>
       </div>
     </div>

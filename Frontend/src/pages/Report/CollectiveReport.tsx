@@ -166,8 +166,8 @@ const CollectiveReport = () => {
   }, []);
 
   const chartColors = {
-    primary: "#e0b200",
-    accent:  "#e0b20005",
+    primary: "#6aad43",
+    accent:  "#1c1f1a",
     background: "#171717",
     text: "#D4D4D4",
   };
