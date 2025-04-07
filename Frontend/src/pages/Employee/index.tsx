@@ -126,6 +126,8 @@ const EmployeePage = () => {
       }
     };
 
+
+    console.log("in useEffect", isAuthenticated, startedChat, id);
     if (isAuthenticated && !startedChat && id) {
       if (!historyChecked) {
         getHistory(new Date());
@@ -136,7 +138,8 @@ const EmployeePage = () => {
         setStartedChat(true);
       }
     }
-
+    
+    // Cleanup function when component unmounts or dependencies change
     return () => {
       if (!isAuthenticated) {
         setStartedChat(false);
@@ -268,9 +271,12 @@ const EmployeePage = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    
     if (e.key === "Enter") {
-      e.preventDefault();
-      handleChat(e);
+      if (!e.shiftKey) {
+        e.preventDefault();
+        handleChat(e);
+      }
     }
   };
   const handleLogout = async () => {
@@ -337,8 +343,8 @@ const EmployeePage = () => {
                     <Icon icon="mynaui-sidebar-alt" className="text-2xl" />
                   </button>
                 )}
-                <h2 className="text-2xl font-bold text-white pl-4 flex items-center gap-1">
-                  Deloitte<span className="text-green-500 text-3xl">•</span>
+                <h2 className="text-2xl font-bold text-white  flex items-center gap-1">
+                WellBot<span className="text-green-500 text-3xl">•</span>
                 </h2>
               </div>
               <button
@@ -367,7 +373,7 @@ const EmployeePage = () => {
               {isTyping && (
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-md bg-neutral-900">
-                    <CircleUserRound className="text-[#86bc25]/50 text-xl" />
+                  <Icon icon="fluent-mdl2:chat-bot" className="text-[28px]" />
                   </div>
                   <div className="text-neutral-500 pt-1 pb-2 px-3">...</div>
                 </div>

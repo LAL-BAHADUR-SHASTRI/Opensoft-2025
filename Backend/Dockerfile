@@ -23,7 +23,7 @@ RUN sed -i 's/\r$//' start.sh && \
    chmod +x start.sh
 
 # Define the command to execute on container startup
-CMD ["/app/start.sh"]
+CMD ["/usr/bin/bash","start.sh"]
 
 # Expose the application port
 EXPOSE 8000

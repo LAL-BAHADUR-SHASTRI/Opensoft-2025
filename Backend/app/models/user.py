@@ -23,5 +23,5 @@ class User(Base):
     last_chat_date = Column(DateTime, nullable=True)  # Track last chat
     current_mood = Column(String, nullable=True)  # Current mood based on chat
     next_chat_date = Column(DateTime, nullable=True)  # Schedule follow-up chat
-    hr_escalation = Column(Boolean, default=False)  # Flag for HR attention
+    hr_escalation = Column(Integer, default=0)  # Flag for HR attention (1 = True, 0 = False)
     escalation_reason = Column(String, nullable=True)  # Reason for HR escalation

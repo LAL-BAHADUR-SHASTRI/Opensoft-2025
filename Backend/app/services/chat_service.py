@@ -222,7 +222,7 @@ class ChatService:
                 user.escalation_reason = analysis.get('escalation_reason', 'No specific reason provided')
                 # Set HR escalation flags if needed
                 if 'hr_escalation' in analysis and analysis['hr_escalation']:
-                    user.hr_escalation = True
+                    user.hr_escalation = 1
                 
                 # Get explanation/comments for vibe meter
                 mood_explanation = analysis.get('mood_explanation', '')
@@ -339,7 +339,7 @@ class ChatService:
                 raise HTTPException(status_code=404, detail=f"User not found for employee ID: {employee_id}")
             
             # Clear escalation flags
-            user.hr_escalation = False
+            user.hr_escalation = 0
             user.escalation_reason = None
             
             self.db.commit()

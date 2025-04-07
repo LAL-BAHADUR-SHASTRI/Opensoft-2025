@@ -49,7 +49,7 @@ interface UserType {
   employee_id: string;
   last_login_date: string | null;
   last_chat_date: string | null;
-  hr_escalation: boolean;
+  hr_escalation: number;
   next_chat_data: string | null;
   escalation_reason: string | null;
   current_mood?: string | null;
@@ -119,6 +119,7 @@ const AdminPage = () => {
   const { isAuthenticated, isLoading, role } = useAuthContext();
   const { setEmployeeIds } = useReportContext();
   const [showReportBtn, setShowReportBtn] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -127,16 +128,18 @@ const AdminPage = () => {
         });
 
         if (response.status === 200) {
+          console.log(response.data.data);
           setData(response.data.data);
         }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         setData([]);
       }
     };
-    if(isAuthenticated && !data.length) {
+    if (isAuthenticated && !data.length) {
       fetchData();
     } // Only fetch data if authenticated
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // Empty dependency array ensures it runs only once
 
   useEffect(() => {
@@ -144,7 +147,6 @@ const AdminPage = () => {
     setEmployeeIds(ids);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRows]);
-
 
   useEffect(() => {
     if (!isLoading) {
@@ -182,20 +184,32 @@ const AdminPage = () => {
       setSortDirection("asc");
     }
   };
-
   const sortedData = Array.isArray(filteredData)
-    ? [...filteredData].sort((a, b) => {
-        if (!sortColumn) return 0;
+  ? [...filteredData].sort((a, b) => {
+      if (!sortColumn) return 0;
 
-        const valA = a[sortColumn as keyof UserType];
-        const valB = b[sortColumn as keyof UserType];
+      let valA = a[sortColumn as keyof UserType];
+      let valB = b[sortColumn as keyof UserType];
 
-        if (valA == null || valB == null) return 0;
-        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-        return 0;
-      })
-    : [];
+      if (valA == null || valB == null) return 0;
+
+      // Special handling for employee_id formatted like "emp23"
+      if (sortColumn === "employee_id") {
+        // Extract numeric part from the strings
+        const matchA = typeof valA === "string" ? valA.match(/\d+/) : null;
+        const matchB = typeof valB === "string" ? valB.match(/\d+/) : null;
+
+        const numA = matchA ? parseInt(matchA[0], 10) : 0;
+        const numB = matchB ? parseInt(matchB[0], 10) : 0;
+        return sortDirection === "asc" ? numA - numB : numB - numA;
+      }
+
+      // Fallback to default comparison for other columns
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    })
+  : [];
 
   const paginatedData =
     pageSize > sortedData.length
@@ -250,7 +264,7 @@ const AdminPage = () => {
       if (response.status === 200) {
         navigate("/admin/auth");
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       alert("Error logging out!");
     }
@@ -263,7 +277,9 @@ const AdminPage = () => {
         <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white pb-6">
           <div className="flex justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
             <div className="flex items-center">
-              <h2 className="text-2xl tracking-wide font-medium text-neutral-100">Deloitte</h2>
+            <h2 className="text-2xl font-bold text-white  flex items-center gap-1">
+                WellBot<span className="text-green-500 text-3xl">•</span>
+                </h2>
             </div>
             <div className="flex items-center gap-2">
               <Link
@@ -275,7 +291,7 @@ const AdminPage = () => {
               </Link>
 
               <button
-                className="flex items-center gap-2 text-white bg-wh pt-2 pb-3 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-800"
+                className="flex items-center gap-2 text-white bg-wh py-2 pl-4 pr-3 border-2 border-neutral-800 rounded-md cursor-pointer hover:bg-neutral-800"
                 onClick={handleLogout}
               >
                 <span>Logout</span>
@@ -334,7 +350,7 @@ const AdminPage = () => {
                     />
                   </TableHead>
 
-                  <TableHead className="cursor-pointer " onClick={() => handleSort("Name")}>
+                  <TableHead className="cursor-pointer " onClick={() => handleSort("employee_id")}>
                     <div className="ml-5 flex items-center text-white">
                       Employee
                       {sortColumn === "Name" &&
@@ -348,7 +364,7 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Role")}
+                    onClick={() => handleSort("department")}
                   >
                     <div className="flex items-center text-white">
                       Department
@@ -363,7 +379,7 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Updated at")}
+                    onClick={() => handleSort("last_chat_data")}
                   >
                     <div className="flex items-center text-white">
                       Updated At
@@ -378,11 +394,11 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Updated at")}
+                    onClick={() => handleSort("hr_escalation")}
                   >
                     <div className="flex items-center text-white">
                       Needs Help
-                      {sortColumn === "Updated at" &&
+                      {sortColumn === "hr_escalation" &&
                         (sortDirection === "asc" ? (
                           <ChevronUp className="ml-1 h-4 w-4" />
                         ) : (
@@ -391,15 +407,9 @@ const AdminPage = () => {
                     </div>
                   </TableHead>
 
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("Status")}>
+                  <TableHead className="cursor-pointer">
                     <div className="flex items-center text-white">
                       Status
-                      {sortColumn === "Status" &&
-                        (sortDirection === "asc" ? (
-                          <ChevronUp className="ml-1 h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="ml-1 h-4 w-4" />
-                        ))}
                     </div>
                   </TableHead>
 
@@ -473,15 +483,19 @@ const AdminPage = () => {
                       <TableCell className=" max-md:hidden">
                         {(() => {
                           return (
-                            <div>
+                            <div className="flex">
                               <div
-                                className={`py-0.5 px-2 text-sm rounded-md ${
-                                  user.hr_escalation ? "bg-red-700" : "bg-green-700"
+                                className={`py-0.5 px-3 text-sm rounded-sm ${
+                                  user.hr_escalation ? "bg-red-600/20" : "bg-green-700/30"
                                 } w-fit`}
                               >
-                                <p className="text-white">{`${
-                                  user.hr_escalation ? "Yes!" : "No"
-                                }`}</p>
+                                <p
+                                  className={`${
+                                    user.hr_escalation ? "text-red-500" : "text-green-500"
+                                  }`}
+                                >
+                                  {`${user.hr_escalation ? "Yes!" : "No"}`}
+                                </p>
                               </div>
                             </div>
                           );
@@ -497,18 +511,62 @@ const AdminPage = () => {
                               : "bg-neutral-800"
                           } capitalize`}
                         >
-                          {user.current_mood ? zoneMappings[user.current_mood.toLowerCase()] : "Unknown"}
+                          {user.current_mood
+                            ? zoneMappings[user.current_mood.toLowerCase()]
+                            : "Unknown"}
                         </div>
                       </TableCell>
 
                       <TableCell>
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-2">
                           <Link
                             to={`/report/employee/${user.employee_id}`}
                             className="p-1.5 hover:bg-neutral-800 rounded-sm"
                           >
                             <FileDown className="h-4 w-4" />
                           </Link>
+                          {user.hr_escalation == 1 ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="bg-inherit hover:bg-neutral-800 hover:text-white cursor-pointer border-none text-white"
+                              onClick={async () => {
+                                try {
+                                  // Replace with your actual API endpoint to resolve HR escalation
+                                  await apiClient.post(
+                                    `/hr/resolve-escalation/${user.employee_id}`,
+                                    {},
+                                    { withCredentials: true }
+                                  );
+
+                                  // Update local state
+                                  setData((prevData) =>
+                                    prevData.map((u) =>
+                                      u.employee_id === user.employee_id
+                                        ? { ...u, hr_escalation: 0 }
+                                        : u
+                                    )
+                                  );
+                                } catch (error) {
+                                  console.error("Failed to resolve issue:", error);
+                                  alert("Failed to resolve the issue. Please try again.");
+                                }
+                              }}
+                            >
+                              {/* <Icon icon="heroicons:check" /> */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="256"
+                                height="256"
+                                viewBox="0 0 512 512"
+                              >
+                                <path
+                                  fill="currentColor"
+                                  d="m199.066 456l-7.379-7.514l-3.94-3.9l-86.2-86.2l.053-.055l-83.664-83.666l97.614-97.613l83.565 83.565L398.388 61.344L496 158.958L296.729 358.229l-11.26 11.371ZM146.6 358.183l52.459 52.46l.1-.1l.054.054l52.311-52.311l11.259-11.368l187.963-187.96l-52.358-52.358l-199.273 199.271l-83.565-83.565l-52.359 52.359l83.464 83.463Z"
+                                />
+                              </svg>
+                            </Button>
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>

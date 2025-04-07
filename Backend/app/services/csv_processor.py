@@ -514,25 +514,27 @@ class CSVProcessor:
         
         return tables
     
-    def get_table_data(self, table_name: str, limit: int = 100, offset: int = 0):
-        """
-        Get data from a specific table with pagination
-        """
-        table_class = self.get_table_class(table_name)
-        if not table_class:
-            raise ValueError(f"Table {table_name} not found")
-        
-        # Query with pagination and explicit ordering
-        # Special handling for users table to ensure consistent ordering
-        if table_name.lower() == "users":
-            # Use explicit ordering by ID to ensure consistent results
-            rows = self.db.query(table_class).order_by(table_class.id).offset(offset).limit(limit).all()
-        else:
-            # For other tables, use default ordering
-            rows = self.db.query(table_class).offset(offset).limit(limit).all()
-        
-        # Convert SQLAlchemy objects to dictionaries
-        return [row.__dict__ for row in rows]
+    def get_table_data(self, table_name, limit=None, offset=0):
+        """Get data from a table with pagination"""
+        try:
+            # Get the SQLAlchemy model for the table
+            model = self._get_model_from_table_name(table_name)
+            
+            # Build query with ordering
+            query = self.db.query(model).order_by(model.id)
+            
+            # Apply pagination only if limit is specified
+            if limit is not None:
+                query = query.offset(offset).limit(limit)
+            else:
+                query = query.offset(offset)  # No limit, fetch all after offset
+                
+            # Execute query and convert results to dictionaries
+            results = query.all()
+            return [row.__dict__ for row in results]
+        except Exception as e:
+            self.logger.error(f"Error getting data from {table_name}: {str(e)}")
+            raise
 
     def get_table_count(self, table_name: str):
         """
