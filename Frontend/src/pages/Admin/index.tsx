@@ -474,7 +474,9 @@ const AdminPage = () => {
                           const date = new Date(user.last_chat_date || 0);
                           return (
                             <div>
-                              <p className="text-muted-foreground">{moment(date).fromNow()}</p>
+                              <p className="text-muted-foreground">
+                                {user.last_chat_date ? moment(date).fromNow() : "--"}
+                              </p>
                             </div>
                           );
                         })()}
