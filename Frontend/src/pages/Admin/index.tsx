@@ -417,150 +417,149 @@ const AdminPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedData.map((user, index) =>
-                    paginatedData.map((user, index) => (
-                      <TableRow
-                        key={index}
-                        className={`${
-                          selectedRows[user.employee_id] ? "bg-neutral-900" : ""
-                        } border-neutral-800 hover:bg-neutral-900/50`}
-                      >
-                        <TableCell className="">
-                          <Checkbox
-                            className="cursor-pointer ml-5 border-neutral-600"
-                            checked={!!selectedRows[user.employee_id]}
-                            onCheckedChange={() => toggleRowSelected(user.employee_id)}
-                          />
-                        </TableCell>
+                  // paginatedData.map((user, index) =>
+                  paginatedData.map((user, index) => (
+                    <TableRow
+                      key={index}
+                      className={`${
+                        selectedRows[user.employee_id] ? "bg-neutral-900" : ""
+                      } border-neutral-800 hover:bg-neutral-900/50`}
+                    >
+                      <TableCell className="">
+                        <Checkbox
+                          className="cursor-pointer ml-5 border-neutral-600"
+                          checked={!!selectedRows[user.employee_id]}
+                          onCheckedChange={() => toggleRowSelected(user.employee_id)}
+                        />
+                      </TableCell>
 
-                        <TableCell>
-                          <div className="flex items-center gap-3 ml-5">
-                            <Avatar className="h-9 w-9">
-                              <AvatarFallback>
-                                {getAvatar({ name: user.username, dp: "" })}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{user.employee_id}</p>
-                            </div>
+                      <TableCell>
+                        <div className="flex items-center gap-3 ml-5">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback>
+                              {getAvatar({ name: user.username, dp: "" })}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.employee_id}</p>
                           </div>
-                        </TableCell>
+                        </div>
+                      </TableCell>
 
-                        <TableCell className="max-sm:hidden ">
-                          {userRoleIcons[user.role] ? (
-                            <div className="flex items-center gap-2">
-                              <span className={userRoleIcons[user.role].color}>
-                                {userRoleIcons[user.role].icon}
-                              </span>
-                              <span className="capitalize">{user.role}</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="text-amber-500"></span>
-                              <span>Unknown</span>
-                            </div>
-                          )}
-                        </TableCell>
-
-                        <TableCell className=" max-md:hidden">
-                          {(() => {
-                            const date = new Date(user.last_chat_date || 0);
-                            return (
-                              <div>
-                                <p className="text-muted-foreground">{moment(date).fromNow()}</p>
-                              </div>
-                            );
-                          })()}
-                        </TableCell>
-
-                        <TableCell className=" max-md:hidden">
-                          {(() => {
-                            return (
-                              <div className="flex">
-                                <div
-                                  className={`py-0.5 px-2 text-sm rounded-md ${
-                                    user.hr_escalation ? "bg-red-700" : "bg-green-700"
-                                  } w-fit`}
-                                >
-                                  <p className="text-white">
-                                    {`${user.hr_escalation ? "Yes!" : "No"}`}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </TableCell>
-
-                        <TableCell>
-                          <div
-                            className={`w-fit py-0.5 px-2 text-sm rounded-md ${
-                              user.current_mood
-                                ? userStatusColors[user.current_mood.toLowerCase()] ||
-                                  "bg-neutral-200"
-                                : "bg-neutral-800"
-                            } capitalize`}
-                          >
-                            {user.current_mood
-                              ? zoneMappings[user.current_mood.toLowerCase()]
-                              : "Unknown"}
-                          </div>
-                        </TableCell>
-
-                        <TableCell>
+                      <TableCell className="max-sm:hidden ">
+                        {userRoleIcons[user.role] ? (
                           <div className="flex items-center gap-2">
-                            <Link
-                              to={`/report/employee/${user.employee_id}`}
-                              className="p-1.5 hover:bg-neutral-800 rounded-sm"
-                            >
-                              <FileDown className="h-4 w-4" />
-                            </Link>
-                            {user.hr_escalation == 1 ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="bg-inherit hover:bg-neutral-800 hover:text-white cursor-pointer border-none text-white"
-                                onClick={async () => {
-                                  try {
-                                    // Replace with your actual API endpoint to resolve HR escalation
-                                    await apiClient.post(
-                                      `/hr/resolve-escalation/${user.employee_id}`,
-                                      {},
-                                      { withCredentials: true }
-                                    );
-
-                                    // Update local state
-                                    setData((prevData) =>
-                                      prevData.map((u) =>
-                                        u.employee_id === user.employee_id
-                                          ? { ...u, hr_escalation: 0 }
-                                          : u
-                                      )
-                                    );
-                                  } catch (error) {
-                                    console.error("Failed to resolve issue:", error);
-                                    alert("Failed to resolve the issue. Please try again.");
-                                  }
-                                }}
-                              >
-                                {/* <Icon icon="heroicons:check" /> */}
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="256"
-                                  height="256"
-                                  viewBox="0 0 512 512"
-                                >
-                                  <path
-                                    fill="currentColor"
-                                    d="m199.066 456l-7.379-7.514l-3.94-3.9l-86.2-86.2l.053-.055l-83.664-83.666l97.614-97.613l83.565 83.565L398.388 61.344L496 158.958L296.729 358.229l-11.26 11.371ZM146.6 358.183l52.459 52.46l.1-.1l.054.054l52.311-52.311l11.259-11.368l187.963-187.96l-52.358-52.358l-199.273 199.271l-83.565-83.565l-52.359 52.359l83.464 83.463Z"
-                                  />
-                                </svg>
-                              </Button>
-                            ) : null}
+                            <span className={userRoleIcons[user.role].color}>
+                              {userRoleIcons[user.role].icon}
+                            </span>
+                            <span className="capitalize">{user.role}</span>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-500"></span>
+                            <span>Unknown</span>
+                          </div>
+                        )}
+                      </TableCell>
+
+                      <TableCell className=" max-md:hidden">
+                        {(() => {
+                          const date = new Date(user.last_chat_date || 0);
+                          return (
+                            <div>
+                              <p className="text-muted-foreground">{moment(date).fromNow()}</p>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+
+                      <TableCell className=" max-md:hidden">
+                        {(() => {
+                          return (
+                            <div className="flex">
+                              <div
+                                className={`py-0.5 px-2 text-sm rounded-md ${
+                                  user.hr_escalation ? "bg-red-700" : "bg-green-700"
+                                } w-fit`}
+                              >
+                                <p className="text-white">
+                                  {`${user.hr_escalation ? "Yes!" : "No"}`}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+
+                      <TableCell>
+                        <div
+                          className={`w-fit py-0.5 px-2 text-sm rounded-md ${
+                            user.current_mood
+                              ? userStatusColors[user.current_mood.toLowerCase()] ||
+                                "bg-neutral-200"
+                              : "bg-neutral-800"
+                          } capitalize`}
+                        >
+                          {user.current_mood
+                            ? zoneMappings[user.current_mood.toLowerCase()]
+                            : "Unknown"}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to={`/report/employee/${user.employee_id}`}
+                            className="p-1.5 hover:bg-neutral-800 rounded-sm"
+                          >
+                            <FileDown className="h-4 w-4" />
+                          </Link>
+                          {user.hr_escalation == 1 ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="bg-inherit hover:bg-neutral-800 hover:text-white cursor-pointer border-none text-white"
+                              onClick={async () => {
+                                try {
+                                  // Replace with your actual API endpoint to resolve HR escalation
+                                  await apiClient.post(
+                                    `/hr/resolve-escalation/${user.employee_id}`,
+                                    {},
+                                    { withCredentials: true }
+                                  );
+
+                                  // Update local state
+                                  setData((prevData) =>
+                                    prevData.map((u) =>
+                                      u.employee_id === user.employee_id
+                                        ? { ...u, hr_escalation: 0 }
+                                        : u
+                                    )
+                                  );
+                                } catch (error) {
+                                  console.error("Failed to resolve issue:", error);
+                                  alert("Failed to resolve the issue. Please try again.");
+                                }
+                              }}
+                            >
+                              {/* <Icon icon="heroicons:check" /> */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="256"
+                                height="256"
+                                viewBox="0 0 512 512"
+                              >
+                                <path
+                                  fill="currentColor"
+                                  d="m199.066 456l-7.379-7.514l-3.94-3.9l-86.2-86.2l.053-.055l-83.664-83.666l97.614-97.613l83.565 83.565L398.388 61.344L496 158.958L296.729 358.229l-11.26 11.371ZM146.6 358.183l52.459 52.46l.1-.1l.054.054l52.311-52.311l11.259-11.368l187.963-187.96l-52.358-52.358l-199.273 199.271l-83.565-83.565l-52.359 52.359l83.464 83.463Z"
+                                />
+                              </svg>
+                            </Button>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
