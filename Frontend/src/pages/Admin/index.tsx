@@ -184,20 +184,32 @@ const AdminPage = () => {
       setSortDirection("asc");
     }
   };
-
   const sortedData = Array.isArray(filteredData)
-    ? [...filteredData].sort((a, b) => {
-        if (!sortColumn) return 0;
+  ? [...filteredData].sort((a, b) => {
+      if (!sortColumn) return 0;
 
-        const valA = a[sortColumn as keyof UserType];
-        const valB = b[sortColumn as keyof UserType];
+      let valA = a[sortColumn as keyof UserType];
+      let valB = b[sortColumn as keyof UserType];
 
-        if (valA == null || valB == null) return 0;
-        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-        return 0;
-      })
-    : [];
+      if (valA == null || valB == null) return 0;
+
+      // Special handling for employee_id formatted like "emp23"
+      if (sortColumn === "employee_id") {
+        // Extract numeric part from the strings
+        const matchA = typeof valA === "string" ? valA.match(/\d+/) : null;
+        const matchB = typeof valB === "string" ? valB.match(/\d+/) : null;
+
+        const numA = matchA ? parseInt(matchA[0], 10) : 0;
+        const numB = matchB ? parseInt(matchB[0], 10) : 0;
+        return sortDirection === "asc" ? numA - numB : numB - numA;
+      }
+
+      // Fallback to default comparison for other columns
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    })
+  : [];
 
   const paginatedData =
     pageSize > sortedData.length
@@ -265,7 +277,9 @@ const AdminPage = () => {
         <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white pb-6">
           <div className="flex justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
             <div className="flex items-center">
-              <h2 className="text-2xl tracking-wide font-medium text-neutral-100">Deloitte</h2>
+            <h2 className="text-2xl font-bold text-white  flex items-center gap-1">
+                WellBot<span className="text-green-500 text-3xl">•</span>
+                </h2>
             </div>
             <div className="flex items-center gap-2">
               <Link

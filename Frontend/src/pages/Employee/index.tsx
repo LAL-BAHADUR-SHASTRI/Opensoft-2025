@@ -14,7 +14,7 @@ const EmployeePage = () => {
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string>("");
   const [startedChat, setStartedChat] = useState<boolean>(false);
-  const [menuOpen, setMenuOpen] = useState<boolean>(true);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<
     { sender: string; id: number; content: string; time: string; date: string }[]
@@ -246,8 +246,8 @@ const EmployeePage = () => {
                     <Icon icon="mynaui-sidebar-alt" className="text-2xl" />
                   </button>
                 )}
-                <h2 className="text-2xl font-bold text-white pl-4 flex items-center gap-1">
-                  Deloitte<span className="text-green-500 text-3xl">•</span>
+                <h2 className="text-2xl font-bold text-white  flex items-center gap-1">
+                WellBot<span className="text-green-500 text-3xl">•</span>
                 </h2>
               </div>
               <button
@@ -276,7 +276,7 @@ const EmployeePage = () => {
               {isTyping && (
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-md bg-neutral-900">
-                    <CircleUserRound className="text-[#86bc25]/50 text-xl" />
+                  <Icon icon="fluent-mdl2:chat-bot" className="text-[28px]" />
                   </div>
                   <div className="text-neutral-500 pt-1 pb-2 px-3">...</div>
                 </div>
