@@ -478,11 +478,15 @@ const AdminPage = () => {
                           return (
                             <div className="flex">
                               <div
-                                className={`py-0.5 px-2 text-sm rounded-md ${
-                                  user.hr_escalation ? "bg-red-700" : "bg-green-700"
+                                className={`py-0.5 px-3 text-sm rounded-sm ${
+                                  user.hr_escalation ? "bg-red-600/20" : "bg-green-700/30"
                                 } w-fit`}
                               >
-                                <p className="text-white">
+                                <p
+                                  className={`${
+                                    user.hr_escalation ? "text-red-500" : "text-green-500"
+                                  }`}
+                                >
                                   {`${user.hr_escalation ? "Yes!" : "No"}`}
                                 </p>
                               </div>
