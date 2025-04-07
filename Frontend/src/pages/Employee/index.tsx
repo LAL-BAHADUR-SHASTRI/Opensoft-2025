@@ -32,10 +32,6 @@ const EmployeePage = () => {
   const [chatDate, setChatDate] = useState<string>(new Date().toDateString());
 
   useEffect(() => {
-    localStorage.clear();
-  },[]);
-
-  useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated || role !== "employee") {
         navigate("/auth");
@@ -57,6 +53,7 @@ const EmployeePage = () => {
   };
 
   const getHistory = async (date: Date) => {
+    setSessionEnded(false);
     console.log(id, "in history");
     try {
       const response = await apiClient.get(routes.CHAT_HISTORY, {
@@ -64,7 +61,6 @@ const EmployeePage = () => {
         withCredentials: true,
       });
       const formattedMessages = formatHistoryMessages(response.data.messages);
-      localStorage.setItem(`chatMessages_${id}`, JSON.stringify(formattedMessages));
       setChatMessages(formattedMessages);
       if (formattedMessages.length > 0) {
         setSessionId(response.data.messages[0].session_id);
@@ -85,18 +81,6 @@ const EmployeePage = () => {
       return;
     }
 
-    const savedChats = localStorage.getItem(`chatMessages_${id}`)
-      ? JSON.parse(localStorage.getItem(`chatMessages_${id}`)!)
-      : [];
-    if (savedChats) {
-      try {
-        const parsedChats = savedChats;
-        setChatMessages(parsedChats);
-      } catch (error) {
-        console.error("Error parsing chat messages from localStorage:", error);
-      }
-    }
-
     const getSessionId = async () => {
       try {
         const response = await apiClient.post(
@@ -110,7 +94,7 @@ const EmployeePage = () => {
 
         setSessionId(response.data.session_id);
 
-        if (!savedChats?.length) {
+        if (!chatMessages?.length) {
           const initialMessage = {
             sender: "assistant",
             id: 1,
@@ -120,7 +104,6 @@ const EmployeePage = () => {
           };
 
           setChatMessages([initialMessage]);
-          localStorage.setItem(`chatMessages_${id}`, JSON.stringify([initialMessage]));
         }
       } catch (error) {
         console.error("Error starting chat:", error);
@@ -140,7 +123,6 @@ const EmployeePage = () => {
       }
     }
     
-    // Cleanup function when component unmounts or dependencies change
     return () => {
       if (!isAuthenticated) {
         setStartedChat(false);
@@ -184,6 +166,10 @@ const EmployeePage = () => {
         minute: "2-digit",
       });
 
+      if (raw.is_from_user) {
+        setSessionEnded(true);
+      }
+
       return [
         {
           sender: "assistant",
@@ -217,7 +203,6 @@ const EmployeePage = () => {
 
     setChatMessages((prev) => {
       const updatedMessages = [...prev, newMessage];
-      localStorage.setItem(`chatMessages_${id}`, JSON.stringify(updatedMessages));
       return updatedMessages;
     });
 
@@ -259,7 +244,6 @@ const EmployeePage = () => {
 
         setChatMessages((prev) => {
           const updatedMessages = [...prev, assistantMessage];
-          localStorage.setItem(`chatMessages_${id}`, JSON.stringify(updatedMessages));
           return updatedMessages;
         });
 
@@ -282,23 +266,20 @@ const EmployeePage = () => {
   };
   const handleLogout = async () => {
     try {
-      isLoggingOut.current = true; // Set flag before any state changes
-      setStartedChat(false);
+      isLoggingOut.current = true;
       setSessionId("");
 
       const response = await apiClient.post(routes.LOGOUT, {}, { withCredentials: true });
       if (response.status === 200) {
-        localStorage.removeItem(`chatMessages_${id}`); // Clear chat history from local storage
-        logout(); // Call the logout function from context
+        setChatMessages([]);
+        logout();
         navigate("/auth");
       }
     } catch (error) {
       console.error("Error logging out:", error);
-      isLoggingOut.current = false; // Reset flag if logout fails
+      isLoggingOut.current = false;
     }
   };
-  // Filter messages based on the selected date
-  // const filteredMessages = chatMessages.filter((message) => message.date === chatDate);
   return (
     <>
       {isLoading && <Loader></Loader>}
@@ -324,7 +305,7 @@ const EmployeePage = () => {
               <Calendar
                 chatDate={chatDate}
                 chatHistory={chatDates}
-                setChatDate={setChatDate} // Pass setChatDate function to the Calendar
+                setChatDate={setChatDate}
               />
             </div>
           </div>
