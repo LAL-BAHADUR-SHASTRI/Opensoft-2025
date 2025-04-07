@@ -390,7 +390,7 @@ async def process_answer(
                         "neutral": 25,
                         "negative": 10
                     },
-                    "hr_escalation": False,
+                    "hr_escalation": 0,
                     "recommendations": [
                         "Continue team building activities",
                         "Provide more feedback on work progress"
@@ -545,7 +545,7 @@ async def get_employees_needing_attention(
     """Get list of employees flagged for HR attention."""
     try:
         # Try to use the real implementation
-        users = db.query(User).filter(User.hr_escalation == True).all()
+        users = db.query(User).filter(User.hr_escalation == 1).all()
         
         return {
             "employees": [

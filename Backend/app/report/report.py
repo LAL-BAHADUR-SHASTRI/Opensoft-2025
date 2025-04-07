@@ -77,7 +77,7 @@ def generate_individual_report(db: Session, employee_id: str):
     return report
 
 def generate_collective_report(db: Session):
-    users = db.query(User).filter(User.hr_escalation == True).all()
+    users = db.query(User).filter(User.hr_escalation == 1).all()
     employees = db.query(Employee).all()
     activities = db.query(ActivityTracker).all()
     leaves = db.query(LeaveTracker).all()
@@ -139,7 +139,7 @@ def generate_collective_report(db: Session):
     return report
 
 def generate_selective_report(db: Session, employee_ids: List[str]):
-    users = db.query(User).filter(User.employee_id.in_(employee_ids)).filter(User.hr_escalation == True).all()
+    users = db.query(User).filter(User.employee_id.in_(employee_ids)).filter(User.hr_escalation == 1).all()
     employees = db.query(Employee).filter(Employee.employee_id.in_(employee_ids)).all()
     activities = db.query(ActivityTracker).filter(ActivityTracker.employee_id.in_(employee_ids)).all()
     leaves = db.query(LeaveTracker).filter(LeaveTracker.employee_id.in_(employee_ids)).all()
