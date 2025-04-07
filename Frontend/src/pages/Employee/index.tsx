@@ -34,8 +34,7 @@ const EmployeePage = () => {
 
   const [showVoiceBtn, setShowVoiceBtn] = useState(true);
 
-  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
-    useSpeechRecognition();
+  const { transcript, listening, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true });
 
@@ -150,6 +149,7 @@ const EmployeePage = () => {
         setSessionId("");
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, id, startedChat, sessionId, historyChecked]);
 
   useEffect(() => {
@@ -169,7 +169,7 @@ const EmployeePage = () => {
       }
     };
     getChatDates();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -177,7 +177,7 @@ const EmployeePage = () => {
       const date = new Date(chatDate);
       getHistory(date);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatDate]);
 
   const formatHistoryMessages = (messages: any[]) => {
@@ -392,27 +392,27 @@ const EmployeePage = () => {
                   className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
                 />
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (listening) {
-                        SpeechRecognition.stopListening();
-                      } else {
-                        startListening();
-                      }
-                    }}
-                    className="text-2xl py-1.5 px-1.5 grid place-content-center hover:bg-neutral-800 transition-all rounded-md"
-                  >
-                    {listening ? (
-                      <span className="text-red-500 grid place-content-center">
-                        <Icon icon="fluent:mic-off-24-regular" />
-
-                      </span>
-                    ) : (
-                      <Icon icon="fluent:mic-24-regular" />
-
-                    )}
-                  </button>
+                  {showVoiceBtn && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (listening) {
+                          SpeechRecognition.stopListening();
+                        } else {
+                          startListening();
+                        }
+                      }}
+                      className="text-2xl py-1.5 px-1.5 grid place-content-center hover:bg-neutral-800 transition-all rounded-md"
+                    >
+                      {listening ? (
+                        <span className="text-red-500 grid place-content-center">
+                          <Icon icon="fluent:mic-off-24-regular" />
+                        </span>
+                      ) : (
+                        <Icon icon="fluent:mic-24-regular" />
+                      )}
+                    </button>
+                  )}
                   <button
                     className="text-2xl cursor-pointer p-1.5 grid place-content-center hover:bg-neutral-800 rounded-md transition-all"
                     onClick={handleChat}
