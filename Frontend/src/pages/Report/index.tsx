@@ -39,7 +39,7 @@ const ReportPage = () => {
             >
               <Icon icon={"oui-arrow-left"} />
             </button>
-            <h2 className="text-3xl font-extralight">Employee/s Report</h2>
+            <h2 className="text-3xl font-extralight">Employee's Report</h2>
           </header>
 
           <Outlet />

@@ -188,8 +188,8 @@ const AdminPage = () => {
   ? [...filteredData].sort((a, b) => {
       if (!sortColumn) return 0;
 
-      let valA = a[sortColumn as keyof UserType];
-      let valB = b[sortColumn as keyof UserType];
+      const valA = a[sortColumn as keyof UserType];
+      const valB = b[sortColumn as keyof UserType];
 
       if (valA == null || valB == null) return 0;
 
@@ -419,9 +419,9 @@ const AdminPage = () => {
 
               <TableBody>
                 {paginatedData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={13} className="text-center">
-                      No data available
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={13} className="text-center py-5">
+                      No data available. Please <Link to={"/admin/upload"} className="text-primary">upload files</Link> to proceed!
                     </TableCell>
                   </TableRow>
                 ) : (
