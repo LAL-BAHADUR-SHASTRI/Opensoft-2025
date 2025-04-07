@@ -198,7 +198,7 @@ async def get_tables(
 @app.get("/data/{table_name}", tags=["data"])
 async def get_table_data(
     table_name: str, 
-    limit: int = 100,
+    limit: Optional[int] = None,  # Changed from default 100 to Optional with default None
     offset: int = 0,
     db: Session = Depends(get_db),
     current_user: User = Depends(is_hr)  # Only HR can access all data
@@ -208,7 +208,7 @@ async def get_table_data(
     
     Parameters:
     - table_name: Name of the table to fetch data from
-    - limit: Maximum number of records to return (default: 100)
+    - limit: Maximum number of records to return (None for all records)
     - offset: Number of records to skip (default: 0)
     """
     try:
@@ -219,9 +219,14 @@ async def get_table_data(
             # Get all employee users with explicit ordering
             query = db.query(User).filter(User.role == UserRole.EMPLOYEE).order_by(User.id)
             
-            # Apply pagination
+            # Get total count for pagination info
             total_count = query.count()
-            users = query.offset(offset).limit(limit).all()
+            
+            # Apply pagination only if limit is specified
+            if limit is not None:
+                users = query.offset(offset).limit(limit).all()
+            else:
+                users = query.offset(offset).all()  # No limit, fetch all records
             
             # Convert to dictionaries
             filtered_data = [user.__dict__ for user in users]
@@ -232,11 +237,12 @@ async def get_table_data(
                     "total": total_count,
                     "limit": limit,
                     "offset": offset,
-                    "has_more": (offset + limit) < total_count
+                    "has_more": limit is not None and (offset + limit) < total_count
                 }
             }
         else:
             # For all other tables, use the standard processor with pagination
+            # Pass None to get_table_data to indicate no limit
             data = processor.get_table_data(table_name, limit, offset)
             total_count = processor.get_table_count(table_name)
             
@@ -246,7 +252,7 @@ async def get_table_data(
                     "total": total_count,
                     "limit": limit,
                     "offset": offset,
-                    "has_more": (offset + limit) < total_count
+                    "has_more": limit is not None and (offset + limit) < total_count
                 }
             }
     except Exception as e:

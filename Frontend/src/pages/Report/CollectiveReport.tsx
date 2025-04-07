@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -6,12 +6,12 @@ import {
 } from "chart.js";
 
 import { Doughnut } from "react-chartjs-2";
-
+import { Download } from "lucide-react";
 import { apiClient, routes } from "@/lib/api";
-
+import html2canvas from 'html2canvas-pro';
 import { useLocation, useNavigate } from "react-router";
 import { useReportContext } from "@/context/ReportContext";
-
+import jsPDF from "jspdf";
 import { ProgressBar, BarChart } from "@/components/charts";
 
 ChartJS.register(
@@ -40,6 +40,7 @@ interface ReportTypes {
   "Most Common Reward Type": string;
   "Overall Mood Score": number;
   "Frequent Mood Comments": string[];
+  "Employee ID": string; // Added this property
 }
 
 const Card = ({ title, value }: { title: string; value: string | number }) => {
@@ -55,11 +56,76 @@ const Card = ({ title, value }: { title: string; value: string | number }) => {
 
 const CollectiveReport = () => {
   const location = useLocation();
+  const reportRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
   const { employeeIds } = useReportContext();
   const [reportData, setReportData] = useState<ReportTypes | null>(null);
-
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current || !reportData) return;
+  
+    try {
+      setIsGeneratingPDF(true);
+  
+      const reportElement = reportRef.current;
+      const canvas = await html2canvas(reportElement, {
+        scale: 3,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#171717"
+      });
+  
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const pxPerMm = canvas.width / imgWidth;
+      const pageHeightPx = pageHeight * pxPerMm;
+  
+      const pdf = new jsPDF('p', 'mm', 'a4');
+  
+      let renderedHeight = 0;
+      let pageNum = 0;
+  
+      const pageCanvas = document.createElement('canvas');
+      const pageCtx = pageCanvas.getContext('2d');
+  
+      while (renderedHeight < canvas.height) {
+        const sliceHeight = Math.min(pageHeightPx, canvas.height - renderedHeight);
+  
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+  
+        if (pageCtx) {
+          // Fill background color
+          pageCtx.fillStyle = "#171717";
+          pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+  
+          // Draw the sliced part of the original canvas
+          pageCtx.drawImage(
+            canvas,
+            0, renderedHeight, canvas.width, sliceHeight,
+            0, 0, canvas.width, sliceHeight
+          );
+        }
+  
+        const imgData = pageCanvas.toDataURL('image/png');
+  
+        if (pageNum > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, sliceHeight / pxPerMm);
+  
+        renderedHeight += sliceHeight;
+        pageNum++;
+      }
+  
+      pdf.save(`Employee_Report_${reportData["Employee ID"]}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+  
   useEffect(() => {
     const fetchReportAll = async () => {
       try {
@@ -167,6 +233,19 @@ const CollectiveReport = () => {
     <div className="bg-neutral-950 min-h-screen px-4 pb-10 pt-4 md:px-6 lg:pt-12 xl:px-40 2xl:px-60 text-neutral-300">
       {reportData ? (
         <>
+         <div className="flex justify-end">
+  <button
+    onClick={handleDownloadPDF}
+    disabled={isGeneratingPDF}
+    className="my-4 cursor-pointer md:mt-0 flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 py-2 px-4 rounded-lg transition-colors duration-200"
+  >
+    <Download size={18}  />
+    {isGeneratingPDF ? "Generating PDF..." : "Download as PDF"}
+  </button>
+</div>
+        <div ref={reportRef}>
+
+        
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
             <Card title="Total Employees" value={reportData["Total Employees"]} />
             <Card title="Employees for Attention!!" value={reportData["Total Attention Employees"]} />
@@ -177,6 +256,7 @@ const CollectiveReport = () => {
             />
             <Card title="Total Rewards" value={reportData["Total Rewards Given"]} />
           </div>
+        
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-neutral-900 rounded-lg shadow-md p-6">
@@ -256,6 +336,7 @@ const CollectiveReport = () => {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </>
       ) : (

@@ -1,0 +1,18 @@
+# Ignore node_modules across all directories
+**/node_modules
+
+# Ignore Python __pycache__ directories
+**/__pycache__
+
+# Ignore Python virtual environments
+**/venv
+**/.venv
+
+# Ignore Docker-related files
+.dockerignore
+Dockerfile*
+docker-compose.yml
+
+# Ignore environment variable files and configuration files that shouldn't be copied into the container
+.env
+*.env

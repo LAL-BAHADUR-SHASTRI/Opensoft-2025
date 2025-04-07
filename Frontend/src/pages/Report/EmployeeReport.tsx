@@ -15,8 +15,9 @@ import {
 } from "chart.js";
 import { Doughnut, Radar } from "react-chartjs-2";
 
-import { User, Calendar, Award, Briefcase, Star, Smile } from "lucide-react";
-
+import { User, Calendar, Award, Briefcase, Star, Smile , Download} from "lucide-react";
+import html2canvas from 'html2canvas-pro';
+import jsPDF from "jspdf";
 import { apiClient, routes } from "@/lib/api";
 
 import { BarChart } from "@/components/charts";
@@ -94,13 +95,72 @@ const userStatusColors: Record<string, string> = {
   excited: "bg-yellow-700/50 text-yellow-100",
 };
 
-const EmployeeReport: React.FC = () => {
-  const { employeeId } = useParams();
 
+const EmployeeReport: React.FC = () => {
+  const reportRef = React.useRef<HTMLDivElement>(null);
+  const { employeeId } = useParams();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [reportData, setReportData] = useState<ReportTypes | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+
+
+
+
+     
+  const handleDownloadPDF = async () => {
+
+    
+    if (!reportRef.current || !reportData) return;
+    
+    
+    try {
+      setIsGeneratingPDF(true);
+      
+      const reportElement = reportRef.current;
+      const canvas = await html2canvas(reportElement, {
+        scale: 2, 
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#171717"
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      
+      
+      const imgWidth = 210; 
+      const pageHeight = 297  ; 
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      let heightLeft = imgHeight;
+      let position = 0;
+      let pageNumber = 1;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        pageNumber++;
+      }
+      
+      pdf.save(`Employee_Report_${reportData["Employee ID"]}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
   useEffect(() => {
+   
+ 
+      
     const fetchReport = async () => {
       try {
         const response = await apiClient.post(
@@ -119,7 +179,7 @@ const EmployeeReport: React.FC = () => {
             setReportData(response.data.report);
           }
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       } catch (error) {
         setErrorMsg("Error fetching the report");
         setReportData(null);
@@ -127,7 +187,7 @@ const EmployeeReport: React.FC = () => {
     };
 
     fetchReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   const formatDate = (dateString: string): string => {
@@ -234,7 +294,8 @@ const EmployeeReport: React.FC = () => {
 
   return (
     <div className="bg-neutral-950 min-h-screen px-4 pb-4 pt-4 xl:px-40 2xl:px-60 lg:pt-12 text-neutral-300">
-      {reportData ? (
+      
+        {reportData ? (
         <>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div className="bg-neutral-900 rounded-lg px-6 py-2 flex items-center">
@@ -243,8 +304,16 @@ const EmployeeReport: React.FC = () => {
               </div>
               <div className="text-neutral-300 font-medium">{reportData["Employee ID"]}</div>
             </div>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+              className="mt-4 md:mt-0 flex items-center cursor-pointer justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 py-2 px-4 rounded-lg transition-colors duration-200"
+            >
+              <Download size={18} />
+              {isGeneratingPDF ? "Generating PDF..." : "Download as PDF"}
+            </button>
           </div>
-
+          <div ref={reportRef}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="space-y-6">
               <SectionCard title="Employee Information">
@@ -476,6 +545,7 @@ const EmployeeReport: React.FC = () => {
               </SectionCard>
             </div>
           </div>
+          </div>
         </>
       ) : (
         <div className="flex items-center gap-3 flex-col mt-10">
@@ -485,7 +555,9 @@ const EmployeeReport: React.FC = () => {
           <div>Please try again after sometime</div>
         </div>
       )}
-    </div>
+      </div>
+    
+
   );
 };
 
