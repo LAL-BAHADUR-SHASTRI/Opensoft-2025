@@ -141,3 +141,19 @@ html *::-webkit-scrollbar-thumb {
 .scrollbar-invisible::-webkit-scrollbar-thumb {
   @apply bg-transparent;
 }
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  height: 10px;
+  width: 200px;
+  --c:no-repeat linear-gradient(#6aad43 0 0);
+  background: var(--c),var(--c),#6aad4330;
+  background-size: 60% 100%;
+  animation: l16 4s infinite;
+}
+
+@keyframes l16 {
+  0%   {background-position:-150% 0,-150% 0}
+  66%  {background-position: 250% 0,-150% 0}
+  100% {background-position: 250% 0, 250% 0}
+}

@@ -128,7 +128,6 @@ const AdminPage = () => {
         });
 
         if (response.status === 200) {
-          console.log(response.data.data);
           setData(response.data.data);
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
