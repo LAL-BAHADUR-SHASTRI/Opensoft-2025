@@ -40,50 +40,79 @@ export default function Upload() {
     setOpen(false);
   };
 
-  const filePipeline = (newFiles: FileList | null) => {
+  const filePipeline = async (newFiles: FileList | null) => {
+    console.log(newFiles);
     if (!newFiles) return;
-
+  
+    const filesArray = Array.from(newFiles);
     const validFiles: File[] = [];
-    Array.from(newFiles).forEach((file, index) => {
+    const fileReadPromises: Promise<void>[] = [];
+  
+    for (const file of filesArray) {
       if (file.type !== "text/csv" && file.type !== "application/vnd.ms-excel") {
         setErrDesc(`File ${file.name} is not a CSV file.`);
         setErrMsg("File type error");
         setOpen(true);
         return;
       }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e.target?.result) return;
-        const uint8Array = new Uint8Array(e.target.result as ArrayBuffer);
-        const text = new TextDecoder().decode(uint8Array);
-        const result = jschardet.detect(text);
-
-        if (result.encoding === "UTF-8" || result.encoding === "ascii") {
-          if (!files.some((existingFile) => existingFile.name === file.name)) {
-            validFiles.push(file);
+    }
+  
+    for (const file of filesArray) {
+      if (files.some(existingFile => existingFile.name === file.name)) {
+        continue;
+      }
+      
+      const filePromise = new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          if (!e.target?.result) {
+            resolve();
+            return;
           }
-        } else {
-          setErrDesc(`File ${file.name} is not UTF-8 encoded.`);
-          setErrMsg("Encoding error");
+          
+          const uint8Array = new Uint8Array(e.target.result as ArrayBuffer);
+          const text = new TextDecoder().decode(uint8Array);
+          const result = jschardet.detect(text);
+  
+          if (result.encoding === "UTF-8" || result.encoding === "ascii") {
+            validFiles.push(file);
+          } else {
+            setErrDesc(`File ${file.name} is not UTF-8 encoded.`);
+            setErrMsg("Encoding error");
+            setOpen(true);
+          }
+          resolve();
+        };
+        
+        reader.onerror = () => {
+          setErrDesc(`Error reading file ${file.name}.`);
+          setErrMsg("File read error");
           setOpen(true);
-        }
-
-        if (index === newFiles.length - 1) {
-          setFiles((prevFiles) => [...prevFiles, ...validFiles]);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
+          resolve();
+        };
+        
+        reader.readAsArrayBuffer(file);
+      });
+      
+      fileReadPromises.push(filePromise);
+    }
+  
+    await Promise.all(fileReadPromises);
+    
+    if (validFiles.length > 0) {
+      setFiles(prevFiles => [...prevFiles, ...validFiles]);
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(event.target.files, "event.target.files");
     filePipeline(event.target.files);
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    if (files.length != 6) {
+    if (files.length <= 6) {
       setDragActive(true);
       filePipeline(event.dataTransfer.files);
     }
@@ -142,7 +171,6 @@ export default function Upload() {
         setErrDesc("An error occurred while uploading.");
         setErrMsg("Upload failed");
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setErrMsg("Network error");
       setErrDesc("Check your connection and try again.");
