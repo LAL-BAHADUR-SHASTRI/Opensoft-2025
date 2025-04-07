@@ -143,6 +143,7 @@ class ChatService:
                 # We have a final analysis - process it and update user record
                 self._process_final_analysis(employee_id, result['final_analysis'])
                 
+                last_question.is_from_user= True  # Mark the last question as from user
                 # Commit the last question update
                 self.db.commit()
                 
