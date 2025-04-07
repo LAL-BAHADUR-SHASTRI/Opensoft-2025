@@ -126,6 +126,8 @@ const CollectiveReport = () => {
       console.error("Error generating PDF:", error);
     } finally {
       setIsGeneratingPDF(false);
+
+      new Date().to
     }
   };
 

@@ -68,7 +68,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
         data={"sub": user.username, "role": user.role}, expires_delta=access_token_expires
     )
     
-    response.set_cookie(key="token", value=access_token, httponly=True, secure=True, samesite="None") 
+    response.set_cookie(key="token", value=access_token, max_age=86400000 ,httponly=True, secure=True, samesite="None") 
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "employee_id": user.employee_id}
 
 @app.post("/logout", tags=["authentication"])
