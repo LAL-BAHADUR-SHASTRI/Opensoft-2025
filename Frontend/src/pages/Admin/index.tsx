@@ -336,7 +336,7 @@ const AdminPage = () => {
                     />
                   </TableHead>
 
-                  <TableHead className="cursor-pointer " onClick={() => handleSort("Name")}>
+                  <TableHead className="cursor-pointer " onClick={() => handleSort("employee_id")}>
                     <div className="ml-5 flex items-center text-white">
                       Employee
                       {sortColumn === "Name" &&
@@ -350,7 +350,7 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Role")}
+                    onClick={() => handleSort("department")}
                   >
                     <div className="flex items-center text-white">
                       Department
@@ -365,7 +365,7 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Updated at")}
+                    onClick={() => handleSort("last_chat_data")}
                   >
                     <div className="flex items-center text-white">
                       Updated At
@@ -380,11 +380,11 @@ const AdminPage = () => {
 
                   <TableHead
                     className="cursor-pointer  max-md:hidden"
-                    onClick={() => handleSort("Needs Help")}
+                    onClick={() => handleSort("hr_escalation")}
                   >
                     <div className="flex items-center text-white">
                       Needs Help
-                      {sortColumn === "Updated at" &&
+                      {sortColumn === "hr_escalation" &&
                         (sortDirection === "asc" ? (
                           <ChevronUp className="ml-1 h-4 w-4" />
                         ) : (
@@ -393,15 +393,9 @@ const AdminPage = () => {
                     </div>
                   </TableHead>
 
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("Status")}>
+                  <TableHead className="cursor-pointer">
                     <div className="flex items-center text-white">
                       Status
-                      {sortColumn === "Status" &&
-                        (sortDirection === "asc" ? (
-                          <ChevronUp className="ml-1 h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="ml-1 h-4 w-4" />
-                        ))}
                     </div>
                   </TableHead>
 
@@ -417,7 +411,6 @@ const AdminPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  // paginatedData.map((user, index) =>
                   paginatedData.map((user, index) => (
                     <TableRow
                       key={index}
