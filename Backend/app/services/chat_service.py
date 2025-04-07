@@ -27,11 +27,10 @@ class ChatService:
         
         # API configuration
         self.endpoints = {
-'check_api_key': os.getenv("CHECK_API_KEY", "https://harshrajdubey-swg--chatbot-chatbot-check-api-key.modal.run"),
-'start_chat': os.getenv("START_CHAT", "https://harshrajdubey-swg--chatbot-chatbot-start-chat.modal.run"),
-'chat': os.getenv("CHAT", "https://harshrajdubey-swg--chatbot-chatbot-chat.modal.run")
+'check_api_key': os.getenv("CHECK_API_KEY", "https://hnfunit5--employee-sentiment-analysis-chatbot-check-api-key.modal.run"),
+'start_chat': os.getenv("START_CHAT", "https://hnfunit5--employee-sentiment-analysis-chatbot-start-chat.modal.run"),
+'chat': os.getenv("CHAT", "https://hnfunit5--employee-sentiment-analysis-chatbot-chat.modal.run")
                     }
-        
         # Default API key - in production this should be loaded from environment variables
         self.api_key = "DVaz_Aa2FLTZA-PA_oJlwbXt2GeK8Hf8CJSTsFnS-UA"
         

@@ -57,6 +57,7 @@ const EmployeePage = () => {
   };
 
   const getHistory = async (date: Date) => {
+    console.log(id, "in history");
     try {
       const response = await apiClient.get(routes.CHAT_HISTORY, {
         params: { chat_date: formatDate(date), employee_id: id.toUpperCase() },
@@ -126,10 +127,10 @@ const EmployeePage = () => {
       }
     };
 
-
     console.log("in useEffect", isAuthenticated, startedChat, id);
     if (isAuthenticated && !startedChat && id) {
       if (!historyChecked) {
+        console.log("Checking for chat history...", id);
         getHistory(new Date());
       }
       if (historyChecked && !historyFound) {
@@ -395,7 +396,7 @@ const EmployeePage = () => {
                 </button>
               </form>
               {sessionEnded && (
-                <p className="text-primary w-[90%] mx-auto my-1.5 mt-2">
+                <p className="text-primary w-[90%] mx-auto my-1.5 mt-2.5 text-center">
                   Thank you for your time. This chat has concluded — you may end the session now, or
                   continue if you wish.
                 </p>

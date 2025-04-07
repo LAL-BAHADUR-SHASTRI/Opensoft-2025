@@ -37,6 +37,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.status === 200) {
+        console.log("response", response.data);
         setIsAuthenticated(true);
         setRole(response.data.role);
         setId(response.data.employee_id);
