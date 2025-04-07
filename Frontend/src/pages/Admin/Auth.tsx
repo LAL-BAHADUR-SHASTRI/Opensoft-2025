@@ -75,18 +75,17 @@ export default function AdminAuth() {
       {!isLoading && !isAuthenticated && (
         <>
           <Toaster richColors />
-          <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4 dark select-none">
+          
+            <div className="flex min-h-screen  items-center justify-center bg-neutral-950 p-4 dark">
+              
             <Card className="w-full max-w-md shadow-lg bg-transparent border-0 sm:border-2 sm:bg-neutral-900">
               <CardHeader className="space-y-1 text-center">
                 <div className="flex justify-center mb-2">
-                  <img
-                    src="\src\assets\deloitte-logo.jpg"
-                    alt={"Deloitte Logo"}
-                    className="rounded-xl"
-                    width={"300px"}
-                  />
+                <h2 className="text-4xl font-bold text-white  flex items-center gap-1">
+                WellBot<span className="text-green-500 text-3xl">•</span>
+                </h2>
                 </div>
-                <CardTitle className="text-xl font-light">Welcome back, Admin</CardTitle>
+                <CardTitle className="text-[17px] font-light">Hello, Admin! </CardTitle>
               </CardHeader>
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4 pb-5">
@@ -153,7 +152,9 @@ export default function AdminAuth() {
                 </div>
               </form>
             </Card>
-          </div>
+            </div>
+            
+          
         </>
       )}
     </>
