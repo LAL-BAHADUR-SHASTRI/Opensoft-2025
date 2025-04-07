@@ -88,7 +88,7 @@ const EmployeePage = () => {
         console.error("Error starting chat:", error);
       }
     };
-    
+
     console.log("in useEffect", isAuthenticated, startedChat, id);
     if (isAuthenticated && !startedChat && id) {
       if (!sessionId) {
@@ -96,7 +96,7 @@ const EmployeePage = () => {
       }
       setStartedChat(true);
     }
-    
+
     // Cleanup function when component unmounts or dependencies change
     return () => {
       if (!isAuthenticated) {
@@ -171,9 +171,12 @@ const EmployeePage = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    
     if (e.key === "Enter") {
-      e.preventDefault();
-      handleChat(e);
+      if (!e.shiftKey) {
+        e.preventDefault();
+        handleChat(e);
+      }
     }
   };
   const handleLogout = async () => {
@@ -181,7 +184,7 @@ const EmployeePage = () => {
       isLoggingOut.current = true; // Set flag before any state changes
       setStartedChat(false);
       setSessionId("");
-      
+
       const response = await apiClient.post(routes.LOGOUT, {}, { withCredentials: true });
       console.log(response);
       if (response.status === 200) {

@@ -92,17 +92,17 @@ export default function EmployeeAuth() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 pb-5">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-neutral-500 uppercase pl-1">
+                <label className="block text-sm font-medium text-neutral-500 pl-1">
                   Employee ID
                 </label>
                 <Input
                   id="employeeId"
                   className="border-neutral-800 bg-neutral-900 placeholder:text-neutral-600"
-                  placeholder="EMP0000"
+                  placeholder="emp0000"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                 />
-                <label className="block text-sm font-medium text-neutral-500 uppercase pl-1 mt-3">
+                <label className="block text-sm font-medium text-neutral-500 pl-1 mt-3">
                   Password
                 </label>
                 <div className="relative">
@@ -110,7 +110,7 @@ export default function EmployeeAuth() {
                     id="password"
                     className="border-neutral-800 bg-neutral-900 placeholder:text-neutral-600 pr-10"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter Password"
+                    placeholder="********"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -127,7 +127,7 @@ export default function EmployeeAuth() {
             <CardFooter>
               <Button
                 type="submit"
-                className="bg-white w-full pt-3 cursor-pointer"
+                className="bg-primary w-full pt-3 cursor-pointer"
                 disabled={isAuthLoading}
               >
                 {isAuthLoading ? (
