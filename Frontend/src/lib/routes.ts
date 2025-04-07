@@ -3,6 +3,10 @@ const USER_INFO = `users/me`;
 const LOGOUT = `/logout`;
 const UPLOAD = `/upload-csv`;
 const USERS=`/data/users`
+const CHAT_HISTORY = `/chathistory`;
+const START_CHAT = `/start_chat`;
+const CHAT = `/chat`;
+const CHAT_DATES = `/chatdates`;
 
 const REPORT = '/report';
 const COLLECTIVE_REPORT = `${REPORT}/collective`;
@@ -17,5 +21,9 @@ export {
   COLLECTIVE_REPORT,
   EMPLOYEE_REPORT,
   SELECTIVE_REPORT,
-  USERS
+  USERS,
+  CHAT_HISTORY,
+  START_CHAT,
+  CHAT,
+  CHAT_DATES
 };

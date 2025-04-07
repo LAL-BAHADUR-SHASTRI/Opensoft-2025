@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify-icon/react";
-import axios from "axios";
 import Message from "@/components/ui/message";
 import Calendar from "@/components/ui/calendar";
 import { CircleUserRound } from "lucide-react";
@@ -14,18 +13,27 @@ const EmployeePage = () => {
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string>("");
   const [startedChat, setStartedChat] = useState<boolean>(false);
-  const [menuOpen, setMenuOpen] = useState<boolean>(true);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<
     { sender: string; id: number; content: string; time: string; date: string }[]
   >([]);
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [chatDate, setChatDate] = useState<string>(new Date().toLocaleDateString()); // Default date is today
+  const [sessionEnded, setSessionEnded] = useState<boolean>(false);
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const [historyChecked, setHistoryChecked] = useState(false);
+  const [historyFound, setHistoryFound] = useState(false);
+  const [chatDates, setChatDates] = useState<string[]>([]);
   const { isAuthenticated, isLoading, role, id, logout } = useAuthContext();
   const isLoggingOut = useRef(false);
+
+  const [chatDate, setChatDate] = useState<string>(new Date().toDateString());
+
+  useEffect(() => {
+    localStorage.clear();
+  },[]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -33,26 +41,55 @@ const EmployeePage = () => {
         navigate("/auth");
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, isAuthenticated, navigate]);
 
-  // Scroll to the bottom whenever chatMessages updates
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages]);
+  
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const getHistory = async (date: Date) => {
+    try {
+      const response = await apiClient.get(routes.CHAT_HISTORY, {
+        params: { chat_date: formatDate(date), employee_id: id.toUpperCase() },
+        withCredentials: true,
+      });
+      const formattedMessages = formatHistoryMessages(response.data.messages);
+      localStorage.setItem(`chatMessages_${id}`, JSON.stringify(formattedMessages));
+      setChatMessages(formattedMessages);
+      if (formattedMessages.length > 0) {
+        setSessionId(response.data.messages[0].session_id);
+        setHistoryChecked(true);
+        setHistoryFound(true);
+        setStartedChat(true);
+      } else {
+        setHistoryChecked(true);
+        setHistoryFound(false);
+      }
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+    }
+  };
 
   useEffect(() => {
-    // Skip everything if we're in the process of logging out
     if (isLoggingOut.current) {
       return;
     }
 
-    const savedChats = localStorage.getItem(`chatMessages_${id}`);
+    const savedChats = localStorage.getItem(`chatMessages_${id}`)
+      ? JSON.parse(localStorage.getItem(`chatMessages_${id}`)!)
+      : [];
     if (savedChats) {
       try {
-        const parsedChats = JSON.parse(savedChats);
+        const parsedChats = savedChats;
         setChatMessages(parsedChats);
       } catch (error) {
         console.error("Error parsing chat messages from localStorage:", error);
@@ -61,18 +98,18 @@ const EmployeePage = () => {
 
     const getSessionId = async () => {
       try {
-        const response = await axios.post(
-          "http://localhost:8000/start_chat",
-          { employee_id: id }, // Request body
+        const response = await apiClient.post(
+          routes.START_CHAT,
+          { employee_id: id },
           {
             headers: { "Content-Type": "application/json" },
-            withCredentials: true, // Move it here
+            withCredentials: true,
           }
         );
 
         setSessionId(response.data.session_id);
 
-        if (!savedChats) {
+        if (!savedChats?.length) {
           const initialMessage = {
             sender: "assistant",
             id: 1,
@@ -88,23 +125,79 @@ const EmployeePage = () => {
         console.error("Error starting chat:", error);
       }
     };
-    
-    console.log("in useEffect", isAuthenticated, startedChat, id);
+
     if (isAuthenticated && !startedChat && id) {
-      if (!sessionId) {
-        getSessionId();
+      if (!historyChecked) {
+        getHistory(new Date());
       }
-      setStartedChat(true);
+      if (historyChecked && !historyFound) {
+        console.log("No chat history found, starting a new chat...");
+        getSessionId();
+        setStartedChat(true);
+      }
     }
-    
-    // Cleanup function when component unmounts or dependencies change
+
     return () => {
       if (!isAuthenticated) {
         setStartedChat(false);
         setSessionId("");
       }
     };
-  }, [isAuthenticated, id, startedChat, sessionId]);
+  }, [isAuthenticated, id, startedChat, sessionId, historyChecked]);
+
+  useEffect(() => {
+    const getChatDates = async () => {
+      try {
+        const response = await apiClient.get(routes.CHAT_DATES, {
+          withCredentials: true,
+          params: { employee_id: id },
+        });
+        let initialDates = response.data.chat_dates;
+        initialDates = initialDates.includes(formatDate(new Date()))
+          ? initialDates
+          : [...initialDates, formatDate(new Date())];
+        setChatDates(initialDates);
+      } catch (error) {
+        console.error("Error fetching chat dates:", error);
+      }
+    };
+    getChatDates();
+  }, []);
+
+  useEffect(() => {
+    if (chatDate) {
+      const date = new Date(chatDate);
+      getHistory(date);
+    }
+  }, [chatDate]);
+
+  const formatHistoryMessages = (messages: any[]) => {
+    return messages.flatMap((raw, startingId) => {
+      const date = new Date(raw.timestamp);
+      const formattedDate = date.toLocaleDateString("en-US");
+      const formattedTime = date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      return [
+        {
+          sender: "assistant",
+          id: 2 * startingId + 1,
+          content: raw.question,
+          date: formattedDate,
+          time: formattedTime,
+        },
+        {
+          sender: "user",
+          id: 2 * startingId + 2,
+          content: raw.response,
+          date: formattedDate,
+          time: formattedTime,
+        },
+      ];
+    });
+  };
 
   const handleChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,12 +220,12 @@ const EmployeePage = () => {
     setUserMessage("");
     setIsTyping(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8000/chat",
+      const response = await apiClient.post(
+        routes.CHAT,
         { session_id: sessionId, message: userMessage },
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true, // Move it here
+          withCredentials: true,
         }
       );
 
@@ -154,6 +247,10 @@ const EmployeePage = () => {
             time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             date: new Date().toLocaleDateString(),
           };
+        }
+
+        if (response.data.final_analysis) {
+          setSessionEnded(true);
         }
 
         setChatMessages((prev) => {
@@ -181,10 +278,10 @@ const EmployeePage = () => {
       isLoggingOut.current = true; // Set flag before any state changes
       setStartedChat(false);
       setSessionId("");
-      
+
       const response = await apiClient.post(routes.LOGOUT, {}, { withCredentials: true });
-      console.log(response);
       if (response.status === 200) {
+        localStorage.removeItem(`chatMessages_${id}`); // Clear chat history from local storage
         logout(); // Call the logout function from context
         navigate("/auth");
       }
@@ -194,8 +291,7 @@ const EmployeePage = () => {
     }
   };
   // Filter messages based on the selected date
-  const filteredMessages = chatMessages.filter((message) => message.date === chatDate);
-
+  // const filteredMessages = chatMessages.filter((message) => message.date === chatDate);
   return (
     <>
       {isLoading && <Loader></Loader>}
@@ -219,10 +315,8 @@ const EmployeePage = () => {
             <div className="p-4 flex flex-col">
               <h3 className="text-neutral-500 font-semibold text-sm uppercase mb-2">Calendar</h3>
               <Calendar
-                chatHistory={chatMessages.map((message) => ({
-                  id: message.id,
-                  date: message.date,
-                }))}
+                chatDate={chatDate}
+                chatHistory={chatDates}
                 setChatDate={setChatDate} // Pass setChatDate function to the Calendar
               />
             </div>
@@ -259,7 +353,7 @@ const EmployeePage = () => {
               ref={chatContainerRef}
               className="flex-1 pt-20 pb-4 px-6 h-full flex flex-col overflow-auto mx-auto w-[90%] max-w-[1200px]"
             >
-              {filteredMessages.map((message) => (
+              {chatMessages.length>0 && chatMessages.map((message) => (
                 <motion.div
                   className={`${message.sender === "user" ? "flex justify-end" : ""}`}
                   key={message.id}
@@ -294,6 +388,12 @@ const EmployeePage = () => {
                   <Icon icon="mynaui-send-solid" />
                 </button>
               </form>
+              {sessionEnded && (
+                <p className="text-primary w-[90%] mx-auto my-1.5 mt-2">
+                  Thank you for your time. This chat has concluded — you may end the session now, or
+                  continue if you wish.
+                </p>
+              )}
             </div>
           </div>
         </div>

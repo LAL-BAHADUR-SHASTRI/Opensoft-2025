@@ -4,8 +4,7 @@ import { useState } from "react";
 
 import dayjs, { Dayjs } from "dayjs";
 
-const Calendar = ({ chatHistory, setChatDate }: { chatHistory: any[], setChatDate: (date: string) => void }) => {
-
+const Calendar = ({ chatDate, chatHistory, setChatDate }: { chatDate: string ,chatHistory: string[], setChatDate: (date: string) => void }) => {
 
   const currentDate = dayjs();
   const [currentTime, setCurrentTime] = useState(currentDate);
@@ -25,9 +24,7 @@ const Calendar = ({ chatHistory, setChatDate }: { chatHistory: any[], setChatDat
     "November",
     "December",
   ];
-  const handleDateClick = (date: string) => {
-    setChatDate(date);  // Update the chatDate in EmployeePage
-  };
+
   const generateDate = (month = dayjs().month(), year = dayjs().year()) => {
     const firstDateOfMonth = dayjs().year(year).month(month).startOf("month");
     const lastDateOfMonth = dayjs().year(year).month(month).endOf("month");
@@ -70,7 +67,7 @@ const Calendar = ({ chatHistory, setChatDate }: { chatHistory: any[], setChatDat
 
   const checkForDateMatch = (date: Dayjs) => {
     for (const hisDate of chatHistory) {
-      const hisDateObj = new Date(hisDate.date); // Convert string to Date
+      const hisDateObj = new Date(hisDate); // Convert string to Date
   
       if (hisDateObj.toDateString() === date.toDate().toDateString()) {
         return true;
@@ -78,7 +75,6 @@ const Calendar = ({ chatHistory, setChatDate }: { chatHistory: any[], setChatDat
     }
     return false;
   };
-  
 
   return (
     <div className="w-full py-3 px-2 flex-col bg-neutral-950 border border-neutral-800 rounded-lg">
@@ -159,14 +155,14 @@ const Calendar = ({ chatHistory, setChatDate }: { chatHistory: any[], setChatDat
                         ${!currentMonth && "text-neutral-600 font-semibold"} 
                         ${checkForDateMatch(date) ? "bg-neutral-800" : "hover:bg-transparent pointer-events-none"} 
                         ${
-                          currentTime.toDate().toDateString() === date.toDate().toDateString()
+                          chatDate === date.toDate().toDateString()
                             ? "bg-white text-black"
                             : "hover:bg-neutral-900 hover:bg-opacity-20"
                         }
                         " rounded-sm py-0.5 w-6 grid place-content-center cursor-pointer select-none"
                       `}
                 onClick={() => {
-                  setChatDate(date.toISOString());
+                  setChatDate(date.toDate().toDateString());
                 }}
               >
                 {date.date()}
