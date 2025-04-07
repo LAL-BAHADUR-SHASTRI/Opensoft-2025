@@ -250,6 +250,124 @@ class CSVProcessor:
         
         return {"job_id": job_id, "status": "processing", "filename": filename}
     
+    def create_users_from_employee_ids(self):
+        """Create user accounts for all employee IDs in the database"""
+        logger.info("Creating user accounts for all employee IDs...")
+        
+        # Get unique employee IDs from all tables
+        unique_employee_ids = set()
+        
+        for table_name, model in self.table_models.items():
+            if hasattr(model, 'employee_id'):
+                # Get all unique employee IDs from this table
+                employee_ids = self.db.query(model.employee_id).distinct().all()
+                for record in employee_ids:
+                    if record[0]:  # Skip None values
+                        unique_employee_ids.add(record[0])
+        
+        logger.info(f"Found {len(unique_employee_ids)} unique employee IDs")
+        
+        if not unique_employee_ids:
+            logger.warning("No employee IDs found in any tables.")
+            return {"employees_created": 0, "users_created": 0, "message": "No employee IDs found"}
+        
+        # Check for existing employees and users to avoid creating duplicates
+        from app.models.user import User
+        from app.models.employee import Employee
+        
+        existing_employees = {e.employee_id for e in self.db.query(Employee.employee_id).all() if e.employee_id}
+        existing_users = {u.employee_id for u in self.db.query(User.employee_id).all() if u.employee_id}
+        
+        # Filter out employee IDs that already have records
+        employees_to_create = unique_employee_ids - existing_employees
+        users_to_create = unique_employee_ids - existing_users
+        
+        logger.info(f"Found {len(employees_to_create)} employees and {len(users_to_create)} users to create")
+        
+        # Process them with multiprocessing if enough records
+        if len(employees_to_create) > 50 or len(users_to_create) > 50:
+            # Get database URL for worker processes
+            from app.config import settings
+            db_url = settings.DATABASE_URL
+            
+            # Determine optimal batch size and worker count
+            cpu_count = multiprocessing.cpu_count()
+            logger.info(f"Detected {cpu_count} CPU cores")
+            worker_count = min(cpu_count, 18)  # Limit to avoid database connection issues
+            
+            # Create batches of IDs to process
+            all_ids_to_process = list(unique_employee_ids)
+            batch_size = max(50, len(all_ids_to_process) // worker_count)
+            batches = [all_ids_to_process[i:i + batch_size] for i in range(0, len(all_ids_to_process), batch_size)]
+            
+            logger.info(f"Processing {len(unique_employee_ids)} IDs in {len(batches)} batches using {worker_count} workers")
+            
+            # Process batches in parallel
+            total_employees_created = 0
+            total_users_created = 0
+            
+            with ProcessPoolExecutor(max_workers=worker_count) as executor:
+                futures = []
+                for batch in batches:
+                    # Create a tuple of (batch, existing_employees, existing_users, db_url)
+                    futures.append(executor.submit(
+                        self._process_user_creation_batch, 
+                        batch, 
+                        list(existing_employees), 
+                        list(existing_users), 
+                        db_url
+                    ))
+                
+                # Collect results
+                for future in as_completed(futures):
+                    try:
+                        result = future.result()
+                        total_employees_created += result['employees_created']
+                        total_users_created += result['users_created']
+                    except Exception as e:
+                        logger.error(f"Error in worker process: {str(e)}")
+            
+            logger.info(f"Created {total_employees_created} employee records and {total_users_created} user accounts using multiprocessing")
+            return {"employees_created": total_employees_created, "users_created": total_users_created}
+            
+        else:
+            # For small batches, process sequentially to avoid multiprocessing overhead
+            from app.core.auth import get_password_hash
+            
+            users_created = 0
+            employees_created = 0
+            
+            for emp_id in unique_employee_ids:
+                # Check if Employee record exists
+                existing_employee = self.db.query(Employee).filter(Employee.employee_id == emp_id).first()
+                if not existing_employee:
+                    employee = Employee(
+                        employee_id=emp_id,
+                        name=f"Employee {emp_id}",
+                        department="Unassigned"
+                    )
+                    self.db.add(employee)
+                    employees_created += 1
+                
+                # Check if User record exists
+                existing_user = self.db.query(User).filter(User.employee_id == emp_id).first()
+                if not existing_user:
+                    user = User(
+                        email=f"{emp_id.lower()}@example.com",
+                        username=emp_id.lower(),
+                        hashed_password=get_password_hash(emp_id.lower()),
+                        role="employee",
+                        employee_id=emp_id
+                    )
+                    self.db.add(user)
+                    users_created += 1
+            
+            # Commit changes
+            self.db.commit()
+            
+            logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
+            return {"employees_created": employees_created, "users_created": users_created}
+    
     def create_users_from_employee_ids_async(self):
         """Create users from all employee IDs in a background job"""
         job_id = str(uuid.uuid4())
@@ -348,42 +466,66 @@ class CSVProcessor:
             self._update_job_status(job_id, JobStatus.FAILED, str(e))
     
     @staticmethod
-    def _process_employee_chunk(employees, db_url):
-        """Process a chunk of employees in a worker process"""
+    def _process_user_creation_batch(employee_ids, existing_employees, existing_users, db_url):
+        """Process a batch of employee IDs to create users and employees in a worker process"""
+        # Import needed modules in the worker process
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        from app.models.user import User
+        from app.models.employee import Employee
+        from app.core.auth import get_password_hash
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"Processing batch of {len(employee_ids)} employee IDs")
+        # Convert lists back to sets for faster lookups
+        existing_employees_set = set(existing_employees)
+        existing_users_set = set(existing_users)
+        
         # Create a new database connection for this process
         engine = create_engine(db_url)
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         
-        created = 0
-        errors = 0
+        employees_created = 0
+        users_created = 0
         
-        with SessionLocal() as session:
-            for employee in employees:
-                try:
-                    # Create a username from employee ID (lowercase)
-                    username = employee.employee_id.lower()
+        with SessionLocal() as db:
+            try:
+                for emp_id in employee_ids:
+                    # Check if Employee record exists
+                    if emp_id not in existing_employees_set:
+                        employee = Employee(
+                            employee_id=emp_id,
+                            name=f"Employee {emp_id}",
+                            department="Unassigned"
+                        )
+                        db.add(employee)
+                        employees_created += 1
                     
-                    # Create a new user
-                    user = User(
-                        username=username,
-                        email=f"{username}@example.com",
-                        hashed_password=get_password_hash(username),  # Default password is the username
-                        is_active=True,
-                        role=UserRole.EMPLOYEE,
-                        employee_id=employee.employee_id
-                    )
-                    
-                    session.add(user)
-                    session.commit()
-                    created += 1
-                    
-                except Exception:
-                    errors += 1
-                    session.rollback()
-        
+                    # Check if User record exists
+                    if emp_id not in existing_users_set:
+                        user = User(
+                            email=f"{emp_id.lower()}@example.com",
+                            username=emp_id.lower(),
+                            hashed_password=get_password_hash(emp_id.lower()),
+                            role="employee",
+                            employee_id=emp_id
+                        )
+                        db.add(user)
+                        users_created += 1
+                
+                # Commit all changes at once for this batch
+                db.commit()
+                
+            except Exception as e:
+                logger.error(f"Error processing user creation batch: {str(e)}")
+                db.rollback()
+                raise
+                
         return {
-            'created': created,
-            'errors': errors
+            "employees_created": employees_created,
+            "users_created": users_created
         }
     
     def _update_job_status(self, job_id, status, message=None):
@@ -565,62 +707,6 @@ class CSVProcessor:
             
         return result
     
-    def create_users_from_employee_ids(self):
-        """Create user accounts for all employee IDs in the database"""
-        logger.info("Creating user accounts for all employee IDs...")
-        
-        # Get unique employee IDs from all tables
-        unique_employee_ids = set()
-        
-        for table_name, model in self.table_models.items():
-            if hasattr(model, 'employee_id'):
-                # Get all unique employee IDs from this table
-                employee_ids = self.db.query(model.employee_id).distinct().all()
-                for record in employee_ids:
-                    if record[0]:  # Skip None values
-                        unique_employee_ids.add(record[0])
-        
-        logger.info(f"Found {len(unique_employee_ids)} unique employee IDs")
-        
-        # Create user accounts and employee records
-        from app.models.user import User
-        from app.models.employee import Employee
-        from app.core.auth import get_password_hash
-        
-        users_created = 0
-        employees_created = 0
-        
-        for emp_id in unique_employee_ids:
-            # Check if Employee record exists
-            existing_employee = self.db.query(Employee).filter(Employee.employee_id == emp_id).first()
-            if not existing_employee:
-                employee = Employee(
-                    employee_id=emp_id,
-                    name=f"Employee {emp_id}",
-                    department="Unassigned"
-                )
-                self.db.add(employee)
-                employees_created += 1
-            
-            # Check if User record exists
-            existing_user = self.db.query(User).filter(User.employee_id == emp_id).first()
-            if not existing_user:
-                user = User(
-                    email=f"{emp_id.lower()}@example.com",
-                    username=emp_id.lower(),
-                    hashed_password=get_password_hash(emp_id.lower()),
-                    role="employee",
-                    employee_id=emp_id
-                )
-                self.db.add(user)
-                users_created += 1
-        
-        # Commit changes
-        self.db.commit()
-        
-        logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
-        return {"employees_created": employees_created, "users_created": users_created}
-
     def queue_user_creation_after_csv_jobs(self, csv_job_ids, batch_id):
         """Queue user creation to run after all CSV jobs complete"""
         job_id = str(uuid.uuid4())
@@ -695,110 +781,8 @@ class CSVProcessor:
                 processor = CSVProcessor(db)
                 
                 try:
-                    # Check if any data exists in tables
-                    has_data = False
-                    table_counts = {}
-                    
-                    for table_name, model in self.table_models.items():
-                        count = db.query(model).count()
-                        table_counts[table_name] = count
-                        if count > 0:
-                            has_data = True
-                    
-                    if not has_data:
-                        logger.warning("No data found in any tables. Upload data first before creating users.")
-                        background_jobs[job_id] = {
-                            "status": "completed",
-                            "result": {
-                                "employees_created": 0,
-                                "users_created": 0,
-                                "message": "No data found in tables. Please upload CSV data first."
-                            },
-                            "completed_at": datetime.now().isoformat(),
-                            "table_counts": table_counts,
-                            "batch_id": batch_id
-                        }
-                        return
-                    
-                    # Get unique employee IDs from all tables
-                    unique_employee_ids = set()
-                    employee_sources = {}
-                    
-                    for table_name, model in processor.table_models.items():
-                        if hasattr(model, 'employee_id'):
-                            try:
-                                # Get all unique employee IDs from this table
-                                employee_ids = db.query(model.employee_id).distinct().all()
-                                found_ids = [record[0] for record in employee_ids if record[0]]
-                                
-                                if found_ids:
-                                    employee_sources[table_name] = len(found_ids)
-                                    unique_employee_ids.update(found_ids)
-                                
-                                logger.info(f"Found {len(found_ids)} unique employee IDs in {table_name}")
-                            except Exception as e:
-                                logger.error(f"Error getting employee IDs from {table_name}: {str(e)}")
-                    
-                    if not unique_employee_ids:
-                        logger.warning("No employee IDs found in any tables.")
-                        background_jobs[job_id] = {
-                            "status": "completed",
-                            "result": {
-                                "employees_created": 0,
-                                "users_created": 0,
-                                "message": "No employee IDs found in data."
-                            },
-                            "completed_at": datetime.now().isoformat(),
-                            "employee_sources": employee_sources,
-                            "batch_id": batch_id
-                        }
-                        return
-                    
-                    logger.info(f"Found {len(unique_employee_ids)} unique employee IDs from these tables: {employee_sources}")
-                    
-                    # Import these inside the function to avoid circular imports
-                    from app.models.user import User
-                    from app.models.employee import Employee
-                    from app.core.auth import get_password_hash
-                    
-                    users_created = 0
-                    employees_created = 0
-                    
-                    # Process each employee ID
-                    for emp_id in unique_employee_ids:
-                        # Check if Employee record exists
-                        existing_employee = db.query(Employee).filter(Employee.employee_id == emp_id).first()
-                        if not existing_employee:
-                            employee = Employee(
-                                employee_id=emp_id,
-                                name=f"Employee {emp_id}",
-                                department="Unassigned"
-                            )
-                            db.add(employee)
-                            employees_created += 1
-                        
-                        # Check if User record exists
-                        existing_user = db.query(User).filter(User.employee_id == emp_id).first()
-                        if not existing_user:
-                            user = User(
-                                email=f"{emp_id.lower()}@example.com",
-                                username=emp_id.lower(),
-                                hashed_password=get_password_hash(emp_id.lower()),
-                                role="employee",
-                                employee_id=emp_id
-                            )
-                            db.add(user)
-                            users_created += 1
-                    
-                    # Commit changes
-                    db.commit()
-                    
-                    result = {
-                        "employees_created": employees_created,
-                        "users_created": users_created,
-                        "total_ids_found": len(unique_employee_ids),
-                        "sources": employee_sources
-                    }
+                    # Use the existing method that implements multiprocessing
+                    result = processor.create_users_from_employee_ids()
                     
                     # Update job status
                     background_jobs[job_id] = {
@@ -808,7 +792,7 @@ class CSVProcessor:
                         "batch_id": batch_id
                     }
                     
-                    logger.info(f"Created {employees_created} employee records and {users_created} user accounts")
+                    logger.info(f"Created {result['employees_created']} employee records and {result['users_created']} user accounts")
                     
                 except Exception as e:
                     logger.error(f"Error in user creation process: {str(e)}")
