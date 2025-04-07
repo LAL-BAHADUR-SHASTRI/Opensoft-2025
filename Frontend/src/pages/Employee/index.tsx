@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify-icon/react";
 import Message from "@/components/ui/message";
 import Calendar from "@/components/ui/calendar";
-import { CircleUserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { apiClient, routes } from "@/lib/api";
 import { useNavigate } from "react-router";
 import { useAuthContext } from "@/context/AuthContext";
 import Loader from "@/components/AppLoader";
+
+import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 
 const EmployeePage = () => {
   const navigate = useNavigate();
@@ -31,12 +32,31 @@ const EmployeePage = () => {
 
   const [chatDate, setChatDate] = useState<string>(new Date().toDateString());
 
+  const [showVoiceBtn, setShowVoiceBtn] = useState(true);
+
+  const { transcript, listening, browserSupportsSpeechRecognition } = useSpeechRecognition();
+
+  const startListening = () => SpeechRecognition.startListening({ continuous: true });
+
+  useEffect(() => {
+    if (!browserSupportsSpeechRecognition) {
+      setShowVoiceBtn(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (transcript) {
+      setUserMessage(transcript);
+    }
+  }, [transcript]);
+
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated || role !== "employee") {
         navigate("/auth");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
@@ -44,7 +64,7 @@ const EmployeePage = () => {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages]);
-  
+
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -122,13 +142,14 @@ const EmployeePage = () => {
         setStartedChat(true);
       }
     }
-    
+
     return () => {
       if (!isAuthenticated) {
         setStartedChat(false);
         setSessionId("");
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, id, startedChat, sessionId, historyChecked]);
 
   useEffect(() => {
@@ -148,6 +169,7 @@ const EmployeePage = () => {
       }
     };
     getChatDates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -155,6 +177,7 @@ const EmployeePage = () => {
       const date = new Date(chatDate);
       getHistory(date);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatDate]);
 
   const formatHistoryMessages = (messages: any[]) => {
@@ -256,7 +279,6 @@ const EmployeePage = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    
     if (e.key === "Enter") {
       if (!e.shiftKey) {
         e.preventDefault();
@@ -302,11 +324,7 @@ const EmployeePage = () => {
 
             <div className="p-4 flex flex-col">
               <h3 className="text-neutral-500 font-semibold text-sm uppercase mb-2">Calendar</h3>
-              <Calendar
-                chatDate={chatDate}
-                chatHistory={chatDates}
-                setChatDate={setChatDate}
-              />
+              <Calendar chatDate={chatDate} chatHistory={chatDates} setChatDate={setChatDate} />
             </div>
           </div>
 
@@ -326,7 +344,7 @@ const EmployeePage = () => {
                   </button>
                 )}
                 <h2 className="text-2xl font-bold text-white  flex items-center gap-1">
-                WellBot<span className="text-green-500 text-3xl">•</span>
+                  WellBot<span className="text-green-500 text-3xl">•</span>
                 </h2>
               </div>
               <button
@@ -341,21 +359,22 @@ const EmployeePage = () => {
               ref={chatContainerRef}
               className="flex-1 pt-20 pb-4 px-6 h-full flex flex-col overflow-auto mx-auto w-[90%] max-w-[1200px]"
             >
-              {chatMessages.length>0 && chatMessages.map((message) => (
-                <motion.div
-                  className={`${message.sender === "user" ? "flex justify-end" : ""}`}
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Message message={message} />
-                </motion.div>
-              ))}
+              {chatMessages.length > 0 &&
+                chatMessages.map((message) => (
+                  <motion.div
+                    className={`${message.sender === "user" ? "flex justify-end" : ""}`}
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Message message={message} />
+                  </motion.div>
+                ))}
               {isTyping && (
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-md bg-neutral-900">
-                  <Icon icon="fluent-mdl2:chat-bot" className="text-[28px]" />
+                    <Icon icon="fluent-mdl2:chat-bot" className="text-[28px]" />
                   </div>
                   <div className="text-neutral-500 pt-1 pb-2 px-3">...</div>
                 </div>
@@ -372,9 +391,35 @@ const EmployeePage = () => {
                   onKeyDown={handleKeyDown}
                   className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
                 />
-                <button className="text-2xl cursor-pointer" onClick={handleChat}>
-                  <Icon icon="mynaui-send-solid" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {showVoiceBtn && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (listening) {
+                          SpeechRecognition.stopListening();
+                        } else {
+                          startListening();
+                        }
+                      }}
+                      className="text-2xl py-1.5 px-1.5 grid place-content-center hover:bg-neutral-800 transition-all rounded-md"
+                    >
+                      {listening ? (
+                        <span className="text-red-500 grid place-content-center">
+                          <Icon icon="fluent:mic-off-24-regular" />
+                        </span>
+                      ) : (
+                        <Icon icon="fluent:mic-24-regular" />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    className="text-2xl cursor-pointer p-1.5 grid place-content-center hover:bg-neutral-800 rounded-md transition-all"
+                    onClick={handleChat}
+                  >
+                    <Icon icon="mynaui-send-solid" />
+                  </button>
+                </div>
               </form>
               {sessionEnded && (
                 <p className="text-primary w-[90%] mx-auto my-1.5 mt-2.5 text-center">
