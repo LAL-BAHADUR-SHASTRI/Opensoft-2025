@@ -165,7 +165,7 @@ const AdminPage = () => {
     const searchTerm = globalFilter.toLowerCase();
 
     const filtered = data.filter((user) => {
-      const searchContent = [user.username, user.role, user.current_mood, user.id]
+      const searchContent = [user.current_mood, user.employee_id]
         .join(" ")
         .toLowerCase();
 
