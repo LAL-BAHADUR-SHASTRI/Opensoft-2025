@@ -104,7 +104,7 @@ const EmployeePage = () => {
         setSessionId("");
       }
     };
-  }, [isAuthenticated, id, startedChat, sessionId]);
+  }, [ id, startedChat, sessionId]);
 
   const handleChat = async (e: React.FormEvent) => {
     e.preventDefault();
