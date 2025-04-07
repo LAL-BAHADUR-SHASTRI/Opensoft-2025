@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { Icon} from "@iconify-icon/react";
-
+import remarkBreaks from "remark-breaks";
 const Message = ({message} : {message: {
   id: number;
   sender: string;
@@ -30,7 +30,7 @@ const Message = ({message} : {message: {
       >
       <span className="block text-[11px] text-neutral-500 ">{message.time}</span>
       
-        <ReactMarkdown>{message.content}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkBreaks]}>{message.content}</ReactMarkdown>
       </div>
     </div>
   </div>

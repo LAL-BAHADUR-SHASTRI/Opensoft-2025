@@ -531,7 +531,7 @@ const EmployeeReport: React.FC = () => {
                         {reportData["Last Performance Rating"]}/5
                       </p>
                     </div>
-                    <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 px-4 rounded">
+                    <div className="flex justify-between 2xl:flex-col gap-1 items-center bg-neutral-800 py-2 w-auto rounded">
                       <p className="text-neutral-500">Rewards</p>
                       <p className="font-medium text-neutral-400 text-lg">
                         {reportData["Total Rewards Earned"]}
