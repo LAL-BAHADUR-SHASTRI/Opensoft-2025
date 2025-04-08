@@ -34,7 +34,7 @@ const EmployeePage = () => {
 
   const [showVoiceBtn, setShowVoiceBtn] = useState(true);
 
-  const { transcript, listening, browserSupportsSpeechRecognition } = useSpeechRecognition();
+  const { transcript, listening, resetTranscript,browserSupportsSpeechRecognition } = useSpeechRecognition();
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true });
 
@@ -45,10 +45,27 @@ const EmployeePage = () => {
   }, []);
 
   useEffect(() => {
-    if (transcript) {
-      setUserMessage(transcript);
-    }
+    const timeout = setTimeout(() => {
+      if (transcript) {
+        setUserMessage((prev) => prev + " " + transcript);
+        resetTranscript();
+      }
+    }, 1000)
+    
+    return () => clearTimeout(timeout);
   }, [transcript]);
+
+  useEffect(() => {
+    if (userMessage === "") {
+      resetTranscript();
+    }
+  }, [userMessage])
+
+  useEffect(() => {
+    if(!listening){
+      resetTranscript()
+    }
+  },[listening])
 
   useEffect(() => {
     if (!isLoading) {
@@ -216,6 +233,7 @@ const EmployeePage = () => {
     e.preventDefault();
     if (!userMessage.trim()) return;
 
+    
     const newMessage = {
       sender: "user",
       id: chatMessages.length + 1,
@@ -223,14 +241,17 @@ const EmployeePage = () => {
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       date: new Date().toLocaleDateString(),
     };
-
+    
     setChatMessages((prev) => {
       const updatedMessages = [...prev, newMessage];
       return updatedMessages;
     });
-
+    
+    SpeechRecognition.stopListening();
+    resetTranscript();
     setUserMessage("");
     setIsTyping(true);
+
     try {
       const response = await apiClient.post(
         routes.CHAT,
@@ -398,6 +419,7 @@ const EmployeePage = () => {
                         e.preventDefault();
                         if (listening) {
                           SpeechRecognition.stopListening();
+                          resetTranscript();
                         } else {
                           startListening();
                         }
