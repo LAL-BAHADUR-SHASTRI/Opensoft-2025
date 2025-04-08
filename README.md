@@ -1,3 +1,4 @@
+
 # Vibemeter: Employee Engagement Platform
 
 Vibemeter is a comprehensive employee engagement platform that collects, analyzes, and visualizes employee sentiment data through interactive chatbot conversations and surveys. It empowers HR teams to monitor engagement trends, track employee mood, and take timely action when needed.
@@ -30,6 +31,8 @@ Vibemeter is a comprehensive employee engagement platform that collects, analyze
 - Python 3.10 or higher
 - PostgreSQL
 - Git
+
+---
 
 ### Installation
 
@@ -81,6 +84,46 @@ python init_db.py
 To completely reset the database, run the reset script provided.
 ```bash
 python reset_db.py
+```
+
+---
+
+### Modal Deployment (ChatBot AI Deployment)
+
+Modal is a cloud execution environment that allows you to run Python code at scale without worrying about infrastructure.
+
+#### 📦 Installation
+
+1. **Install Modal CLI and SDK:**
+
+   ```bash
+   pip install modal
+   ```
+
+2. **Authenticate with Modal:**
+
+   ```bash
+   modal token new
+   ```
+
+   Follow the browser link to sign in with your GitHub or Google account.
+
+---
+
+#### 🚀 Deploy Chatbot Code
+
+To deploy the chatbot code to Modal:
+
+```bash
+modal deploy Backend/app/chatbot/chatbot.py
+```
+
+You’ll receive a deployment URL or function ID that you can invoke from your FastAPI backend (e.g. from `/start_chat` or `/chat` routes). Insert that URLs in the .env
+
+(Optional) You can test the chatbot function locally using:
+
+```bash
+modal run Backend/app/chatbot/chatbot.py
 ```
 
 ---
