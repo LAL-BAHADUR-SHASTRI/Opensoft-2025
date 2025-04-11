@@ -1,7 +1,7 @@
 const SIGN_IN = `/token`;
 const USER_INFO = `users/me`;
 const LOGOUT = `/logout`;
-const UPLOAD = `/upload-csv`;
+const UPLOAD = `/upload-csv/`;
 const USERS=`/data/users`
 const CHAT_HISTORY = `/chathistory`;
 const START_CHAT = `/start_chat`;

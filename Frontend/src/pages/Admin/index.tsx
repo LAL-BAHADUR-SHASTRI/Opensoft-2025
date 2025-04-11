@@ -472,7 +472,11 @@ const AdminPage = () => {
                         {(() => {
                             const utc = new Date(user.last_chat_date || 0);
                             const offset = utc.getTimezoneOffset();
-                            const date = new Date(utc.getTime() + offset * 60000);
+const istOffset = 5.5 * 60 * 60 * 1000;
+
+const date = new Date(utc.getTime() + istOffset);
+
+//                            const date = new Date(utc.getTime() + offset * 60000);
                           // const date = new Date(user.last_chat_date || 0).toLocaleDateString();
                           return (
                             <div>

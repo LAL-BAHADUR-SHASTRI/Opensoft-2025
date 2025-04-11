@@ -14,4 +14,10 @@ export default defineConfig({
       "@public": path.resolve(__dirname, "./public/"),
     },
   },
+server: {
+  host: true,
+  port: 5173,
+    allowedHosts: ['wellbot.centralindia.cloudapp.azure.com'], // ✅ explicitly allowed
+}
+
 });
