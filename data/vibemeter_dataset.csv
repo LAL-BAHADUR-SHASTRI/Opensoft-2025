@@ -1,0 +1,501 @@
+Employee_ID,Response_Date,Vibe_Score,Emotion_Zone
+EMP0454,2023-01-01,3,Sad Zone
+EMP0071,2023-01-02,1,Leaning to Happy Zone
+EMP0096,2023-01-03,4,Neutral Zone (OK)
+EMP0206,2023-01-04,6,Neutral Zone (OK)
+EMP0074,2023-01-05,3,Excited Zone
+EMP0215,2023-01-06,3,Sad Zone
+EMP0128,2023-01-07,6,Leaning to Happy Zone
+EMP0201,2023-01-08,3,Happy Zone
+EMP0043,2023-01-09,3,Frustrated Zone
+EMP0317,2023-01-10,4,Leaning to Happy Zone
+EMP0467,2023-01-11,2,Happy Zone
+EMP0055,2023-01-12,3,Neutral Zone (OK)
+EMP0320,2023-01-13,1,Leaning to Sad Zone
+EMP0210,2023-01-14,4,Leaning to Sad Zone
+EMP0027,2023-01-15,6,Excited Zone
+EMP0069,2023-01-16,4,Neutral Zone (OK)
+EMP0332,2023-01-17,1,Leaning to Sad Zone
+EMP0172,2023-01-18,5,Neutral Zone (OK)
+EMP0019,2023-01-19,3,Neutral Zone (OK)
+EMP0390,2023-01-20,4,Frustrated Zone
+EMP0478,2023-01-21,5,Frustrated Zone
+EMP0373,2023-01-22,3,Excited Zone
+EMP0343,2023-01-23,3,Excited Zone
+EMP0092,2023-01-24,6,Leaning to Happy Zone
+EMP0045,2023-01-25,4,Leaning to Sad Zone
+EMP0423,2023-01-26,5,Sad Zone
+EMP0430,2023-01-27,4,Frustrated Zone
+EMP0084,2023-01-28,4,Neutral Zone (OK)
+EMP0002,2023-01-29,1,Frustrated Zone
+EMP0146,2023-01-30,1,Neutral Zone (OK)
+EMP0387,2023-01-31,1,Happy Zone
+EMP0356,2023-02-01,1,Excited Zone
+EMP0139,2023-02-02,3,Neutral Zone (OK)
+EMP0449,2023-02-03,1,Happy Zone
+EMP0187,2023-02-04,3,Sad Zone
+EMP0167,2023-02-05,5,Neutral Zone (OK)
+EMP0322,2023-02-06,3,Frustrated Zone
+EMP0067,2023-02-07,6,Happy Zone
+EMP0449,2023-02-08,5,Excited Zone
+EMP0287,2023-02-09,3,Frustrated Zone
+EMP0203,2023-02-10,5,Leaning to Happy Zone
+EMP0109,2023-02-11,3,Happy Zone
+EMP0130,2023-02-12,4,Happy Zone
+EMP0409,2023-02-13,6,Leaning to Sad Zone
+EMP0144,2023-02-14,4,Happy Zone
+EMP0110,2023-02-15,4,Leaning to Happy Zone
+EMP0323,2023-02-16,1,Frustrated Zone
+EMP0463,2023-02-17,2,Leaning to Sad Zone
+EMP0465,2023-02-18,2,Neutral Zone (OK)
+EMP0056,2023-02-19,1,Excited Zone
+EMP0188,2023-02-20,2,Happy Zone
+EMP0289,2023-02-21,6,Frustrated Zone
+EMP0081,2023-02-22,5,Leaning to Sad Zone
+EMP0265,2023-02-23,5,Leaning to Happy Zone
+EMP0375,2023-02-24,6,Excited Zone
+EMP0286,2023-02-25,6,Frustrated Zone
+EMP0202,2023-02-26,6,Leaning to Sad Zone
+EMP0281,2023-02-27,1,Leaning to Happy Zone
+EMP0102,2023-02-28,2,Leaning to Sad Zone
+EMP0440,2023-03-01,6,Frustrated Zone
+EMP0023,2023-03-02,4,Leaning to Sad Zone
+EMP0468,2023-03-03,6,Happy Zone
+EMP0380,2023-03-04,3,Sad Zone
+EMP0396,2023-03-05,4,Sad Zone
+EMP0306,2023-03-06,1,Frustrated Zone
+EMP0279,2023-03-07,5,Neutral Zone (OK)
+EMP0283,2023-03-08,2,Sad Zone
+EMP0296,2023-03-09,2,Sad Zone
+EMP0124,2023-03-10,5,Sad Zone
+EMP0028,2023-03-11,2,Sad Zone
+EMP0220,2023-03-12,4,Happy Zone
+EMP0416,2023-03-13,6,Excited Zone
+EMP0464,2023-03-14,6,Neutral Zone (OK)
+EMP0255,2023-03-15,3,Leaning to Sad Zone
+EMP0317,2023-03-16,5,Frustrated Zone
+EMP0440,2023-03-17,4,Frustrated Zone
+EMP0048,2023-03-18,5,Frustrated Zone
+EMP0391,2023-03-19,3,Leaning to Sad Zone
+EMP0466,2023-03-20,2,Sad Zone
+EMP0257,2023-03-21,2,Sad Zone
+EMP0122,2023-03-22,1,Leaning to Happy Zone
+EMP0452,2023-03-23,1,Happy Zone
+EMP0392,2023-03-24,2,Sad Zone
+EMP0266,2023-03-25,6,Leaning to Sad Zone
+EMP0188,2023-03-26,4,Neutral Zone (OK)
+EMP0385,2023-03-27,6,Excited Zone
+EMP0232,2023-03-28,1,Leaning to Sad Zone
+EMP0363,2023-03-29,6,Frustrated Zone
+EMP0455,2023-03-30,1,Sad Zone
+EMP0084,2023-03-31,4,Frustrated Zone
+EMP0118,2023-04-01,6,Leaning to Sad Zone
+EMP0183,2023-04-02,5,Frustrated Zone
+EMP0014,2023-04-03,2,Leaning to Sad Zone
+EMP0160,2023-04-04,6,Happy Zone
+EMP0413,2023-04-05,5,Leaning to Happy Zone
+EMP0200,2023-04-06,3,Happy Zone
+EMP0162,2023-04-07,3,Sad Zone
+EMP0244,2023-04-08,4,Leaning to Happy Zone
+EMP0402,2023-04-09,2,Sad Zone
+EMP0418,2023-04-10,4,Excited Zone
+EMP0228,2023-04-11,5,Excited Zone
+EMP0340,2023-04-12,4,Happy Zone
+EMP0417,2023-04-13,2,Leaning to Happy Zone
+EMP0125,2023-04-14,5,Happy Zone
+EMP0338,2023-04-15,5,Leaning to Happy Zone
+EMP0428,2023-04-16,3,Happy Zone
+EMP0285,2023-04-17,2,Frustrated Zone
+EMP0048,2023-04-18,2,Leaning to Happy Zone
+EMP0466,2023-04-19,2,Neutral Zone (OK)
+EMP0067,2023-04-20,2,Excited Zone
+EMP0463,2023-04-21,4,Leaning to Sad Zone
+EMP0087,2023-04-22,2,Neutral Zone (OK)
+EMP0445,2023-04-23,6,Leaning to Sad Zone
+EMP0355,2023-04-24,3,Leaning to Sad Zone
+EMP0137,2023-04-25,6,Excited Zone
+EMP0036,2023-04-26,6,Frustrated Zone
+EMP0153,2023-04-27,6,Excited Zone
+EMP0005,2023-04-28,6,Sad Zone
+EMP0489,2023-04-29,6,Neutral Zone (OK)
+EMP0377,2023-04-30,2,Sad Zone
+EMP0444,2023-05-01,5,Excited Zone
+EMP0261,2023-05-02,1,Leaning to Happy Zone
+EMP0425,2023-05-03,5,Leaning to Happy Zone
+EMP0045,2023-05-04,2,Neutral Zone (OK)
+EMP0173,2023-05-05,3,Neutral Zone (OK)
+EMP0090,2023-05-06,4,Excited Zone
+EMP0063,2023-05-07,6,Leaning to Happy Zone
+EMP0471,2023-05-08,6,Leaning to Sad Zone
+EMP0153,2023-05-09,3,Frustrated Zone
+EMP0446,2023-05-10,5,Frustrated Zone
+EMP0479,2023-05-11,4,Excited Zone
+EMP0439,2023-05-12,4,Leaning to Happy Zone
+EMP0356,2023-05-13,6,Frustrated Zone
+EMP0047,2023-05-14,1,Neutral Zone (OK)
+EMP0353,2023-05-15,5,Frustrated Zone
+EMP0059,2023-05-16,2,Leaning to Sad Zone
+EMP0193,2023-05-17,5,Frustrated Zone
+EMP0235,2023-05-18,2,Frustrated Zone
+EMP0348,2023-05-19,1,Leaning to Happy Zone
+EMP0094,2023-05-20,2,Leaning to Sad Zone
+EMP0487,2023-05-21,4,Leaning to Happy Zone
+EMP0114,2023-05-22,2,Leaning to Happy Zone
+EMP0179,2023-05-23,4,Neutral Zone (OK)
+EMP0396,2023-05-24,4,Excited Zone
+EMP0166,2023-05-25,3,Leaning to Sad Zone
+EMP0055,2023-05-26,5,Sad Zone
+EMP0341,2023-05-27,3,Excited Zone
+EMP0455,2023-05-28,4,Sad Zone
+EMP0431,2023-05-29,5,Neutral Zone (OK)
+EMP0238,2023-05-30,3,Leaning to Happy Zone
+EMP0162,2023-05-31,4,Leaning to Happy Zone
+EMP0426,2023-06-01,4,Frustrated Zone
+EMP0016,2023-06-02,3,Leaning to Happy Zone
+EMP0211,2023-06-03,4,Leaning to Happy Zone
+EMP0277,2023-06-04,6,Leaning to Happy Zone
+EMP0188,2023-06-05,1,Leaning to Sad Zone
+EMP0084,2023-06-06,6,Leaning to Happy Zone
+EMP0292,2023-06-07,5,Sad Zone
+EMP0280,2023-06-08,5,Leaning to Sad Zone
+EMP0191,2023-06-09,1,Excited Zone
+EMP0009,2023-06-10,4,Sad Zone
+EMP0353,2023-06-11,3,Frustrated Zone
+EMP0248,2023-06-12,2,Frustrated Zone
+EMP0451,2023-06-13,3,Leaning to Happy Zone
+EMP0202,2023-06-14,2,Frustrated Zone
+EMP0111,2023-06-15,1,Neutral Zone (OK)
+EMP0326,2023-06-16,4,Frustrated Zone
+EMP0155,2023-06-17,4,Happy Zone
+EMP0133,2023-06-18,2,Leaning to Sad Zone
+EMP0194,2023-06-19,6,Excited Zone
+EMP0392,2023-06-20,5,Excited Zone
+EMP0389,2023-06-21,4,Happy Zone
+EMP0111,2023-06-22,2,Leaning to Sad Zone
+EMP0225,2023-06-23,5,Sad Zone
+EMP0293,2023-06-24,3,Leaning to Sad Zone
+EMP0402,2023-06-25,6,Sad Zone
+EMP0122,2023-06-26,1,Sad Zone
+EMP0201,2023-06-27,3,Excited Zone
+EMP0446,2023-06-28,5,Sad Zone
+EMP0443,2023-06-29,5,Happy Zone
+EMP0179,2023-06-30,5,Leaning to Sad Zone
+EMP0321,2023-07-01,6,Leaning to Sad Zone
+EMP0351,2023-07-02,1,Happy Zone
+EMP0440,2023-07-03,2,Sad Zone
+EMP0299,2023-07-04,3,Happy Zone
+EMP0105,2023-07-05,5,Neutral Zone (OK)
+EMP0286,2023-07-06,2,Sad Zone
+EMP0424,2023-07-07,1,Leaning to Happy Zone
+EMP0263,2023-07-08,3,Leaning to Happy Zone
+EMP0194,2023-07-09,6,Leaning to Happy Zone
+EMP0046,2023-07-10,4,Neutral Zone (OK)
+EMP0058,2023-07-11,4,Leaning to Sad Zone
+EMP0478,2023-07-12,6,Sad Zone
+EMP0034,2023-07-13,5,Leaning to Sad Zone
+EMP0148,2023-07-14,6,Neutral Zone (OK)
+EMP0479,2023-07-15,1,Leaning to Happy Zone
+EMP0359,2023-07-16,3,Excited Zone
+EMP0016,2023-07-17,4,Leaning to Sad Zone
+EMP0414,2023-07-18,4,Frustrated Zone
+EMP0451,2023-07-19,5,Leaning to Happy Zone
+EMP0180,2023-07-20,6,Leaning to Happy Zone
+EMP0395,2023-07-21,6,Neutral Zone (OK)
+EMP0416,2023-07-22,1,Frustrated Zone
+EMP0334,2023-07-23,5,Leaning to Happy Zone
+EMP0306,2023-07-24,4,Frustrated Zone
+EMP0072,2023-07-25,1,Happy Zone
+EMP0188,2023-07-26,6,Leaning to Happy Zone
+EMP0316,2023-07-27,6,Excited Zone
+EMP0044,2023-07-28,5,Sad Zone
+EMP0244,2023-07-29,2,Leaning to Sad Zone
+EMP0385,2023-07-30,2,Leaning to Happy Zone
+EMP0179,2023-07-31,2,Leaning to Sad Zone
+EMP0157,2023-08-01,1,Excited Zone
+EMP0251,2023-08-02,2,Happy Zone
+EMP0170,2023-08-03,4,Frustrated Zone
+EMP0251,2023-08-04,3,Leaning to Sad Zone
+EMP0216,2023-08-05,6,Excited Zone
+EMP0453,2023-08-06,6,Sad Zone
+EMP0272,2023-08-07,5,Neutral Zone (OK)
+EMP0301,2023-08-08,6,Sad Zone
+EMP0164,2023-08-09,4,Leaning to Sad Zone
+EMP0408,2023-08-10,5,Neutral Zone (OK)
+EMP0423,2023-08-11,3,Sad Zone
+EMP0287,2023-08-12,4,Leaning to Happy Zone
+EMP0039,2023-08-13,6,Sad Zone
+EMP0144,2023-08-14,4,Leaning to Sad Zone
+EMP0393,2023-08-15,1,Neutral Zone (OK)
+EMP0445,2023-08-16,1,Excited Zone
+EMP0080,2023-08-17,5,Sad Zone
+EMP0017,2023-08-18,2,Leaning to Sad Zone
+EMP0123,2023-08-19,3,Neutral Zone (OK)
+EMP0041,2023-08-20,6,Sad Zone
+EMP0458,2023-08-21,3,Frustrated Zone
+EMP0011,2023-08-22,5,Neutral Zone (OK)
+EMP0481,2023-08-23,6,Leaning to Sad Zone
+EMP0193,2023-08-24,6,Sad Zone
+EMP0416,2023-08-25,3,Happy Zone
+EMP0408,2023-08-26,5,Leaning to Sad Zone
+EMP0168,2023-08-27,5,Frustrated Zone
+EMP0220,2023-08-28,1,Happy Zone
+EMP0297,2023-08-29,4,Excited Zone
+EMP0276,2023-08-30,5,Sad Zone
+EMP0299,2023-08-31,5,Leaning to Sad Zone
+EMP0438,2023-09-01,5,Sad Zone
+EMP0101,2023-09-02,4,Leaning to Sad Zone
+EMP0176,2023-09-03,1,Frustrated Zone
+EMP0026,2023-09-04,5,Excited Zone
+EMP0170,2023-09-05,3,Frustrated Zone
+EMP0018,2023-09-06,1,Happy Zone
+EMP0095,2023-09-07,5,Neutral Zone (OK)
+EMP0286,2023-09-08,5,Frustrated Zone
+EMP0024,2023-09-09,5,Sad Zone
+EMP0439,2023-09-10,6,Excited Zone
+EMP0218,2023-09-11,3,Happy Zone
+EMP0247,2023-09-12,4,Leaning to Happy Zone
+EMP0472,2023-09-13,2,Frustrated Zone
+EMP0319,2023-09-14,2,Leaning to Sad Zone
+EMP0041,2023-09-15,1,Neutral Zone (OK)
+EMP0155,2023-09-16,1,Leaning to Happy Zone
+EMP0058,2023-09-17,4,Frustrated Zone
+EMP0341,2023-09-18,5,Leaning to Sad Zone
+EMP0381,2023-09-19,6,Leaning to Sad Zone
+EMP0040,2023-09-20,6,Leaning to Sad Zone
+EMP0497,2023-09-21,2,Happy Zone
+EMP0234,2023-09-22,1,Sad Zone
+EMP0200,2023-09-23,5,Sad Zone
+EMP0022,2023-09-24,5,Happy Zone
+EMP0231,2023-09-25,5,Sad Zone
+EMP0329,2023-09-26,1,Leaning to Sad Zone
+EMP0239,2023-09-27,6,Happy Zone
+EMP0360,2023-09-28,1,Neutral Zone (OK)
+EMP0278,2023-09-29,3,Leaning to Happy Zone
+EMP0086,2023-09-30,4,Leaning to Sad Zone
+EMP0429,2023-10-01,5,Frustrated Zone
+EMP0161,2023-10-02,1,Neutral Zone (OK)
+EMP0402,2023-10-03,2,Neutral Zone (OK)
+EMP0164,2023-10-04,3,Neutral Zone (OK)
+EMP0039,2023-10-05,6,Frustrated Zone
+EMP0446,2023-10-06,4,Leaning to Sad Zone
+EMP0304,2023-10-07,4,Frustrated Zone
+EMP0498,2023-10-08,5,Excited Zone
+EMP0345,2023-10-09,6,Excited Zone
+EMP0475,2023-10-10,6,Happy Zone
+EMP0294,2023-10-11,2,Happy Zone
+EMP0299,2023-10-12,6,Leaning to Happy Zone
+EMP0175,2023-10-13,4,Neutral Zone (OK)
+EMP0270,2023-10-14,4,Leaning to Sad Zone
+EMP0332,2023-10-15,5,Leaning to Sad Zone
+EMP0073,2023-10-16,5,Sad Zone
+EMP0423,2023-10-17,6,Excited Zone
+EMP0393,2023-10-18,3,Excited Zone
+EMP0112,2023-10-19,1,Frustrated Zone
+EMP0068,2023-10-20,5,Neutral Zone (OK)
+EMP0274,2023-10-21,5,Leaning to Sad Zone
+EMP0143,2023-10-22,1,Leaning to Happy Zone
+EMP0252,2023-10-23,5,Happy Zone
+EMP0163,2023-10-24,2,Frustrated Zone
+EMP0259,2023-10-25,4,Happy Zone
+EMP0373,2023-10-26,4,Frustrated Zone
+EMP0084,2023-10-27,4,Leaning to Happy Zone
+EMP0399,2023-10-28,6,Frustrated Zone
+EMP0188,2023-10-29,1,Happy Zone
+EMP0500,2023-10-30,5,Neutral Zone (OK)
+EMP0385,2023-10-31,2,Excited Zone
+EMP0320,2023-11-01,4,Leaning to Happy Zone
+EMP0073,2023-11-02,6,Happy Zone
+EMP0389,2023-11-03,4,Neutral Zone (OK)
+EMP0262,2023-11-04,4,Sad Zone
+EMP0320,2023-11-05,3,Leaning to Happy Zone
+EMP0382,2023-11-06,4,Leaning to Happy Zone
+EMP0006,2023-11-07,3,Neutral Zone (OK)
+EMP0272,2023-11-08,1,Leaning to Happy Zone
+EMP0437,2023-11-09,3,Sad Zone
+EMP0290,2023-11-10,4,Sad Zone
+EMP0071,2023-11-11,4,Leaning to Sad Zone
+EMP0445,2023-11-12,5,Frustrated Zone
+EMP0447,2023-11-13,4,Leaning to Happy Zone
+EMP0293,2023-11-14,4,Frustrated Zone
+EMP0252,2023-11-15,6,Leaning to Happy Zone
+EMP0026,2023-11-16,4,Excited Zone
+EMP0463,2023-11-17,3,Sad Zone
+EMP0109,2023-11-18,4,Neutral Zone (OK)
+EMP0363,2023-11-19,1,Happy Zone
+EMP0480,2023-11-20,5,Happy Zone
+EMP0056,2023-11-21,1,Frustrated Zone
+EMP0236,2023-11-22,5,Leaning to Happy Zone
+EMP0259,2023-11-23,6,Frustrated Zone
+EMP0316,2023-11-24,2,Leaning to Happy Zone
+EMP0138,2023-11-25,3,Happy Zone
+EMP0138,2023-11-26,4,Happy Zone
+EMP0416,2023-11-27,3,Leaning to Sad Zone
+EMP0273,2023-11-28,1,Happy Zone
+EMP0391,2023-11-29,2,Neutral Zone (OK)
+EMP0362,2023-11-30,6,Frustrated Zone
+EMP0378,2023-12-01,6,Leaning to Happy Zone
+EMP0203,2023-12-02,5,Leaning to Sad Zone
+EMP0247,2023-12-03,3,Leaning to Sad Zone
+EMP0272,2023-12-04,1,Excited Zone
+EMP0115,2023-12-05,1,Leaning to Happy Zone
+EMP0347,2023-12-06,2,Sad Zone
+EMP0242,2023-12-07,6,Leaning to Sad Zone
+EMP0300,2023-12-08,3,Leaning to Happy Zone
+EMP0092,2023-12-09,3,Leaning to Sad Zone
+EMP0005,2023-12-10,3,Frustrated Zone
+EMP0438,2023-12-11,1,Sad Zone
+EMP0416,2023-12-12,5,Excited Zone
+EMP0173,2023-12-13,1,Happy Zone
+EMP0066,2023-12-14,1,Sad Zone
+EMP0306,2023-12-15,2,Sad Zone
+EMP0006,2023-12-16,1,Leaning to Sad Zone
+EMP0468,2023-12-17,6,Neutral Zone (OK)
+EMP0406,2023-12-18,5,Sad Zone
+EMP0277,2023-12-19,3,Frustrated Zone
+EMP0076,2023-12-20,3,Leaning to Happy Zone
+EMP0190,2023-12-21,3,Frustrated Zone
+EMP0200,2023-12-22,2,Excited Zone
+EMP0316,2023-12-23,5,Sad Zone
+EMP0318,2023-12-24,3,Happy Zone
+EMP0403,2023-12-25,2,Frustrated Zone
+EMP0188,2023-12-26,3,Leaning to Sad Zone
+EMP0048,2023-12-27,4,Frustrated Zone
+EMP0421,2023-12-28,4,Frustrated Zone
+EMP0132,2023-12-29,4,Excited Zone
+EMP0003,2023-12-30,1,Leaning to Sad Zone
+EMP0199,2023-12-31,6,Excited Zone
+EMP0461,2024-01-01,2,Excited Zone
+EMP0226,2024-01-02,4,Frustrated Zone
+EMP0491,2024-01-03,5,Leaning to Happy Zone
+EMP0031,2024-01-04,1,Sad Zone
+EMP0430,2024-01-05,6,Happy Zone
+EMP0397,2024-01-06,1,Happy Zone
+EMP0407,2024-01-07,5,Neutral Zone (OK)
+EMP0234,2024-01-08,2,Happy Zone
+EMP0082,2024-01-09,1,Frustrated Zone
+EMP0397,2024-01-10,6,Leaning to Sad Zone
+EMP0480,2024-01-11,1,Excited Zone
+EMP0334,2024-01-12,2,Sad Zone
+EMP0406,2024-01-13,3,Leaning to Sad Zone
+EMP0017,2024-01-14,6,Happy Zone
+EMP0444,2024-01-15,2,Leaning to Happy Zone
+EMP0051,2024-01-16,5,Frustrated Zone
+EMP0210,2024-01-17,5,Frustrated Zone
+EMP0355,2024-01-18,4,Sad Zone
+EMP0073,2024-01-19,1,Sad Zone
+EMP0318,2024-01-20,3,Sad Zone
+EMP0446,2024-01-21,4,Sad Zone
+EMP0345,2024-01-22,2,Leaning to Happy Zone
+EMP0038,2024-01-23,5,Neutral Zone (OK)
+EMP0215,2024-01-24,2,Sad Zone
+EMP0285,2024-01-25,4,Sad Zone
+EMP0040,2024-01-26,4,Frustrated Zone
+EMP0019,2024-01-27,3,Frustrated Zone
+EMP0462,2024-01-28,4,Leaning to Happy Zone
+EMP0334,2024-01-29,6,Frustrated Zone
+EMP0161,2024-01-30,5,Happy Zone
+EMP0437,2024-01-31,1,Leaning to Happy Zone
+EMP0214,2024-02-01,4,Sad Zone
+EMP0473,2024-02-02,1,Sad Zone
+EMP0310,2024-02-03,1,Frustrated Zone
+EMP0493,2024-02-04,5,Neutral Zone (OK)
+EMP0448,2024-02-05,4,Leaning to Sad Zone
+EMP0488,2024-02-06,1,Neutral Zone (OK)
+EMP0225,2024-02-07,6,Neutral Zone (OK)
+EMP0118,2024-02-08,3,Leaning to Happy Zone
+EMP0043,2024-02-09,2,Leaning to Sad Zone
+EMP0097,2024-02-10,3,Excited Zone
+EMP0003,2024-02-11,3,Leaning to Sad Zone
+EMP0078,2024-02-12,6,Excited Zone
+EMP0270,2024-02-13,3,Happy Zone
+EMP0103,2024-02-14,2,Leaning to Happy Zone
+EMP0296,2024-02-15,3,Excited Zone
+EMP0128,2024-02-16,6,Frustrated Zone
+EMP0320,2024-02-17,1,Leaning to Sad Zone
+EMP0105,2024-02-18,4,Excited Zone
+EMP0004,2024-02-19,4,Neutral Zone (OK)
+EMP0044,2024-02-20,5,Sad Zone
+EMP0227,2024-02-21,3,Frustrated Zone
+EMP0281,2024-02-22,4,Happy Zone
+EMP0136,2024-02-23,1,Leaning to Happy Zone
+EMP0393,2024-02-24,4,Leaning to Happy Zone
+EMP0023,2024-02-25,2,Leaning to Happy Zone
+EMP0361,2024-02-26,5,Leaning to Sad Zone
+EMP0269,2024-02-27,1,Frustrated Zone
+EMP0161,2024-02-28,4,Leaning to Happy Zone
+EMP0490,2024-02-29,1,Frustrated Zone
+EMP0012,2024-03-01,6,Excited Zone
+EMP0397,2024-03-02,1,Leaning to Happy Zone
+EMP0180,2024-03-03,5,Happy Zone
+EMP0389,2024-03-04,1,Leaning to Happy Zone
+EMP0493,2024-03-05,2,Neutral Zone (OK)
+EMP0465,2024-03-06,2,Leaning to Happy Zone
+EMP0412,2024-03-07,2,Neutral Zone (OK)
+EMP0354,2024-03-08,5,Excited Zone
+EMP0221,2024-03-09,6,Happy Zone
+EMP0394,2024-03-10,2,Leaning to Happy Zone
+EMP0446,2024-03-11,2,Neutral Zone (OK)
+EMP0108,2024-03-12,5,Excited Zone
+EMP0394,2024-03-13,6,Happy Zone
+EMP0091,2024-03-14,4,Neutral Zone (OK)
+EMP0334,2024-03-15,6,Leaning to Happy Zone
+EMP0114,2024-03-16,3,Leaning to Happy Zone
+EMP0090,2024-03-17,4,Sad Zone
+EMP0010,2024-03-18,4,Neutral Zone (OK)
+EMP0258,2024-03-19,4,Excited Zone
+EMP0246,2024-03-20,1,Frustrated Zone
+EMP0474,2024-03-21,5,Leaning to Sad Zone
+EMP0473,2024-03-22,1,Leaning to Happy Zone
+EMP0292,2024-03-23,6,Sad Zone
+EMP0438,2024-03-24,5,Leaning to Happy Zone
+EMP0135,2024-03-25,3,Leaning to Happy Zone
+EMP0033,2024-03-26,4,Leaning to Happy Zone
+EMP0423,2024-03-27,1,Leaning to Happy Zone
+EMP0424,2024-03-28,3,Excited Zone
+EMP0190,2024-03-29,2,Excited Zone
+EMP0200,2024-03-30,4,Happy Zone
+EMP0288,2024-03-31,5,Sad Zone
+EMP0438,2024-04-01,1,Neutral Zone (OK)
+EMP0324,2024-04-02,3,Frustrated Zone
+EMP0148,2024-04-03,4,Neutral Zone (OK)
+EMP0306,2024-04-04,1,Neutral Zone (OK)
+EMP0168,2024-04-05,4,Sad Zone
+EMP0006,2024-04-06,5,Happy Zone
+EMP0078,2024-04-07,2,Excited Zone
+EMP0444,2024-04-08,3,Leaning to Sad Zone
+EMP0144,2024-04-09,6,Happy Zone
+EMP0019,2024-04-10,2,Happy Zone
+EMP0041,2024-04-11,5,Leaning to Sad Zone
+EMP0114,2024-04-12,6,Leaning to Happy Zone
+EMP0169,2024-04-13,3,Leaning to Sad Zone
+EMP0125,2024-04-14,4,Happy Zone
+EMP0350,2024-04-15,6,Excited Zone
+EMP0455,2024-04-16,3,Sad Zone
+EMP0327,2024-04-17,6,Sad Zone
+EMP0057,2024-04-18,6,Neutral Zone (OK)
+EMP0156,2024-04-19,1,Excited Zone
+EMP0036,2024-04-20,2,Sad Zone
+EMP0250,2024-04-21,1,Neutral Zone (OK)
+EMP0302,2024-04-22,1,Frustrated Zone
+EMP0247,2024-04-23,5,Sad Zone
+EMP0247,2024-04-24,6,Neutral Zone (OK)
+EMP0343,2024-04-25,5,Neutral Zone (OK)
+EMP0357,2024-04-26,3,Leaning to Sad Zone
+EMP0384,2024-04-27,6,Frustrated Zone
+EMP0190,2024-04-28,2,Leaning to Happy Zone
+EMP0389,2024-04-29,3,Leaning to Happy Zone
+EMP0130,2024-04-30,4,Sad Zone
+EMP0351,2024-05-01,4,Frustrated Zone
+EMP0208,2024-05-02,5,Frustrated Zone
+EMP0008,2024-05-03,4,Neutral Zone (OK)
+EMP0108,2024-05-04,4,Leaning to Sad Zone
+EMP0259,2024-05-05,4,Leaning to Happy Zone
+EMP0184,2024-05-06,2,Leaning to Happy Zone
+EMP0011,2024-05-07,2,Frustrated Zone
+EMP0187,2024-05-08,5,Neutral Zone (OK)
+EMP0090,2024-05-09,6,Leaning to Sad Zone
+EMP0154,2024-05-10,6,Leaning to Sad Zone
+EMP0262,2024-05-11,3,Frustrated Zone
+EMP0366,2024-05-12,6,Leaning to Sad Zone
+EMP0203,2024-05-13,4,Frustrated Zone
+EMP0013,2024-05-14,2,Sad Zone
