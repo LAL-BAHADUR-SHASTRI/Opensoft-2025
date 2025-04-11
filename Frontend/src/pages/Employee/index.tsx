@@ -34,7 +34,8 @@ const EmployeePage = () => {
 
   const [showVoiceBtn, setShowVoiceBtn] = useState(true);
 
-  const { transcript, listening, resetTranscript,browserSupportsSpeechRecognition } = useSpeechRecognition();
+  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true });
 
@@ -50,8 +51,8 @@ const EmployeePage = () => {
         setUserMessage((prev) => prev + " " + transcript);
         resetTranscript();
       }
-    }, 1000)
-    
+    }, 1000);
+
     return () => clearTimeout(timeout);
   }, [transcript]);
 
@@ -59,13 +60,13 @@ const EmployeePage = () => {
     if (userMessage === "") {
       resetTranscript();
     }
-  }, [userMessage])
+  }, [userMessage]);
 
   useEffect(() => {
-    if(!listening){
-      resetTranscript()
+    if (!listening) {
+      resetTranscript();
     }
-  },[listening])
+  }, [listening]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -233,7 +234,6 @@ const EmployeePage = () => {
     e.preventDefault();
     if (!userMessage.trim()) return;
 
-    
     const newMessage = {
       sender: "user",
       id: chatMessages.length + 1,
@@ -241,12 +241,12 @@ const EmployeePage = () => {
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       date: new Date().toLocaleDateString(),
     };
-    
+
     setChatMessages((prev) => {
       const updatedMessages = [...prev, newMessage];
       return updatedMessages;
     });
-    
+
     SpeechRecognition.stopListening();
     resetTranscript();
     setUserMessage("");
@@ -403,25 +403,41 @@ const EmployeePage = () => {
             </div>
 
             <div className="py-4 lg:py-6">
-              <form className="flex items-center space-x-2 mx-auto w-[90%] max-w-[1000px] bg-neutral-900 pr-6 rounded-lg">
-                <textarea
-                  ref={textAreaRef}
-                  value={userMessage}
-                  onChange={(e) => setUserMessage(e.target.value)}
-                  placeholder="Type a message"
-                  onKeyDown={handleKeyDown}
-                  className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
-                />
+              <form
+                className={`flex items-center space-x-2 mx-auto w-[90%] bg-neutral-900 max-w-[1000px] pr-6 rounded-lg`}
+              >
+                {!sessionEnded ? (
+                  <textarea
+                    ref={textAreaRef}
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    placeholder="Type a message"
+                    onKeyDown={handleKeyDown}
+                    className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
+                  />
+                ) : (
+                  <textarea
+                    ref={textAreaRef}
+                    value={userMessage}
+                    disabled
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    placeholder="Type a message"
+                    onKeyDown={handleKeyDown}
+                    className="w-full py-4 pl-4 pr-2 min-h-24 max-h-32 focus:outline-none placeholder:text-neutral-500 rounded-lg resize-none"
+                  />
+                )}
                 <div className="flex items-center gap-2">
                   {showVoiceBtn && (
                     <button
                       onClick={(e) => {
                         e.preventDefault();
-                        if (listening) {
-                          SpeechRecognition.stopListening();
-                          resetTranscript();
-                        } else {
-                          startListening();
+                        if (!sessionEnded) {
+                          if (listening) {
+                            SpeechRecognition.stopListening();
+                            resetTranscript();
+                          } else {
+                            startListening();
+                          }
                         }
                       }}
                       className="text-2xl py-1.5 px-1.5 grid place-content-center hover:bg-neutral-800 transition-all rounded-md"

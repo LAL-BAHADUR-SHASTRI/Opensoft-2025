@@ -470,7 +470,10 @@ const AdminPage = () => {
 
                       <TableCell className=" max-md:hidden">
                         {(() => {
-                          const date = new Date(user.last_chat_date || 0).toLocaleDateString();
+                            const utc = new Date(user.last_chat_date || 0);
+                            const offset = utc.getTimezoneOffset();
+                            const date = new Date(utc.getTime() + offset * 60000);
+                          // const date = new Date(user.last_chat_date || 0).toLocaleDateString();
                           return (
                             <div>
                               <p className="text-muted-foreground">
