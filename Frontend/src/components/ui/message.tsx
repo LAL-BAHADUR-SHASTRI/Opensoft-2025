@@ -11,7 +11,7 @@ const Message = ({message} : {message: {
   return (
     <div
     key={message.id}
-    className={`flex gap-3 mt-4 ${message.sender === "user" && "self-end"} items-end`}
+    className={`flex gap-3 mt-4 max-w-[700px] ${message.sender === "user" && "self-end"} items-end`}
   >
     {message.sender === "assistant" && (
       <div className="h-6 w-6 rounded-md mb-1">

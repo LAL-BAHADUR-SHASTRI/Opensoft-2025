@@ -274,13 +274,13 @@ const AdminPage = () => {
       {isLoading && <AppLoader></AppLoader>}
       {!isLoading && isAuthenticated && role == "hr" && (
         <main className="w-full min-h-screen rounded-none bg-neutral-950 text-white pb-6">
-          <div className="flex justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4 px-6 border-b border-neutral-800">
             <div className="flex items-center">
             <h2 className="text-2xl font-bold text-white  flex items-center gap-1">
                 WellBot<span className="text-green-500 text-3xl">•</span>
                 </h2>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="w-full flex justify-between sm:justify-end items-center gap-2">
               <Link
                 to={"/admin/upload"}
                 state={{ background: location }}
@@ -470,7 +470,7 @@ const AdminPage = () => {
 
                       <TableCell className=" max-md:hidden">
                         {(() => {
-                          const date = new Date(user.last_chat_date || 0);
+                          const date = new Date(user.last_chat_date || 0).toLocaleDateString();
                           return (
                             <div>
                               <p className="text-muted-foreground">
